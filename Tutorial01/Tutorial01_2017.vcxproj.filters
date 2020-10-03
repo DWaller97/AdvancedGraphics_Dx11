@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="DrawableGameObject.cpp" />
+    <ClCompile Include="..\imgui-master\imgui.cpp">
+      <Filter>Dear ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\imgui-master\imgui_demo.cpp">
+      <Filter>Dear ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\imgui-master\imgui_draw.cpp">
+      <Filter>Dear ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\imgui-master\imgui_widgets.cpp">
+      <Filter>Dear ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\imgui-master\examples\imgui_impl_dx11.cpp">
+      <Filter>Dear ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\imgui-master\examples\imgui_impl_win32.cpp">
+      <Filter>Dear ImGui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{7223e20c-1371-49bb-97d0-8117b6b97369}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{5c65bb77-486a-4c4e-a1b8-db822f520520}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dear ImGui">
+      <UniqueIdentifier>{e5d61927-9792-4793-97fa-e218dacc676b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CLInclude Include="resource.h">
+      <Filter>Resource Files</Filter>
+    </CLInclude>
+    <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="DrawableGameObject.h" />
+    <ClInclude Include="structures.h" />
+    <ClInclude Include="..\imgui-master\imconfig.h">
+      <Filter>Dear ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\imgui-master\imgui.h">
+      <Filter>Dear ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\imgui-master\imgui_internal.h">
+      <Filter>Dear ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\imgui-master\imstb_rectpack.h">
+      <Filter>Dear ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\imgui-master\imstb_textedit.h">
+      <Filter>Dear ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\imgui-master\imstb_truetype.h">
+      <Filter>Dear ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\imgui-master\examples\imgui_impl_dx11.h">
+      <Filter>Dear ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\imgui-master\examples\imgui_impl_win32.h">
+      <Filter>Dear ImGui</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Tutorial01.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\stone.dds">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shader.fx">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>
