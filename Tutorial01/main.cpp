@@ -80,6 +80,10 @@ int						g_viewHeight;
 DrawableGameObject		g_GameObject;
 
 
+//Lighting Variables
+float lightColour[4] = { 1, 1, 1, 1 };
+
+
 
 //--------------------------------------------------------------------------------------
 // Entry point to the program. Initializes everything and goes into a message processing 
@@ -120,26 +124,20 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
             DispatchMessage( &msg );
         }
         
-        {
             // Feed inputs to dear imgui, start new frame
             ImGui_ImplDX11_NewFrame();
             ImGui_ImplWin32_NewFrame();
             {
                 ImGui::NewFrame();
-                bool open = false;
-                ImGui::Begin("Wah", &open);
-                ImGui::Text("Hello, world!");
-                ImGui::Button("Button");
+                ImGui::Begin("Light");
+                ImGui::ColorPicker3("Light Colour", lightColour);
                 ImGui::End();
-                ImGui::ShowDemoWindow();
             }
             ImGui::Render();
             Render();
             
             // Any application code here
             // Render dear imgui into screen
-        }
-
     }
 
     CleanupDevice();
@@ -670,9 +668,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
         PostQuitMessage( 0 );
         break;
      
-        // Note that this tutorial does not handle resizing (WM_SIZE) requests,
-        // so we created the window without the resize border.
-
     default:
         return DefWindowProc( hWnd, message, wParam, lParam );
     }
@@ -731,7 +726,7 @@ void Render()
 	Light light;
 	light.Enabled = static_cast<int>(true);
 	light.LightType = PointLight;
-	light.Color = XMFLOAT4(Colors::White);
+	light.Color = XMFLOAT4(lightColour);
 	light.SpotAngle = XMConvertToRadians(45.0f);
 	light.ConstantAttenuation = 1.0f;
 	light.LinearAttenuation = 1;
