@@ -32,7 +32,7 @@ void		CleanupDevice();
 void        CleanupImGui();
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 void		Render();
-
+IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 
 //--------------------------------------------------------------------------------------
@@ -80,6 +80,7 @@ int						g_viewHeight;
 DrawableGameObject		g_GameObject;
 
 
+
 //--------------------------------------------------------------------------------------
 // Entry point to the program. Initializes everything and goes into a message processing 
 // loop. Idle time is used to render the scene.
@@ -97,18 +98,22 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
         CleanupDevice();
         return 0;
     }
-
+    
     if (FAILED(InitImGui()))
         return 0;
+
+    ImGuiIO& io = ImGui::GetIO();
 
     // Main message loop
     MSG msg = {0};
     while( WM_QUIT != msg.message )
     {
 
+        //g_pSwapChain->Present(1, 0);
+        UpdateWindow(g_hWnd);
 
+        io = ImGui::GetIO();
 
-        g_pSwapChain->Present(1, 0);
         if( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
         {
             TranslateMessage( &msg );
@@ -119,16 +124,22 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
             // Feed inputs to dear imgui, start new frame
             ImGui_ImplDX11_NewFrame();
             ImGui_ImplWin32_NewFrame();
-            ImGui::NewFrame();
-            ImGui::Begin("Wah");
-            ImGui::Text("Hello, world!");
-            ImGui::End();
-
+            {
+                ImGui::NewFrame();
+                bool open = false;
+                ImGui::Begin("Wah", &open);
+                ImGui::Text("Hello, world!");
+                ImGui::Button("Button");
+                ImGui::End();
+                ImGui::ShowDemoWindow();
+            }
             ImGui::Render();
             Render();
+            
             // Any application code here
             // Render dear imgui into screen
         }
+
     }
 
     CleanupDevice();
@@ -159,22 +170,31 @@ HRESULT InitWindow( HINSTANCE hInstance, int nCmdShow )
     if( !RegisterClassEx( &wcex ) )
         return E_FAIL;
 
+
     // Create window
     g_hInst = hInstance;
-    RECT rc = { 0, 0, 640, 480 };
+    RECT rc = { 0, 0, 1920, 1080 };
 
-	g_viewWidth = 640;
-	g_viewHeight = 480;
+	g_viewWidth = 1920;
+	g_viewHeight = 1080;
 
     AdjustWindowRect( &rc, WS_OVERLAPPEDWINDOW, FALSE );
-    g_hWnd = CreateWindow( L"TutorialWindowClass", L"Direct3D 11 Tutorial 5",
-                           WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-                           CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
+    g_hWnd = CreateWindow( L"TutorialWindowClass",
+                            L"Direct3D 11",
+                           WS_OVERLAPPEDWINDOW/* | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX*/,
+                           CW_USEDEFAULT,
+                            CW_USEDEFAULT, 
+                            rc.right - rc.left, 
+                            rc.bottom - rc.top, 
+                            nullptr, 
+                            nullptr, 
+                            hInstance,
                            nullptr );
     if( !g_hWnd )
         return E_FAIL;
 
     ShowWindow( g_hWnd, nCmdShow );
+    UpdateWindow(g_hWnd);
 
     
     return S_OK;
@@ -425,7 +445,6 @@ HRESULT InitImGui()
 {
     // Application init: create a dear imgui context, setup some options, load fonts
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
     // TODO: Set optional io.ConfigFlags values, e.g. 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard' to enable keyboard controls.
     // TODO: Fill optional fields of the io structure later.
     // TODO: Load TTF/OTF fonts if you don't want to use the default font.
@@ -625,24 +644,32 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 {
     PAINTSTRUCT ps;
     HDC hdc;
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+        return true;
+
 
     switch( message )
     {
-	case WM_LBUTTONDOWN:
-	{
-		int xPos = GET_X_LPARAM(lParam);
-		int yPos = GET_Y_LPARAM(lParam);
-		break;
-	}
-    case WM_PAINT:
-        hdc = BeginPaint( hWnd, &ps );
-        EndPaint( hWnd, &ps );
-        break;
+    case WM_SIZE:
+        if (g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED)
+        {
+            if (g_pRenderTargetView) {
+                g_pRenderTargetView->Release();
+                g_pRenderTargetView = NULL;
+            }
+            g_pSwapChain->ResizeBuffers(0, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam), DXGI_FORMAT_UNKNOWN, 0);
+            ID3D11Texture2D* pBackBuffer;
+            g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+            g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_pRenderTargetView);
+            pBackBuffer->Release();
+        }
+        return 0;
+
 
     case WM_DESTROY:
         PostQuitMessage( 0 );
         break;
-
+     
         // Note that this tutorial does not handle resizing (WM_SIZE) requests,
         // so we created the window without the resize border.
 
@@ -673,6 +700,7 @@ void Render()
         t = ( timeCur - timeStart ) / 1000.0f;
     }
 
+    g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, NULL);
     // Clear the back buffer
     g_pImmediateContext->ClearRenderTargetView( g_pRenderTargetView, Colors::MidnightBlue );
 
