@@ -10,6 +10,7 @@
 #include "DDSTextureLoader.h"
 #include "resource.h"
 #include <iostream>
+#include <string>
 
 #include "DrawableGameObject.h"
 #include "structures.h"

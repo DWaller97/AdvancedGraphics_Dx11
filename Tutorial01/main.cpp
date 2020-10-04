@@ -19,6 +19,8 @@
 
 
 DirectX::XMFLOAT4 g_EyePosition(0.0f, 0, -3, 1.0f);
+DirectX::XMFLOAT4 g_AtPosition(0.0f, 1.0f, 0.0f, 0.0f);
+DirectX::XMFLOAT4 g_UpPosition(0.0f, 1.0f, 0.0f, 0.0f);
 
 //--------------------------------------------------------------------------------------
 // Forward declarations
@@ -27,10 +29,11 @@ HRESULT		InitWindow(HINSTANCE hInstance, int nCmdShow);
 HRESULT		InitDevice();
 HRESULT     InitImGui();
 HRESULT		InitMesh();
-HRESULT		InitWorld(int width, int height);
+HRESULT		InitWorld();
 void		CleanupDevice();
 void        CleanupImGui();
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
+void        Update();
 void		Render();
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -74,11 +77,12 @@ XMMATRIX                g_World1;
 XMMATRIX                g_View;
 XMMATRIX                g_Projection;
 
-int						g_viewWidth;
-int						g_viewHeight;
+const int				g_viewWidth = 1920;
+const int				g_viewHeight = 1080;
 
 DrawableGameObject		g_GameObject;
 
+static float t = 0.0f;
 
 //Lighting Variables
 float lightColour[4] = { 1, 1, 1, 1 };
@@ -123,21 +127,8 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
             TranslateMessage( &msg );
             DispatchMessage( &msg );
         }
-        
-            // Feed inputs to dear imgui, start new frame
-            ImGui_ImplDX11_NewFrame();
-            ImGui_ImplWin32_NewFrame();
-            {
-                ImGui::NewFrame();
-                ImGui::Begin("Light");
-                ImGui::ColorPicker3("Light Colour", lightColour);
-                ImGui::End();
-            }
-            ImGui::Render();
-            Render();
-            
-            // Any application code here
-            // Render dear imgui into screen
+        Update();
+        Render();
     }
 
     CleanupDevice();
@@ -171,10 +162,7 @@ HRESULT InitWindow( HINSTANCE hInstance, int nCmdShow )
 
     // Create window
     g_hInst = hInstance;
-    RECT rc = { 0, 0, 1920, 1080 };
-
-	g_viewWidth = 1920;
-	g_viewHeight = 1080;
+    RECT rc = { 0, 0, g_viewWidth, g_viewHeight };
 
     AdjustWindowRect( &rc, WS_OVERLAPPEDWINDOW, FALSE );
     g_hWnd = CreateWindow( L"TutorialWindowClass",
@@ -424,7 +412,7 @@ HRESULT InitDevice()
 		return hr;
 	}
 
-	hr = InitWorld(width, height);
+	hr = InitWorld();
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr,
@@ -587,19 +575,19 @@ HRESULT		InitMesh()
 // ***************************************************************************************
 // InitWorld
 // ***************************************************************************************
-HRESULT		InitWorld(int width, int height)
+HRESULT		InitWorld()
 {
 	// Initialize the world matrix
 	g_World1 = XMMatrixIdentity();
 
 	// Initialize the view matrix
 	XMVECTOR Eye = XMLoadFloat4(&g_EyePosition);
-	XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    XMVECTOR At = XMLoadFloat4(&g_AtPosition);
+	XMVECTOR Up = XMLoadFloat4(&g_UpPosition);
 	g_View = XMMatrixLookAtLH(Eye, At, Up);
 
 	// Initialize the projection matrix
-	g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, width / (FLOAT)height, 0.01f, 100.0f);
+	g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, g_viewWidth / (FLOAT)g_viewHeight, 0.01f, 100.0f);
 
 	return S_OK;
 }
@@ -663,7 +651,20 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
         }
         return 0;
 
-
+        //0x57 W
+        //0x41 A
+        //0x53 S
+        //0x44 D
+    case WM_KEYDOWN: 
+        if (wParam == 0x57)
+            g_EyePosition.x += t;
+        if (wParam == 0x53)
+            g_EyePosition.x -= t;
+        if (wParam == 0x41)
+            g_EyePosition.z += t;
+        if (wParam == 0x44)
+            g_EyePosition.z -= t;
+        break;
     case WM_DESTROY:
         PostQuitMessage( 0 );
         break;
@@ -675,25 +676,99 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     return 0;
 }
 
-//--------------------------------------------------------------------------------------
-// Render a frame
-//--------------------------------------------------------------------------------------
-void Render()
-{
+void Update() {
+    t = 0.0f;
     // Update our time
-    static float t = 0.0f;
-    if( g_driverType == D3D_DRIVER_TYPE_REFERENCE )
+    if (g_driverType == D3D_DRIVER_TYPE_REFERENCE)
     {
-        t += ( float )XM_PI * 0.0125f;
+        t += (float)XM_PI * 0.0125f;
     }
     else
     {
         static ULONGLONG timeStart = 0;
         ULONGLONG timeCur = GetTickCount64();
-        if( timeStart == 0 )
+        if (timeStart == 0)
             timeStart = timeCur;
-        t = ( timeCur - timeStart ) / 1000.0f;
+        t = (timeCur - timeStart) / 1000.0f;
     }
+
+    // Initialize the view matrix
+    XMVECTOR Eye = XMLoadFloat4(&g_EyePosition);
+    XMVECTOR At = XMLoadFloat4(&g_AtPosition);
+    XMVECTOR Up = XMLoadFloat4(&g_UpPosition);
+    g_View = XMMatrixLookAtLH(Eye, At, Up);
+
+    // Update variables for a cube
+    g_GameObject.update(t);
+
+    // Update variables for the cube
+    XMMATRIX mGO = XMLoadFloat4x4(g_GameObject.getTransform());
+
+    ConstantBuffer cb1;
+    cb1.mWorld = XMMatrixTranspose(mGO);
+    cb1.mView = XMMatrixTranspose(g_View);
+    cb1.mProjection = XMMatrixTranspose(g_Projection);
+    cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
+    g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
+
+
+    MaterialPropertiesConstantBuffer redPlasticMaterial;
+    redPlasticMaterial.Material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+    redPlasticMaterial.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
+    redPlasticMaterial.Material.SpecularPower = 32.0f;
+    redPlasticMaterial.Material.UseTexture = true;
+    g_pImmediateContext->UpdateSubresource(g_pMaterialConstantBuffer, 0, nullptr, &redPlasticMaterial, 0, 0);
+
+    Light light;
+    light.Enabled = static_cast<int>(true);
+    light.LightType = PointLight;
+    light.Color = XMFLOAT4(lightColour);
+    light.SpotAngle = XMConvertToRadians(45.0f);
+    light.ConstantAttenuation = 1.0f;
+    light.LinearAttenuation = 1;
+    light.QuadraticAttenuation = 1;
+
+
+    // set up the light
+    XMFLOAT4 LightPosition(g_EyePosition);
+    light.Position = LightPosition;
+    XMVECTOR LightDirection = XMVectorSet(-LightPosition.x, -LightPosition.y, -LightPosition.z, 0.0f);
+    LightDirection = XMVector3Normalize(LightDirection);
+    XMStoreFloat4(&light.Direction, LightDirection);
+
+    LightPropertiesConstantBuffer lightProperties;
+    lightProperties.EyePosition = LightPosition;
+    lightProperties.Lights[0] = light;
+    g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
+
+
+}
+
+//--------------------------------------------------------------------------------------
+// Render a frame
+//--------------------------------------------------------------------------------------
+void Render()
+{
+    
+
+    // Feed inputs to dear imgui, start new frame
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    {
+        ImGui::NewFrame();
+        ImGui::Begin("Light");
+        ImGui::ColorPicker3("Light Colour", lightColour);
+        ImGui::End();
+    }
+    {
+        ImGui::Begin("Camera");
+        ImGui::Text("Eye Position: %f %f %f", g_EyePosition.x, g_EyePosition.y, g_EyePosition.z);
+        ImGui::Text("At Position: %f %f %f", g_AtPosition.x, g_AtPosition.y, g_AtPosition.z);
+        ImGui::Text("Up Position: %f %f %f", g_UpPosition.x, g_UpPosition.y, g_UpPosition.z);
+
+        ImGui::End();
+    }
+    ImGui::Render();
 
     g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, NULL);
     // Clear the back buffer
@@ -703,47 +778,11 @@ void Render()
     g_pImmediateContext->ClearDepthStencilView( g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
 
-	// Update variables for a cube
-	g_GameObject.update(t);
-
-    // Update variables for the cube
-	XMMATRIX mGO = XMLoadFloat4x4(g_GameObject.getTransform());
-
-    ConstantBuffer cb1;
-	cb1.mWorld = XMMatrixTranspose( mGO);
-	cb1.mView = XMMatrixTranspose( g_View );
-	cb1.mProjection = XMMatrixTranspose( g_Projection );
-	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
-	g_pImmediateContext->UpdateSubresource( g_pConstantBuffer, 0, nullptr, &cb1, 0, 0 );
-
-	MaterialPropertiesConstantBuffer redPlasticMaterial;
-	redPlasticMaterial.Material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	redPlasticMaterial.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
-	redPlasticMaterial.Material.SpecularPower = 32.0f;
-	redPlasticMaterial.Material.UseTexture = true;
-	g_pImmediateContext->UpdateSubresource(g_pMaterialConstantBuffer, 0, nullptr, &redPlasticMaterial, 0, 0);
-
-	Light light;
-	light.Enabled = static_cast<int>(true);
-	light.LightType = PointLight;
-	light.Color = XMFLOAT4(lightColour);
-	light.SpotAngle = XMConvertToRadians(45.0f);
-	light.ConstantAttenuation = 1.0f;
-	light.LinearAttenuation = 1;
-	light.QuadraticAttenuation = 1;
 	
 
-	// set up the light
-	XMFLOAT4 LightPosition(g_EyePosition);
-	light.Position = LightPosition;
-	XMVECTOR LightDirection = XMVectorSet(-LightPosition.x, -LightPosition.y, -LightPosition.z, 0.0f);
-	LightDirection = XMVector3Normalize(LightDirection);
-	XMStoreFloat4(&light.Direction, LightDirection);
+	
 
-	LightPropertiesConstantBuffer lightProperties;
-	lightProperties.EyePosition = LightPosition;
-	lightProperties.Lights[0] = light;
-	g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
+
 
     // Render the cube
 	g_pImmediateContext->VSSetShader( g_pVertexShader, nullptr, 0 );
