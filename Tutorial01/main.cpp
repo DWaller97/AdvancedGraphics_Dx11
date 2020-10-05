@@ -81,7 +81,7 @@ const int				g_viewWidth = 1920;
 const int				g_viewHeight = 1080;
 
 DrawableGameObject		g_GameObject;
-
+Camera*                 g_Camera;
 static float t = 0.0f;
 
 //Lighting Variables
@@ -577,6 +577,9 @@ HRESULT		InitMesh()
 // ***************************************************************************************
 HRESULT		InitWorld()
 {
+
+    g_Camera = new Camera();
+
 	// Initialize the world matrix
 	g_World1 = XMMatrixIdentity();
 

@@ -22,6 +22,7 @@
     <ClCompile Include="..\imgui-master\examples\imgui_impl_win32.cpp">
       <Filter>Dear ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -66,6 +67,7 @@
     <ClInclude Include="..\imgui-master\examples\imgui_impl_win32.h">
       <Filter>Dear ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tutorial01.rc">

@@ -20,6 +20,8 @@
 #include "examples/imgui_impl_dx11.h"
 #include <vector>
 
+#include "Camera.h"
+
 using namespace std;
 
 typedef vector<DrawableGameObject*> vecDrawables;
