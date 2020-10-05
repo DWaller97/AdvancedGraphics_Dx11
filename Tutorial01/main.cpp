@@ -18,9 +18,9 @@
 
 
 
-DirectX::XMFLOAT4 g_EyePosition(0.0f, 0, -3, 1.0f);
-DirectX::XMFLOAT4 g_AtPosition(0.0f, 1.0f, 0.0f, 0.0f);
-DirectX::XMFLOAT4 g_UpPosition(0.0f, 1.0f, 0.0f, 0.0f);
+//DirectX::XMFLOAT4 g_EyePosition(0.0f, 0, -3, 1.0f);
+//DirectX::XMFLOAT4 g_AtPosition(0.0f, 1.0f, 0.0f, 0.0f);
+//DirectX::XMFLOAT4 g_UpPosition(0.0f, 1.0f, 0.0f, 0.0f);
 
 //--------------------------------------------------------------------------------------
 // Forward declarations
@@ -73,9 +73,9 @@ ID3D11ShaderResourceView * g_pNormalTextureRV = nullptr;
 ID3D11SamplerState *	g_pSamplerLinear = nullptr;
 ID3D11SamplerState *	g_pSamplerNormal = nullptr;
 
-XMMATRIX                g_World1;
-XMMATRIX                g_View;
-XMMATRIX                g_Projection;
+//XMMATRIX                g_World1;
+//XMMATRIX                g_View;
+//XMMATRIX                g_Projection;
 
 const int				g_viewWidth = 1920;
 const int				g_viewHeight = 1080;
@@ -107,6 +107,13 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
         return 0;
     }
     
+    if (FAILED(InitWorld()))
+    {
+        MessageBox(nullptr,
+            L"Failed to initialise world.", L"Error", MB_OK);
+        return 0;
+    }
+
     if (FAILED(InitImGui()))
         return 0;
 
@@ -412,14 +419,6 @@ HRESULT InitDevice()
 		return hr;
 	}
 
-	hr = InitWorld();
-	if (FAILED(hr))
-	{
-		MessageBox(nullptr,
-			L"Failed to initialise world.", L"Error", MB_OK);
-		return hr;
-	}
-
 	hr = g_GameObject.initMesh(g_pd3dDevice, g_pImmediateContext);
 	if (FAILED(hr))
 		return hr;
@@ -577,20 +576,11 @@ HRESULT		InitMesh()
 // ***************************************************************************************
 HRESULT		InitWorld()
 {
+    DirectX::XMFLOAT3 eye = DirectX::XMFLOAT3(0, 0, -3);
+    DirectX::XMFLOAT3 at = DirectX::XMFLOAT3(0, 1, 0);
+    DirectX::XMFLOAT3 up = DirectX::XMFLOAT3(0, 1, 0);
 
-    g_Camera = new Camera();
-
-	// Initialize the world matrix
-	g_World1 = XMMatrixIdentity();
-
-	// Initialize the view matrix
-	XMVECTOR Eye = XMLoadFloat4(&g_EyePosition);
-    XMVECTOR At = XMLoadFloat4(&g_AtPosition);
-	XMVECTOR Up = XMLoadFloat4(&g_UpPosition);
-	g_View = XMMatrixLookAtLH(Eye, At, Up);
-
-	// Initialize the projection matrix
-	g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, g_viewWidth / (FLOAT)g_viewHeight, 0.01f, 100.0f);
+    g_Camera = new Camera(eye, at, up, g_viewWidth, g_viewHeight);
 
 	return S_OK;
 }
@@ -659,14 +649,14 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
         //0x53 S
         //0x44 D
     case WM_KEYDOWN: 
-        if (wParam == 0x57)
-            g_EyePosition.x += t;
-        if (wParam == 0x53)
-            g_EyePosition.x -= t;
-        if (wParam == 0x41)
-            g_EyePosition.z += t;
-        if (wParam == 0x44)
-            g_EyePosition.z -= t;
+        //if (wParam == 0x57)
+        //    g_Camera->x += t;
+        //if (wParam == 0x53)
+        //    g_EyePosition.x -= t;
+        //if (wParam == 0x41)
+        //    g_EyePosition.z += t;
+        //if (wParam == 0x44)
+        //    g_EyePosition.z -= t;
         break;
     case WM_DESTROY:
         PostQuitMessage( 0 );
@@ -695,11 +685,7 @@ void Update() {
         t = (timeCur - timeStart) / 1000.0f;
     }
 
-    // Initialize the view matrix
-    XMVECTOR Eye = XMLoadFloat4(&g_EyePosition);
-    XMVECTOR At = XMLoadFloat4(&g_AtPosition);
-    XMVECTOR Up = XMLoadFloat4(&g_UpPosition);
-    g_View = XMMatrixLookAtLH(Eye, At, Up);
+    g_Camera->UpdateViewMatrix();
 
     // Update variables for a cube
     g_GameObject.update(t);
@@ -708,9 +694,9 @@ void Update() {
     XMMATRIX mGO = XMLoadFloat4x4(g_GameObject.getTransform());
 
     ConstantBuffer cb1;
-    cb1.mWorld = XMMatrixTranspose(mGO);
-    cb1.mView = XMMatrixTranspose(g_View);
-    cb1.mProjection = XMMatrixTranspose(g_Projection);
+    cb1.mWorld = XMMatrixTranspose(g_Camera->GetWorldMat());
+    cb1.mView = XMMatrixTranspose(g_Camera->GetViewMat());
+    cb1.mProjection = XMMatrixTranspose(g_Camera->GetProjMat());
     cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
     g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
 
@@ -733,7 +719,9 @@ void Update() {
 
 
     // set up the light
-    XMFLOAT4 LightPosition(g_EyePosition);
+    XMFLOAT4 LightPosition;
+    DirectX::XMStoreFloat4(&LightPosition, g_Camera->GetLookVec());
+
     light.Position = LightPosition;
     XMVECTOR LightDirection = XMVectorSet(-LightPosition.x, -LightPosition.y, -LightPosition.z, 0.0f);
     LightDirection = XMVector3Normalize(LightDirection);
@@ -765,9 +753,9 @@ void Render()
     }
     {
         ImGui::Begin("Camera");
-        ImGui::Text("Eye Position: %f %f %f", g_EyePosition.x, g_EyePosition.y, g_EyePosition.z);
-        ImGui::Text("At Position: %f %f %f", g_AtPosition.x, g_AtPosition.y, g_AtPosition.z);
-        ImGui::Text("Up Position: %f %f %f", g_UpPosition.x, g_UpPosition.y, g_UpPosition.z);
+        ImGui::Text("Eye Position: %f %f %f", g_Camera->GetLook().x, g_Camera->GetLook().y, g_Camera->GetLook().z);
+        ImGui::Text("At Position: %f %f %f", g_Camera->GetPosition().x, g_Camera->GetPosition().y, g_Camera->GetPosition().z);
+        ImGui::Text("Up Position: %f %f %f", g_Camera->GetUp().x, g_Camera->GetUp().y, g_Camera->GetUp().z);
 
         ImGui::End();
     }
