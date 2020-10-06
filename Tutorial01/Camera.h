@@ -23,9 +23,9 @@ public:
 	void LookAt(DirectX::FXMVECTOR pos, DirectX::FXMVECTOR target, DirectX::FXMVECTOR worldUp);
 	void LookAt(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 target, DirectX::XMFLOAT3 worldUp);
 
-	DirectX::XMMATRIX GetViewMat() { return view; };
-	DirectX::XMMATRIX GetProjMat() { return proj; };
-	DirectX::XMMATRIX GetWorldMat() { return world; };
+	DirectX::XMFLOAT4X4* GetViewMat() { return &view; };
+	DirectX::XMFLOAT4X4* GetProjMat() { return &proj; };
+	DirectX::XMFLOAT4X4* GetWorldMat() { return &world; };
 
 	void Strafe(float dist);
 	void Move(float dist);
@@ -37,6 +37,6 @@ public:
 
 private:
 	DirectX::XMFLOAT3 at = DirectX::XMFLOAT3(0, 1, 0), right = DirectX::XMFLOAT3(1, 0, 0), up = DirectX::XMFLOAT3(0, 1, 0), eye = DirectX::XMFLOAT3(0, 0, -3);
-	DirectX::XMMATRIX view, proj, world;
+	DirectX::XMFLOAT4X4 view, proj, world;
 };
 

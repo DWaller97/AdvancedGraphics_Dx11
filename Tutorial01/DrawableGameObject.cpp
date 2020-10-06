@@ -5,7 +5,7 @@ using namespace DirectX;
 
 #define NUM_VERTICES 36
 
-DrawableGameObject::DrawableGameObject()
+DrawableGameObject::DrawableGameObject(DirectX::XMFLOAT4X4 *world)
 {
 	m_pVertexBuffer = nullptr;
 	m_pIndexBuffer = nullptr;
@@ -13,7 +13,7 @@ DrawableGameObject::DrawableGameObject()
 	m_pSamplerLinear = nullptr;
 
 	// Initialize the world matrix
-	XMStoreFloat4x4(&m_World, XMMatrixIdentity());
+	m_World = world;
 }
 
 
@@ -158,7 +158,7 @@ void DrawableGameObject::update(float t)
 
 	XMMATRIX mTranslate = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
 	XMMATRIX world = mTranslate * mSpin;
-	XMStoreFloat4x4(&m_World, world);
+	XMStoreFloat4x4(m_World, world);
 }
 
 void DrawableGameObject::draw(ID3D11DeviceContext* pContext)

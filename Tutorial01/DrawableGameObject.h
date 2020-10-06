@@ -22,7 +22,7 @@ struct SimpleVertex
 class DrawableGameObject
 {
 public:
-	DrawableGameObject();
+	DrawableGameObject(DirectX::XMFLOAT4X4 *world);
 	~DrawableGameObject();
 
 	HRESULT								initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext);
@@ -31,21 +31,21 @@ public:
 	ID3D11Buffer*						getVertexBuffer() { return m_pVertexBuffer; }
 	ID3D11Buffer*						getIndexBuffer() { return m_pIndexBuffer; }
 	ID3D11ShaderResourceView**			getTextureResourceView() { return &m_pTextureResourceView; 	}
-	XMFLOAT4X4*							getTransform() { return &m_World; }
+	XMFLOAT4X4*							getTransform() { return m_World; }
 	ID3D11SamplerState**				getTextureSamplerState() { return &m_pSamplerLinear; }
 	MaterialPropertiesConstantBuffer	getMaterial() { return m_material;}
 	void								setPosition(XMFLOAT3 position);
 
 private:
 	
-	XMFLOAT4X4							m_World;
+	XMFLOAT4X4*							m_World;
 
 	ID3D11Buffer*						m_pVertexBuffer;
 	ID3D11Buffer*						m_pIndexBuffer;
 	ID3D11ShaderResourceView*			m_pTextureResourceView;
 	ID3D11SamplerState *				m_pSamplerLinear;
 	MaterialPropertiesConstantBuffer	m_material;
-	XMFLOAT3							m_position;
+	XMFLOAT3							m_position = XMFLOAT3(0, 0, 0);
 
 	
 };

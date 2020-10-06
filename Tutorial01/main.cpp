@@ -80,7 +80,7 @@ ID3D11SamplerState *	g_pSamplerNormal = nullptr;
 const int				g_viewWidth = 1920;
 const int				g_viewHeight = 1080;
 
-DrawableGameObject		g_GameObject;
+DrawableGameObject*		g_GameObject;
 Camera*                 g_Camera;
 static float t = 0.0f;
 
@@ -101,6 +101,8 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     if( FAILED( InitWindow( hInstance, nCmdShow ) ) )
         return 0;
 
+    
+
     if( FAILED( InitDevice() ) )
     {
         CleanupDevice();
@@ -113,6 +115,16 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
             L"Failed to initialise world.", L"Error", MB_OK);
         return 0;
     }
+
+    if (FAILED(InitMesh()))
+    {
+        MessageBox(nullptr,
+            L"Failed to initialise mesh.", L"Error", MB_OK);
+        return 0;
+    }
+
+    if (FAILED(g_GameObject->initMesh(g_pd3dDevice, g_pImmediateContext)))
+        return 0;
 
     if (FAILED(InitImGui()))
         return 0;
@@ -411,17 +423,7 @@ HRESULT InitDevice()
     vp.TopLeftY = 0;
     g_pImmediateContext->RSSetViewports( 1, &vp );
 
-	hr = InitMesh();
-	if (FAILED(hr))
-	{
-		MessageBox(nullptr,
-			L"Failed to initialise mesh.", L"Error", MB_OK);
-		return hr;
-	}
-
-	hr = g_GameObject.initMesh(g_pd3dDevice, g_pImmediateContext);
-	if (FAILED(hr))
-		return hr;
+	
 
     return S_OK;
 }
@@ -577,10 +579,12 @@ HRESULT		InitMesh()
 HRESULT		InitWorld()
 {
     DirectX::XMFLOAT3 eye = DirectX::XMFLOAT3(0, 0, -3);
-    DirectX::XMFLOAT3 at = DirectX::XMFLOAT3(0, 1, 0);
+    DirectX::XMFLOAT3 at = DirectX::XMFLOAT3(0, 1, 5);
     DirectX::XMFLOAT3 up = DirectX::XMFLOAT3(0, 1, 0);
 
     g_Camera = new Camera(eye, at, up, g_viewWidth, g_viewHeight);
+
+    g_GameObject = new DrawableGameObject(g_Camera->GetWorldMat());
 
 	return S_OK;
 }
@@ -649,14 +653,18 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
         //0x53 S
         //0x44 D
     case WM_KEYDOWN: 
-        //if (wParam == 0x57)
-        //    g_Camera->x += t;
-        //if (wParam == 0x53)
-        //    g_EyePosition.x -= t;
-        //if (wParam == 0x41)
-        //    g_EyePosition.z += t;
-        //if (wParam == 0x44)
-        //    g_EyePosition.z -= t;
+        if (wParam == 0x57) // W
+            g_Camera->Move(5);
+        if (wParam == 0x41) // A
+            g_Camera->Strafe(-5);
+        if (wParam == 0x53) // S
+            g_Camera->Move(-5);
+        if (wParam == 0x44) // D
+            g_Camera->Strafe(5);
+        if (wParam == 0x51) //Q
+            g_Camera->RotateY(-5);
+        if (wParam == 0x45) //E
+            g_Camera->RotateY(5);
         break;
     case WM_DESTROY:
         PostQuitMessage( 0 );
@@ -685,20 +693,10 @@ void Update() {
         t = (timeCur - timeStart) / 1000.0f;
     }
 
-    g_Camera->UpdateViewMatrix();
 
     // Update variables for a cube
-    g_GameObject.update(t);
+    g_GameObject->update(t);
 
-    // Update variables for the cube
-    XMMATRIX mGO = XMLoadFloat4x4(g_GameObject.getTransform());
-
-    ConstantBuffer cb1;
-    cb1.mWorld = XMMatrixTranspose(g_Camera->GetWorldMat());
-    cb1.mView = XMMatrixTranspose(g_Camera->GetViewMat());
-    cb1.mProjection = XMMatrixTranspose(g_Camera->GetProjMat());
-    cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
-    g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
 
 
     MaterialPropertiesConstantBuffer redPlasticMaterial;
@@ -712,7 +710,7 @@ void Update() {
     light.Enabled = static_cast<int>(true);
     light.LightType = PointLight;
     light.Color = XMFLOAT4(lightColour);
-    light.SpotAngle = XMConvertToRadians(45.0f);
+    light.SpotAngle = XMConvertToRadians(360.0f);
     light.ConstantAttenuation = 1.0f;
     light.LinearAttenuation = 1;
     light.QuadraticAttenuation = 1;
@@ -732,6 +730,7 @@ void Update() {
     lightProperties.Lights[0] = light;
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
 
+    g_Camera->UpdateViewMatrix();
 
 }
 
@@ -771,7 +770,12 @@ void Render()
 
 	
 
-	
+    ConstantBuffer cb1;
+    cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(g_Camera->GetWorldMat()));
+    cb1.mView = XMMatrixTranspose(XMLoadFloat4x4(g_Camera->GetViewMat()));
+    cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(g_Camera->GetProjMat()));
+    cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
+    g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
 
 
 

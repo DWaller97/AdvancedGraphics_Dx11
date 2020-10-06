@@ -2,7 +2,6 @@
 
 Camera::Camera(DirectX::XMFLOAT3& _eye, DirectX::XMFLOAT3& _at, DirectX::XMFLOAT3& _up, const int _width, const int _height)
 {
-    world = DirectX::XMMatrixIdentity();
     eye = _eye;
     at = _at;
     up = _up;
@@ -10,8 +9,10 @@ Camera::Camera(DirectX::XMFLOAT3& _eye, DirectX::XMFLOAT3& _at, DirectX::XMFLOAT
     DirectX::XMVECTOR Eye = DirectX::XMLoadFloat3(&eye);
     DirectX::XMVECTOR At = DirectX::XMLoadFloat3(&at);
     DirectX::XMVECTOR Up = DirectX::XMLoadFloat3(&up);
-    view = DirectX::XMMatrixLookAtLH(Eye, At, Up);
-    proj = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, _width / (float)_height, 0.01f, 100.0f);
+
+    DirectX::XMStoreFloat4x4(&world, DirectX::XMMatrixIdentity());
+    DirectX::XMStoreFloat4x4(&view, DirectX::XMMatrixLookAtLH(Eye, At, Up));
+    DirectX::XMStoreFloat4x4(&proj, DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, _width / (float)_height, 0.01f, 100.0f));
 }
 
 Camera::~Camera()
@@ -82,30 +83,27 @@ void Camera::UpdateViewMatrix()
     DirectX::XMStoreFloat3(&up, u);
     DirectX::XMStoreFloat3(&eye, l);
 
-    DirectX::XMFLOAT4X4 _view;
-    DirectX::XMStoreFloat4x4(&_view, view);
 
-    _view(0, 0) = right.x;
-    _view(1, 0) = right.y;
-    _view(2, 0) = right.z;
-    _view(3, 0) = x;
+    view(0, 0) = right.x;
+    view(1, 0) = right.y;
+    view(2, 0) = right.z;
+    view(3, 0) = x;
 
-    _view(0, 1) = up.x;
-    _view(1, 1) = up.y;
-    _view(2, 1) = up.z;
-    _view(3, 1) = y;
+    view(0, 1) = up.x;
+    view(1, 1) = up.y;
+    view(2, 1) = up.z;
+    view(3, 1) = y;
 
-    _view(0, 2) = eye.x;
-    _view(1, 2) = eye.y;
-    _view(2, 2) = eye.z;
-    _view(3, 2) = z;
+    view(0, 2) = eye.x;
+    view(1, 2) = eye.y;
+    view(2, 2) = eye.z;
+    view(3, 2) = z;
 
-    _view(0, 3) = 0.0f;
-    _view(1, 3) = 0.0f;
-    _view(2, 3) = 0.0f;
-    _view(3, 3) = 1.0f;
+    view(0, 3) = 0.0f;
+    view(1, 3) = 0.0f;
+    view(2, 3) = 0.0f;
+    view(3, 3) = 1.0f;
 
-    view = DirectX::XMLoadFloat4x4(&_view);
 }
 
 void Camera::SetPosition(float x, float y, float z)
