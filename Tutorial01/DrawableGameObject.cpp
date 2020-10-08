@@ -153,8 +153,12 @@ void DrawableGameObject::setPosition(XMFLOAT3 position)
 
 void DrawableGameObject::update(float t)
 {
+	static float spin = 0;
+	spin += 0.001f;
+	if(spin > 360)
+		spin = 0;
 	// Cube:  Rotate around origin
-	XMMATRIX mSpin = XMMatrixRotationY(-t);
+	XMMATRIX mSpin = XMMatrixRotationY( spin * (Time::GetDeltaTime() ));
 
 	XMMATRIX mTranslate = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
 	XMMATRIX world = mTranslate * mSpin;

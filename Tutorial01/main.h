@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "Camera.h"
+#include "Time.h"
 
 using namespace std;
 

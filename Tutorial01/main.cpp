@@ -32,6 +32,7 @@ HRESULT		InitMesh();
 HRESULT		InitWorld();
 void		CleanupDevice();
 void        CleanupImGui();
+void        Cleanup();
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 void        Update();
 void		Render();
@@ -73,16 +74,13 @@ ID3D11ShaderResourceView * g_pNormalTextureRV = nullptr;
 ID3D11SamplerState *	g_pSamplerLinear = nullptr;
 ID3D11SamplerState *	g_pSamplerNormal = nullptr;
 
-//XMMATRIX                g_World1;
-//XMMATRIX                g_View;
-//XMMATRIX                g_Projection;
 
 const int				g_viewWidth = 1920;
 const int				g_viewHeight = 1080;
 
-DrawableGameObject*		g_GameObject;
-Camera*                 g_Camera;
-static float t = 0.0f;
+DrawableGameObject*		g_GameObject = nullptr;
+Camera*                 g_Camera = nullptr;
+Time*                   time = nullptr;
 
 //Lighting Variables
 float lightColour[4] = { 1, 1, 1, 1 };
@@ -109,27 +107,19 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
         return 0;
     }
     
-    if (FAILED(InitWorld()))
-    {
-        MessageBox(nullptr,
-            L"Failed to initialise world.", L"Error", MB_OK);
-        return 0;
-    }
-
-    if (FAILED(InitMesh()))
-    {
-        MessageBox(nullptr,
-            L"Failed to initialise mesh.", L"Error", MB_OK);
-        return 0;
-    }
+    
 
     if (FAILED(g_GameObject->initMesh(g_pd3dDevice, g_pImmediateContext)))
         return 0;
 
-    if (FAILED(InitImGui()))
+    if (FAILED(InitImGui())){
+        CleanupImGui();
         return 0;
+    }
 
     ImGuiIO& io = ImGui::GetIO();
+
+    time = new Time();
 
     // Main message loop
     MSG msg = {0};
@@ -151,7 +141,8 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     }
 
     CleanupDevice();
-
+    CleanupImGui();
+    Cleanup();
     return ( int )msg.wParam;
 }
 
@@ -197,7 +188,6 @@ HRESULT InitWindow( HINSTANCE hInstance, int nCmdShow )
                            nullptr );
     if( !g_hWnd )
         return E_FAIL;
-
     ShowWindow( g_hWnd, nCmdShow );
     UpdateWindow(g_hWnd);
 
@@ -284,7 +274,6 @@ HRESULT InitDevice()
         g_driverType = driverTypes[driverTypeIndex];
         hr = D3D11CreateDevice( nullptr, g_driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
                                 D3D11_SDK_VERSION, &g_pd3dDevice, &g_featureLevel, &g_pImmediateContext );
-
         if ( hr == E_INVALIDARG )
         {
             // DirectX 11.0 platforms will not recognize D3D_FEATURE_LEVEL_11_1 so we need to retry without it
@@ -423,7 +412,20 @@ HRESULT InitDevice()
     vp.TopLeftY = 0;
     g_pImmediateContext->RSSetViewports( 1, &vp );
 
-	
+    if (FAILED(InitWorld()))
+    {
+        MessageBox(nullptr,
+            L"Failed to initialise world.", L"Error", MB_OK);
+        return 0;
+    }
+
+    if (FAILED(InitMesh()))
+    {
+        MessageBox(nullptr,
+            L"Failed to initialise mesh.", L"Error", MB_OK);
+        return 0;
+    }
+    hr = g_GameObject->initMesh(g_pd3dDevice, g_pImmediateContext);
 
     return S_OK;
 }
@@ -583,6 +585,7 @@ HRESULT		InitWorld()
     DirectX::XMFLOAT3 up = DirectX::XMFLOAT3(0, 1, 0);
 
     g_Camera = new Camera(eye, at, up, g_viewWidth, g_viewHeight);
+    g_Camera->SetFrustum(90, 1.78f, 1, 50);
 
     g_GameObject = new DrawableGameObject(g_Camera->GetWorldMat());
 
@@ -612,12 +615,23 @@ void CleanupDevice()
     if( g_pImmediateContext ) g_pImmediateContext->Release();
     if( g_pd3dDevice1 ) g_pd3dDevice1->Release();
     if( g_pd3dDevice ) g_pd3dDevice->Release();
+
+    delete g_Camera;
+    g_Camera = nullptr;
 }
 
 void CleanupImGui() {
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
+}
+
+void Cleanup() {
+
+    if(time)time->~Time();
+    delete time;
+    time = nullptr;
+    
 }
 
 //--------------------------------------------------------------------------------------
@@ -647,24 +661,20 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
             pBackBuffer->Release();
         }
         return 0;
-
-        //0x57 W
-        //0x41 A
-        //0x53 S
-        //0x44 D
     case WM_KEYDOWN: 
-        if (wParam == 0x57) // W
-            g_Camera->Move(5);
-        if (wParam == 0x41) // A
-            g_Camera->Strafe(-5);
-        if (wParam == 0x53) // S
-            g_Camera->Move(-5);
-        if (wParam == 0x44) // D
-            g_Camera->Strafe(5);
-        if (wParam == 0x51) //Q
-            g_Camera->RotateY(-5);
-        if (wParam == 0x45) //E
-            g_Camera->RotateY(5);
+            if( wParam == 0x57) // W
+                g_Camera->Move(time->GetDeltaTime());
+            if (wParam == 0x41) // A
+                g_Camera->Strafe(-time->GetDeltaTime());
+            if (wParam == 0x53) // S
+                g_Camera->Move(-time->GetDeltaTime());
+            if (wParam == 0x44) // D
+                g_Camera->Strafe(time->GetDeltaTime());
+            if (wParam == 0x51) // Q
+                g_Camera->RotateY(time->GetDeltaTime());
+            if (wParam == 0x45) // E
+                g_Camera->RotateY(-time->GetDeltaTime());
+
         break;
     case WM_DESTROY:
         PostQuitMessage( 0 );
@@ -678,24 +688,10 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 }
 
 void Update() {
-    t = 0.0f;
-    // Update our time
-    if (g_driverType == D3D_DRIVER_TYPE_REFERENCE)
-    {
-        t += (float)XM_PI * 0.0125f;
-    }
-    else
-    {
-        static ULONGLONG timeStart = 0;
-        ULONGLONG timeCur = GetTickCount64();
-        if (timeStart == 0)
-            timeStart = timeCur;
-        t = (timeCur - timeStart) / 1000.0f;
-    }
 
 
-    // Update variables for a cube
-    g_GameObject->update(t);
+    time->UpdateDeltaTime();
+    g_GameObject->update(time->GetDeltaTime());
 
 
 
@@ -710,15 +706,16 @@ void Update() {
     light.Enabled = static_cast<int>(true);
     light.LightType = PointLight;
     light.Color = XMFLOAT4(lightColour);
-    light.SpotAngle = XMConvertToRadians(360.0f);
+    light.SpotAngle = XMConvertToRadians(45.0f);
     light.ConstantAttenuation = 1.0f;
     light.LinearAttenuation = 1;
     light.QuadraticAttenuation = 1;
 
 
+
     // set up the light
     XMFLOAT4 LightPosition;
-    DirectX::XMStoreFloat4(&LightPosition, g_Camera->GetLookVec());
+    DirectX::XMStoreFloat4(&LightPosition, g_Camera->GetPositionVec());
 
     light.Position = LightPosition;
     XMVECTOR LightDirection = XMVectorSet(-LightPosition.x, -LightPosition.y, -LightPosition.z, 0.0f);
@@ -731,6 +728,7 @@ void Update() {
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
 
     g_Camera->UpdateViewMatrix();
+
 
 }
 
@@ -758,9 +756,15 @@ void Render()
 
         ImGui::End();
     }
+    {
+        ImGui::Begin("Time");
+        ImGui::Text("Delta: %f ", time->GetDeltaTime());
+        ImGui::Text("Total: %f ", time->GetTotalTime());
+
+        ImGui::End();
+    }
     ImGui::Render();
 
-    g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, NULL);
     // Clear the back buffer
     g_pImmediateContext->ClearRenderTargetView( g_pRenderTargetView, Colors::MidnightBlue );
 

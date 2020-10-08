@@ -13,6 +13,8 @@ public:
 	void SetPosition(float x, float y, float z);
 	void SetPosition(const DirectX::XMFLOAT3 &v);
 
+	void SetFrustum(float fovY, float aspect, float nearZ, float farZ);
+
 	DirectX::XMVECTOR GetRightVec() { return DirectX::XMLoadFloat3(&right); };
 	DirectX::XMFLOAT3 GetRight() { return right; };
 	DirectX::XMVECTOR GetUpVec() { return DirectX::XMLoadFloat3(&up); };
@@ -38,5 +40,7 @@ public:
 private:
 	DirectX::XMFLOAT3 at = DirectX::XMFLOAT3(0, 1, 0), right = DirectX::XMFLOAT3(1, 0, 0), up = DirectX::XMFLOAT3(0, 1, 0), eye = DirectX::XMFLOAT3(0, 0, -3);
 	DirectX::XMFLOAT4X4 view, proj, world;
+	float fovY, aspect, nearZ, farZ;
+	float strafeSpeed = 0.2f, moveSpeed = 0.2f, pitchSpeed = 0.2f, rotateYSpeed = 0.2f;
 };
 

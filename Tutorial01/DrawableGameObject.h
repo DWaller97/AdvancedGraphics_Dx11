@@ -8,6 +8,7 @@
 #include "resource.h"
 #include <iostream>
 #include "structures.h"
+#include "Time.h"
 
 
 using namespace DirectX;
