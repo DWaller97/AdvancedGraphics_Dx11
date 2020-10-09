@@ -152,6 +152,10 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <ClCompile>
@@ -190,6 +194,10 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -233,6 +241,7 @@
     </PostBuildEvent>
     <FxCompile>
       <ShaderType>Effect</ShaderType>
+      <ShaderModel>5.0</ShaderModel>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
@@ -274,6 +283,10 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
     <ClCompile>
@@ -315,6 +328,10 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|X64'">
     <ClCompile>
@@ -355,6 +372,10 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\imgui-master\examples\imgui_impl_dx11.h" />
@@ -385,12 +406,14 @@
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DrawableGameObject.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Source1.cpp" />
     <ClCompile Include="Time.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\stone.dds" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="normal.fx" />
     <FxCompile Include="shader.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </FxCompile>

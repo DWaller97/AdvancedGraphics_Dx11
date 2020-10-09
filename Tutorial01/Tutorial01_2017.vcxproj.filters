@@ -24,6 +24,7 @@
     </ClCompile>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Time.cpp" />
+    <ClCompile Include="Source1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -83,6 +84,9 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader.fx">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="normal.fx">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

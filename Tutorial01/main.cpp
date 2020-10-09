@@ -452,7 +452,7 @@ HRESULT		InitMesh()
 {
 	// Compile the vertex shader
 	ID3DBlob* pVSBlob = nullptr;
-	HRESULT hr = CompileShaderFromFile(L"shader.fx", "VS", "vs_4_0", &pVSBlob);
+	HRESULT hr = CompileShaderFromFile(L"normal.fx", "VS", "vs_4_0", &pVSBlob);
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr,
@@ -489,7 +489,7 @@ HRESULT		InitMesh()
 
 	// Compile the pixel shader
 	ID3DBlob* pPSBlob = nullptr;
-	hr = CompileShaderFromFile(L"shader.fx", "PS", "ps_4_0", &pPSBlob);
+	hr = CompileShaderFromFile(L"normal.fx", "PS", "ps_4_0", &pPSBlob);
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr,
@@ -506,7 +506,7 @@ HRESULT		InitMesh()
 
 	// Compile the SOLID pixel shader
 	pPSBlob = nullptr;
-	hr = CompileShaderFromFile(L"shader.fx", "PSSolid", "ps_4_0", &pPSBlob);
+	hr = CompileShaderFromFile(L"normal.fx", "PSSolid", "ps_4_0", &pPSBlob);
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr,
@@ -561,17 +561,30 @@ HRESULT		InitMesh()
 	if (FAILED(hr))
 		return hr;
 
-	D3D11_SAMPLER_DESC sampDesc;
-	ZeroMemory(&sampDesc, sizeof(sampDesc));
-	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	sampDesc.MinLOD = 0;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	hr = g_pd3dDevice->CreateSamplerState(&sampDesc, &g_pSamplerLinear);
+    D3D11_SAMPLER_DESC sampDesc;
+    ZeroMemory(&sampDesc, sizeof(sampDesc));
+    sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    sampDesc.MinLOD = 0;
+    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    hr = g_pd3dDevice->CreateSamplerState(&sampDesc, &g_pSamplerLinear);
 
+    hr = CreateDDSTextureFromFile(g_pd3dDevice, L"Resources\\conenormal.dds",nullptr, &g_pNormalTextureRV);
+    if(FAILED(hr))
+        return hr;
+	
+    ZeroMemory(&sampDesc, sizeof(sampDesc));
+    sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    sampDesc.MinLOD = 0;
+    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    hr = g_pd3dDevice->CreateSamplerState(&sampDesc, &g_pSamplerNormal);
 	return hr;
 }
 
@@ -598,23 +611,23 @@ HRESULT		InitWorld()
 //--------------------------------------------------------------------------------------
 void CleanupDevice()
 {
-    if( g_pImmediateContext ) g_pImmediateContext->ClearState();
+    if( g_pImmediateContext )   g_pImmediateContext->ClearState();
 
-    if( g_pConstantBuffer ) g_pConstantBuffer->Release();
-    if( g_pVertexBuffer ) g_pVertexBuffer->Release();
-    if( g_pIndexBuffer ) g_pIndexBuffer->Release();
-    if( g_pVertexLayout ) g_pVertexLayout->Release();
-    if( g_pVertexShader ) g_pVertexShader->Release();
-    if( g_pPixelShader ) g_pPixelShader->Release();
-    if( g_pDepthStencil ) g_pDepthStencil->Release();
-    if( g_pDepthStencilView ) g_pDepthStencilView->Release();
-    if( g_pRenderTargetView ) g_pRenderTargetView->Release();
-    if( g_pSwapChain1 ) g_pSwapChain1->Release();
-    if( g_pSwapChain ) g_pSwapChain->Release();
-    if( g_pImmediateContext1 ) g_pImmediateContext1->Release();
-    if( g_pImmediateContext ) g_pImmediateContext->Release();
-    if( g_pd3dDevice1 ) g_pd3dDevice1->Release();
-    if( g_pd3dDevice ) g_pd3dDevice->Release();
+    if( g_pConstantBuffer )     g_pConstantBuffer->Release();
+    if( g_pVertexBuffer )       g_pVertexBuffer->Release();
+    if( g_pIndexBuffer )        g_pIndexBuffer->Release();
+    if( g_pVertexLayout )       g_pVertexLayout->Release();
+    if( g_pVertexShader )       g_pVertexShader->Release();
+    if( g_pPixelShader )        g_pPixelShader->Release();
+    if( g_pDepthStencil )       g_pDepthStencil->Release();
+    if( g_pDepthStencilView )   g_pDepthStencilView->Release();
+    if( g_pRenderTargetView )   g_pRenderTargetView->Release();
+    if( g_pSwapChain1 )         g_pSwapChain1->Release();
+    if( g_pSwapChain )          g_pSwapChain->Release();
+    if( g_pImmediateContext1 )  g_pImmediateContext1->Release();
+    if( g_pImmediateContext )   g_pImmediateContext->Release();
+    if( g_pd3dDevice1 )         g_pd3dDevice1->Release();
+    if( g_pd3dDevice )          g_pd3dDevice->Release();
 
     delete g_Camera;
     g_Camera = nullptr;
@@ -793,6 +806,9 @@ void Render()
 
 	g_pImmediateContext->PSSetShaderResources(0, 1, &g_pTextureRV);
 	g_pImmediateContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
+
+    g_pImmediateContext->PSSetShaderResources(1, 1, &g_pNormalTextureRV);
+    g_pImmediateContext->PSSetSamplers(1, 1, &g_pSamplerNormal);
 
 	g_pImmediateContext->DrawIndexed( 36, 0, 0 );
 
