@@ -13,6 +13,7 @@
 #include <string>
 
 #include "DrawableGameObject.h"
+#include "DrawableObjectCube.h"
 #include "structures.h"
 
 #include "imgui.h"
@@ -25,4 +26,4 @@
 
 using namespace std;
 
-typedef vector<DrawableGameObject*> vecDrawables;
+vector<DrawableGameObject*> vecDrawables;

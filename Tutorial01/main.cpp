@@ -78,7 +78,7 @@ ID3D11SamplerState *	g_pSamplerNormal = nullptr;
 const int				g_viewWidth = 1920;
 const int				g_viewHeight = 1080;
 
-DrawableGameObject*		g_GameObject = nullptr;
+DrawableGameObject*		g_Cube = nullptr;
 Camera*                 g_Camera = nullptr;
 Time*                   time = nullptr;
 
@@ -109,7 +109,7 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     
     
 
-    if (FAILED(g_GameObject->initMesh(g_pd3dDevice, g_pImmediateContext)))
+    if (FAILED(g_Cube->InitMesh(g_pd3dDevice, g_pImmediateContext)))
         return 0;
 
     if (FAILED(InitImGui())){
@@ -425,7 +425,7 @@ HRESULT InitDevice()
             L"Failed to initialise mesh.", L"Error", MB_OK);
         return 0;
     }
-    hr = g_GameObject->initMesh(g_pd3dDevice, g_pImmediateContext);
+    hr = g_Cube->InitMesh(g_pd3dDevice, g_pImmediateContext);
 
     return S_OK;
 }
@@ -587,7 +587,7 @@ HRESULT		InitMesh()
     hr = g_pd3dDevice->CreateSamplerState(&sampDesc, &g_pSamplerNormal);
 	return hr;
 }
-
+DrawableObjectCube* newCube = nullptr;
 // ***************************************************************************************
 // InitWorld
 // ***************************************************************************************
@@ -600,7 +600,11 @@ HRESULT		InitWorld()
     g_Camera = new Camera(eye, at, up, g_viewWidth, g_viewHeight);
     g_Camera->SetFrustum(90, 1.78f, 1, 50);
 
-    g_GameObject = new DrawableGameObject(g_Camera->GetWorldMat());
+    g_Cube = new DrawableObjectCube(g_Camera->GetWorldMat());
+    newCube = new DrawableObjectCube(g_Camera->GetWorldMat());
+    newCube->SetPosition(XMFLOAT3(1, -1, 0));
+    vecDrawables.push_back(g_Cube);
+    vecDrawables.push_back(newCube);
 
 	return S_OK;
 }
@@ -704,7 +708,9 @@ void Update() {
 
 
     time->UpdateDeltaTime();
-    g_GameObject->update(time->GetDeltaTime());
+    for (int i = 0; i < vecDrawables.size(); i++) {
+        vecDrawables.at(i)->Update(time->GetDeltaTime());
+    }
 
 
 

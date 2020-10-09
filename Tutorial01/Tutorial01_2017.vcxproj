@@ -389,6 +389,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="DrawableGameObject.h" />
+    <ClInclude Include="DrawableObjectCube.h" />
     <ClInclude Include="main.h" />
     <CLInclude Include="resource.h" />
     <ClInclude Include="structures.h" />
@@ -405,6 +406,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DrawableGameObject.cpp" />
+    <ClCompile Include="DrawableObjectCube.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source1.cpp" />
     <ClCompile Include="Time.cpp" />

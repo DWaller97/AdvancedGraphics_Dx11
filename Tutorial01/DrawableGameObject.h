@@ -15,36 +15,40 @@ using namespace DirectX;
 
 struct SimpleVertex
 {
-	XMFLOAT3 Pos;
-	XMFLOAT3 Normal;
-	XMFLOAT2 TexCoord;
+	XMFLOAT3 pos;
+	XMFLOAT3 normal;
+	XMFLOAT2 texCoord;
+	XMFLOAT3 tangent;
+	XMFLOAT3 biTangent;
 };
 
 class DrawableGameObject
 {
 public:
-	DrawableGameObject(DirectX::XMFLOAT4X4 *world);
-	~DrawableGameObject();
 
-	HRESULT								initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext);
-	void								update(float t);
-	void								draw(ID3D11DeviceContext* pContext);
-	ID3D11Buffer*						getVertexBuffer() { return m_pVertexBuffer; }
-	ID3D11Buffer*						getIndexBuffer() { return m_pIndexBuffer; }
-	ID3D11ShaderResourceView**			getTextureResourceView() { return &m_pTextureResourceView; 	}
-	XMFLOAT4X4*							getTransform() { return m_World; }
-	ID3D11SamplerState**				getTextureSamplerState() { return &m_pSamplerLinear; }
-	MaterialPropertiesConstantBuffer	getMaterial() { return m_material;}
-	void								setPosition(XMFLOAT3 position);
+	HRESULT								virtual InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext) = 0;
+	void								virtual Update(float t) = 0;
+	void								virtual Draw(ID3D11DeviceContext* pContext) = 0;
 
-private:
+
+	ID3D11Buffer*						GetVertexBuffer() { return m_pVertexBuffer; }
+	ID3D11Buffer*						GetIndexBuffer() { return m_pIndexBuffer; }
+	ID3D11ShaderResourceView**			GetTextureResourceView() { return &m_pTextureResourceView; 	}
+	XMFLOAT4X4*							GetTransform() { return m_World; }
+	ID3D11SamplerState**				GetTextureSamplerState() { return &m_pSamplerLinear; }
+	MaterialPropertiesConstantBuffer	GetMaterial() { return m_material;}
+	void								SetPosition(XMFLOAT3 position);
+	void								virtual Release();
+protected:
 	
-	XMFLOAT4X4*							m_World;
+	void								SetWorldMatrix(XMFLOAT4X4* world);
 
-	ID3D11Buffer*						m_pVertexBuffer;
-	ID3D11Buffer*						m_pIndexBuffer;
-	ID3D11ShaderResourceView*			m_pTextureResourceView;
-	ID3D11SamplerState *				m_pSamplerLinear;
+	XMFLOAT4X4*							m_World = nullptr;
+
+	ID3D11Buffer*						m_pVertexBuffer = nullptr;
+	ID3D11Buffer*						m_pIndexBuffer = nullptr;
+	ID3D11ShaderResourceView*			m_pTextureResourceView = nullptr;
+	ID3D11SamplerState *				m_pSamplerLinear = nullptr;
 	MaterialPropertiesConstantBuffer	m_material;
 	XMFLOAT3							m_position = XMFLOAT3(0, 0, 0);
 
