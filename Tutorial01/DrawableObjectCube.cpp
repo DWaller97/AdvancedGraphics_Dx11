@@ -131,22 +131,22 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 		23,20,22
 	};
 
-	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.Usage = D3D11_USAGE_DEFAULT;  
 	bd.ByteWidth = sizeof(WORD) * NUM_VERTICES;        // 36 vertices needed for 12 triangles in a triangle list
-	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bd.BindFlags = D3D11_BIND_INDEX_BUFFER; 
 	bd.CPUAccessFlags = 0;
 	InitData.pSysMem = indices;
 	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &m_pIndexBuffer);
-	if (FAILED(hr))
+	if (FAILED(hr)) 
 		return hr;
 
 	// Set index buffer
-	pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
+	pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);   
+	  
 	// Set primitive topology
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-}
+} 
 
 void DrawableObjectCube::Update(float t)
 {
