@@ -667,13 +667,13 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     default:
         return DefWindowProc( hWnd, message, wParam, lParam );
     }
-
+     
     return 0;
 }
 
 void Update() {
 
- 
+  
     time->UpdateDeltaTime();
     for (int i = 0; i < vecDrawables.size(); i++) {
         vecDrawables.at(i)->Update(time->GetDeltaTime());
