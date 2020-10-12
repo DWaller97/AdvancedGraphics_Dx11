@@ -30,6 +30,7 @@ HRESULT		InitDevice();
 HRESULT     InitImGui();
 HRESULT		InitMesh();
 HRESULT		InitWorld();
+HRESULT     InitObjects();
 void		CleanupDevice();
 void        CleanupImGui();
 void        Cleanup();
@@ -49,7 +50,7 @@ D3D_FEATURE_LEVEL       g_featureLevel = D3D_FEATURE_LEVEL_11_0;
 ID3D11Device*           g_pd3dDevice = nullptr;
 ID3D11Device1*          g_pd3dDevice1 = nullptr;
 ID3D11DeviceContext*    g_pImmediateContext = nullptr;
-ID3D11DeviceContext1*   g_pImmediateContext1 = nullptr;
+ID3D11DeviceContext*   g_pImmediateContext1 = nullptr;
 IDXGISwapChain*         g_pSwapChain = nullptr;
 IDXGISwapChain1*        g_pSwapChain1 = nullptr;
 ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
@@ -78,7 +79,7 @@ ID3D11SamplerState *	g_pSamplerNormal = nullptr;
 const int				g_viewWidth = 1920;
 const int				g_viewHeight = 1080;
 
-DrawableGameObject*		g_Cube = nullptr;
+DrawableObjectCube*		g_Cube = nullptr;
 Camera*                 g_Camera = nullptr;
 Time*                   time = nullptr;
 
@@ -109,8 +110,7 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     
     
 
-    if (FAILED(g_Cube->InitMesh(g_pd3dDevice, g_pImmediateContext)))
-        return 0;
+
 
     if (FAILED(InitImGui())){
         CleanupImGui();
@@ -120,6 +120,8 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     ImGuiIO& io = ImGui::GetIO();
 
     time = new Time();
+
+    InitObjects();
 
     // Main message loop
     MSG msg = {0};
@@ -425,7 +427,7 @@ HRESULT InitDevice()
             L"Failed to initialise mesh.", L"Error", MB_OK);
         return 0;
     }
-    hr = g_Cube->InitMesh(g_pd3dDevice, g_pImmediateContext);
+    InitObjects();
 
     return S_OK;
 }
@@ -520,32 +522,9 @@ HRESULT		InitMesh()
 	if (FAILED(hr))
 		return hr;
    
-	// Create the constant buffer
     D3D11_BUFFER_DESC bd = {};
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(SimpleVertex) * 24;
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.CPUAccessFlags = 0;
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(WORD) * 36;        // 36 vertices needed for 12 triangles in a triangle list
-    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bd.CPUAccessFlags = 0;
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(ConstantBuffer);
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-	hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pConstantBuffer);
-	if (FAILED(hr))
-		return hr;
 
-	// Create the material constant buffer
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(MaterialPropertiesConstantBuffer);
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-	hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pMaterialConstantBuffer);
-	if (FAILED(hr))
-		return hr;
+	
 
 	// Create the light constant buffer
 	bd.Usage = D3D11_USAGE_DEFAULT;
@@ -561,30 +540,9 @@ HRESULT		InitMesh()
 	if (FAILED(hr))
 		return hr;
 
-    D3D11_SAMPLER_DESC sampDesc;
-    ZeroMemory(&sampDesc, sizeof(sampDesc));
-    sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    sampDesc.MinLOD = 0;
-    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    hr = g_pd3dDevice->CreateSamplerState(&sampDesc, &g_pSamplerLinear);
-
-    hr = CreateDDSTextureFromFile(g_pd3dDevice, L"Resources\\conenormal.dds",nullptr, &g_pNormalTextureRV);
-    if(FAILED(hr))
-        return hr;
+    
 	
-    ZeroMemory(&sampDesc, sizeof(sampDesc));
-    sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    sampDesc.MinLOD = 0;
-    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    hr = g_pd3dDevice->CreateSamplerState(&sampDesc, &g_pSamplerNormal);
+
 	return hr;
 }
 DrawableObjectCube* newCube = nullptr;
@@ -600,13 +558,22 @@ HRESULT		InitWorld()
     g_Camera = new Camera(eye, at, up, g_viewWidth, g_viewHeight);
     g_Camera->SetFrustum(90, 1.78f, 1, 50);
 
-    g_Cube = new DrawableObjectCube(g_Camera->GetWorldMat());
-    newCube = new DrawableObjectCube(g_Camera->GetWorldMat());
-    newCube->SetPosition(XMFLOAT3(1, -1, 0));
+	return S_OK;
+}
+
+HRESULT InitObjects() {
+
+    g_Cube = new DrawableObjectCube();
+    g_Cube->InitMesh(g_pd3dDevice, g_pImmediateContext);
+    g_Cube->SetShaders(g_pVertexShader, g_pPixelShader);
+    g_Cube->SetPosition(XMFLOAT3(0, 0, 0));
+    newCube = new DrawableObjectCube();
+    newCube->SetShaders(g_pVertexShader, g_pPixelShader);
+    newCube->SetPosition(XMFLOAT3(1, 0, 0));
+    newCube->InitMesh(g_pd3dDevice, g_pImmediateContext);
     vecDrawables.push_back(g_Cube);
     vecDrawables.push_back(newCube);
-
-	return S_OK;
+    return S_OK;
 }
 
 
@@ -714,12 +681,6 @@ void Update() {
 
 
 
-    MaterialPropertiesConstantBuffer redPlasticMaterial;
-    redPlasticMaterial.Material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-    redPlasticMaterial.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
-    redPlasticMaterial.Material.SpecularPower = 32.0f;
-    redPlasticMaterial.Material.UseTexture = true;
-    g_pImmediateContext->UpdateSubresource(g_pMaterialConstantBuffer, 0, nullptr, &redPlasticMaterial, 0, 0);
 
     Light light;
     light.Enabled = static_cast<int>(true);
@@ -790,34 +751,9 @@ void Render()
     // Clear the depth buffer to 1.0 (max depth)
     g_pImmediateContext->ClearDepthStencilView( g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
-
-	
-
-    ConstantBuffer cb1;
-    cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(g_Camera->GetWorldMat()));
-    cb1.mView = XMMatrixTranspose(XMLoadFloat4x4(g_Camera->GetViewMat()));
-    cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(g_Camera->GetProjMat()));
-    cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
-    g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
-
-
-
-    // Render the cube
-	g_pImmediateContext->VSSetShader( g_pVertexShader, nullptr, 0 );
-	g_pImmediateContext->VSSetConstantBuffers( 0, 1, &g_pConstantBuffer );
-	g_pImmediateContext->PSSetShader( g_pPixelShader, nullptr, 0 );
-
-	g_pImmediateContext->PSSetConstantBuffers(1, 1, &g_pMaterialConstantBuffer);
-	g_pImmediateContext->PSSetConstantBuffers(2, 1, &g_pLightConstantBuffer);
-
-	g_pImmediateContext->PSSetShaderResources(0, 1, &g_pTextureRV);
-	g_pImmediateContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
-
-    g_pImmediateContext->PSSetShaderResources(1, 1, &g_pNormalTextureRV);
-    g_pImmediateContext->PSSetSamplers(1, 1, &g_pSamplerNormal);
-
-	g_pImmediateContext->DrawIndexed( 36, 0, 0 );
-
+    for (int i = 0; i < vecDrawables.size(); i++) {
+        vecDrawables.at(i)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_Camera->GetProjMat(), g_Camera->GetViewMat());
+    }
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
     // Present our back buffer to our front buffer
     g_pSwapChain->Present( 0, 0 );

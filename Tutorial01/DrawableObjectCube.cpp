@@ -1,19 +1,24 @@
 #include "DrawableObjectCube.h"
 
-#define NUM_VERTICES 36
 
-DrawableObjectCube::DrawableObjectCube(DirectX::XMFLOAT4X4* world)
+DrawableObjectCube::DrawableObjectCube()
 {
-	SetWorldMatrix(world);
+	SetWorldMatrix(new XMFLOAT4X4());
+	NUM_VERTICES = 36;
 }
 
 DrawableObjectCube::~DrawableObjectCube()
 {
+	delete m_World;
+	m_World = nullptr;
 	Release();
 }
 
 HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)  {
 	// Create vertex buffer
+
+
+
 	SimpleVertex vertices[] =
 	{
 		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) },
@@ -49,7 +54,7 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(SimpleVertex) * 24;
+	bd.ByteWidth = sizeof(SimpleVertex) * NUM_VERTICES;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
@@ -59,10 +64,50 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 	if (FAILED(hr))
 		return hr;
 
-	// Set vertex buffer
-	UINT stride = sizeof(SimpleVertex);
-	UINT offset = 0;
-	pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
+
+	bd = {};
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(WORD) * NUM_VERTICES;        
+	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bd.CPUAccessFlags = 0;
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(ConstantBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_pConstantBuffer);
+	if (FAILED(hr))
+		return hr;
+
+	// Create the material constant buffer
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(MaterialPropertiesConstantBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_pMaterialConstantBuffer);
+	if (FAILED(hr))
+		return hr;
+
+	MaterialPropertiesConstantBuffer redPlasticMaterial;
+	redPlasticMaterial.Material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	redPlasticMaterial.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
+	redPlasticMaterial.Material.SpecularPower = 32.0f;
+	redPlasticMaterial.Material.UseTexture = true;
+	pContext->UpdateSubresource(m_pMaterialConstantBuffer, 0, nullptr, &redPlasticMaterial, 0, 0);
+
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
+
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\conenormal.dds", nullptr, &m_albedoTexture);
+	if (FAILED(hr))
+		return hr;
 
 	// Create index buffer
 	WORD indices[] =
@@ -101,26 +146,6 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 	// Set primitive topology
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// load and setup textures
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\stone.dds", nullptr, &m_pTextureResourceView);
-	if (FAILED(hr))
-		return hr;
-
-	D3D11_SAMPLER_DESC sampDesc;
-	ZeroMemory(&sampDesc, sizeof(sampDesc));
-	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	sampDesc.MinLOD = 0;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
-
-	m_material.Material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	m_material.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
-	m_material.Material.SpecularPower = 32.0f;
-	m_material.Material.UseTexture = true;
 }
 
 void DrawableObjectCube::Update(float t)
@@ -132,12 +157,7 @@ void DrawableObjectCube::Update(float t)
 	// Cube:  Rotate around origin
 	XMMATRIX mSpin = XMMatrixRotationY(spin * (Time::GetDeltaTime()));
 
-	XMMATRIX mTranslate = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+	XMMATRIX mTranslate = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	XMMATRIX world = mTranslate * mSpin;
 	XMStoreFloat4x4(m_World, world);
-}
-
-void DrawableObjectCube::Draw(ID3D11DeviceContext* pContext)
-{
-	pContext->DrawIndexed(NUM_VERTICES, 0, 0);
 }
