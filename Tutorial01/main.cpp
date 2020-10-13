@@ -644,7 +644,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
             g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_pRenderTargetView);
             pBackBuffer->Release();
         }
-        return 0;
+        return 0; 
     case WM_KEYDOWN: 
             if( wParam == 0x57) // W
                 g_Camera->Move(time->GetDeltaTime());
