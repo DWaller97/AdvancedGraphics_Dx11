@@ -660,7 +660,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
                 g_Camera->RotateY(-time->GetDeltaTime());
 
         break;
-    case WM_DESTROY:  
+    case WM_DESTROY:   
         PostQuitMessage( 0 );
         break;
      
