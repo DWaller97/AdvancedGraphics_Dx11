@@ -4,7 +4,7 @@ class DrawableObjectCube :
     public DrawableGameObject
 {
 private:
-
+    
 public:
     DrawableObjectCube();
     ~DrawableObjectCube();

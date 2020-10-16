@@ -27,7 +27,9 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 	pContext->PSSetConstantBuffers(2, 1, &lightConstantBuffer);
 
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
+	pContext->PSSetShaderResources(1, 1, &m_normalTexture);
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
+	pContext->PSSetSamplers(1, 1, &m_pSamplerNormal);
 	pContext->DrawIndexed(NUM_VERTICES, 0, 0);
 }
 

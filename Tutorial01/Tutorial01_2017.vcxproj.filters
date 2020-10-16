@@ -83,6 +83,9 @@
     <Image Include="Resources\stone.dds">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\conenormal.dds">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader.fx">

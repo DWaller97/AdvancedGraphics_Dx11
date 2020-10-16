@@ -1,5 +1,6 @@
 #pragma once
 #include <directxmath.h>
+#include <d3d11.h>
 
 class Camera
 {

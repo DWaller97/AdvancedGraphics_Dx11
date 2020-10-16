@@ -1,4 +1,8 @@
 #include "Camera.h"
+#include <d3d11.h>
+#include "structures.h"
+
+using namespace DirectX;
 
 Camera::Camera(DirectX::XMFLOAT3& _eye, DirectX::XMFLOAT3& _at, DirectX::XMFLOAT3& _up, const int _width, const int _height)
 {
@@ -11,8 +15,8 @@ Camera::Camera(DirectX::XMFLOAT3& _eye, DirectX::XMFLOAT3& _at, DirectX::XMFLOAT
     DirectX::XMVECTOR Up = DirectX::XMLoadFloat3(&up);
 
     DirectX::XMStoreFloat4x4(&world, DirectX::XMMatrixIdentity());
-    DirectX::XMStoreFloat4x4(&view, DirectX::XMMatrixLookAtLH(Eye, At, Up));
-    DirectX::XMStoreFloat4x4(&proj, DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, _width / (float)_height, 0.01f, 100.0f));
+    DirectX::XMStoreFloat4x4(&view,  DirectX::XMMatrixLookAtLH(Eye, At, Up));
+    DirectX::XMStoreFloat4x4(&proj,  DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, _width / (float)_height, 0.01f, 100.0f));
 }
 
 Camera::~Camera()

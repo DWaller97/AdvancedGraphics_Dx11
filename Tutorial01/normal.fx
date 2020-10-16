@@ -21,6 +21,7 @@ Texture2D txDiffuse : register(t0);
 Texture2D txNormal : register(t1);
 
 SamplerState samLinear : register(s0);
+SamplerState samNormal : register(s1);
 
 #define MAX_LIGHTS 1
 // Light types.
@@ -190,7 +191,6 @@ PS_INPUT VS(VS_INPUT input)
 	output.Norm = mul(float4(input.Norm, 1), World).xyz;
 
 	output.Tex = input.Tex;
-
 	return output;
 }
 
@@ -212,7 +212,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 
 	if (Material.UseTexture)
 	{
-		texColor = txDiffuse.Sample(samLinear, IN.Tex);
+		texColor = txNormal.Sample(samNormal, IN.Tex);
 	}
 
 	float4 finalColor = (emissive + ambient + diffuse + specular) * texColor;

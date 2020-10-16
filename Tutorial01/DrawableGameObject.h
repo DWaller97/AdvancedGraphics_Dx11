@@ -57,11 +57,12 @@ protected:
 
 	ID3D11ShaderResourceView*			m_pTextureResourceView = nullptr;
 	ID3D11SamplerState *				m_pSamplerLinear = nullptr;
+	ID3D11SamplerState*					m_pSamplerNormal = nullptr;
 	MaterialPropertiesConstantBuffer	m_material;
 	XMFLOAT3							m_position = XMFLOAT3(0, 0, 0);
 
 	ID3D11ShaderResourceView*			m_albedoTexture =  nullptr;
-
+	ID3D11ShaderResourceView*			m_normalTexture = nullptr;
 	int									NUM_VERTICES = 0;
 private:
 	ID3D11VertexShader* vertexShader = nullptr;
