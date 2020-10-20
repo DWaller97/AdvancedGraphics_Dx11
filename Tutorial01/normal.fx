@@ -84,6 +84,8 @@ struct VS_INPUT
 	float4 Pos : POSITION;
 	float3 Norm : NORMAL;
 	float2 Tex : TEXCOORD0;
+	float3 Tangent : TANGENT;
+	float3 BiNorm : BINORMAL;
 };
 
 struct PS_INPUT
@@ -91,6 +93,8 @@ struct PS_INPUT
 	float4 Pos : SV_POSITION;
 	float4 worldPos : POSITION;
 	float3 Norm : NORMAL;
+	float3 Tangent : TANGENT;
+	float3 BiNormal : BINORMAL;
 	float2 Tex : TEXCOORD0;
 };
 
@@ -187,6 +191,10 @@ PS_INPUT VS(VS_INPUT input)
 	output.Pos = mul(output.Pos, View);
 	output.Pos = mul(output.Pos, Projection);
 
+	float3 normal_cam = input.Pos * (input.Norm * 2 - 1);
+	float3 tan_cam = input.Pos * (input.Tangent * 2 - 1);
+	float3 biNorm_cam = input.Pos * (input.BiNorm * 2 - 1);
+	float3x3 TBN = transpose( float3x3(normal_cam, tan_cam, biNorm_cam));
 	// multiply the normal by the world transform (to go from model space to world space)
 	output.Norm = mul(float4(input.Norm, 1), World).xyz;
 
@@ -212,7 +220,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 
 	if (Material.UseTexture)
 	{
-		texColor = txNormal.Sample(samNormal, IN.Tex);
+		texColor = txDiffuse.Sample(samNormal, IN.Tex);
 	}
 
 	float4 finalColor = (emissive + ambient + diffuse + specular) * texColor;

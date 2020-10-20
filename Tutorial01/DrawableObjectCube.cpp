@@ -53,6 +53,7 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f)},
 	};
 
+	CalculateModelVectors(vertices, NUM_VERTICES);
 
 
 	D3D11_BUFFER_DESC bd = {};
@@ -156,7 +157,6 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 	if (FAILED(hr)) 
 		return hr;
 
-	CalculateModelVectors(vertices, NUM_VERTICES);
 
 	// Set index buffer
 	pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);    
