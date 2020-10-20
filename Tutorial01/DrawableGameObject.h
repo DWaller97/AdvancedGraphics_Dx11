@@ -14,14 +14,7 @@
 
 using namespace DirectX;
 
-struct SimpleVertex
-{
-	XMFLOAT3 pos;
-	XMFLOAT3 normal;
-	XMFLOAT2 texCoord;
-	XMFLOAT3 tangent;
-	XMFLOAT3 biTangent;
-};
+
 
 class DrawableGameObject
 {
@@ -47,10 +40,13 @@ public:
 protected:
 	
 	void								SetWorldMatrix(XMFLOAT4X4* world);
-
+	void								CalculateTangentBinormal2(SimpleVertex v0, SimpleVertex v1, SimpleVertex v2, XMFLOAT3& normal, XMFLOAT3& tangent, XMFLOAT3& binormal);
+	void								CalculateModelVectors(SimpleVertex* _vertices, int _vertexCount);
 	XMFLOAT4X4*							m_World = nullptr;
 
 	ID3D11Buffer*						m_pVertexBuffer = nullptr;
+	ID3D11Buffer*						m_tangentBuffer = nullptr;
+	ID3D11Buffer*						m_bitangentBuffer = nullptr;
 	ID3D11Buffer*						m_pIndexBuffer = nullptr;
 	ID3D11Buffer*						m_pConstantBuffer = nullptr;
 	ID3D11Buffer*						m_pMaterialConstantBuffer = nullptr;
@@ -60,6 +56,7 @@ protected:
 	ID3D11SamplerState*					m_pSamplerNormal = nullptr;
 	MaterialPropertiesConstantBuffer	m_material;
 	XMFLOAT3							m_position = XMFLOAT3(0, 0, 0);
+
 
 	ID3D11ShaderResourceView*			m_albedoTexture =  nullptr;
 	ID3D11ShaderResourceView*			m_normalTexture = nullptr;

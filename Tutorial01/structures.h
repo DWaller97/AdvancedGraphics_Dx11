@@ -6,6 +6,14 @@ using namespace DirectX;
 // Structures
 //--------------------------------------------------------------------------------------
 
+struct SimpleVertex
+{
+	XMFLOAT3 pos;
+	XMFLOAT3 normal;
+	XMFLOAT2 texCoord;
+	XMFLOAT3 tangent;
+	XMFLOAT3 biTangent;
+};
 
 struct ConstantBuffer
 {
