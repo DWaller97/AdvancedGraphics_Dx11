@@ -168,14 +168,22 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 
 void DrawableObjectCube::Update(float t)
 {
-	static float spin = 0;
-	spin += 0.001f;
-	if (spin > 360)
-		spin = 0;
+	if(spinning){
+		static float spin = 0;
+		spin += 0.001f;
+		if (spin > 360)
+			spin = 0;
+		XMMATRIX mSpin = XMMatrixRotationY(spin * (Time::GetDeltaTime()));
+
+	}
 	// Cube:  Rotate around origin
-	XMMATRIX mSpin = XMMatrixRotationY(spin * (Time::GetDeltaTime()));
 
 	XMMATRIX mTranslate = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
-	XMMATRIX world = mTranslate * mSpin;
+	XMMATRIX world = mTranslate;
 	XMStoreFloat4x4(m_World, world);
+}
+
+void DrawableObjectCube::SetSpin(bool spin)
+{
+	spinning = spin;
 }

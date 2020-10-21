@@ -85,7 +85,7 @@ Time*                   time = nullptr;
 
 //Lighting Variables
 float lightColour[4] = { 1, 1, 1, 1 };
-
+XMFLOAT4 lightPosition = XMFLOAT4(0, 0, 0, 0);
 
 
 //--------------------------------------------------------------------------------------
@@ -569,7 +569,7 @@ HRESULT InitObjects() {
     g_Cube->SetPosition(XMFLOAT3(0, 0, 0));
     newCube = new DrawableObjectCube();
     newCube->SetShaders(g_pVertexShader, g_pPixelShader);
-    newCube->SetPosition(XMFLOAT3(1, 0, 0));
+    newCube->SetPosition(XMFLOAT3(5, 0, 0));
     newCube->InitMesh(g_pd3dDevice, g_pImmediateContext);
     vecDrawables.push_back(g_Cube);
     vecDrawables.push_back(newCube);
@@ -693,16 +693,14 @@ void Update() {
 
 
     // set up the light
-    XMFLOAT4 LightPosition;
-    DirectX::XMStoreFloat4(&LightPosition, g_Camera->GetPositionVec());
 
-    light.Position = LightPosition;
-    XMVECTOR LightDirection = XMVectorSet(-LightPosition.x, -LightPosition.y, -LightPosition.z, 0.0f);
+    light.Position = lightPosition;
+    XMVECTOR LightDirection = XMVectorSet(-lightPosition.x, -lightPosition.y, -lightPosition.z, 0.0f);
     LightDirection = XMVector3Normalize(LightDirection);
     XMStoreFloat4(&light.Direction, LightDirection);
 
     LightPropertiesConstantBuffer lightProperties;
-    lightProperties.EyePosition = LightPosition;
+    lightProperties.EyePosition = lightPosition;
     lightProperties.Lights[0] = light;
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
 
@@ -724,7 +722,10 @@ void Render()
     {
         ImGui::NewFrame();
         ImGui::Begin("Light");
-        ImGui::ColorPicker3("Light Colour", lightColour);
+        ImGui::ColorEdit3("Light Colour", lightColour);
+        ImGui::SliderFloat("X", &lightPosition.x, -100.0f, 100.0f);
+        ImGui::SliderFloat("Y", &lightPosition.y, -100.0f, 100.0f);
+        ImGui::SliderFloat("Z", &lightPosition.z, -100.0f, 100.0f);
         ImGui::End();
     }
     {
@@ -736,11 +737,6 @@ void Render()
         ImGui::End();
     }
     {
-        ImGui::Begin("Time");
-        ImGui::Text("Delta: %f ", time->GetDeltaTime());
-        ImGui::Text("Total: %f ", time->GetTotalTime());
-
-        ImGui::End();
     }
     ImGui::Render();
 
