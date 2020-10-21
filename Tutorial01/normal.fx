@@ -212,7 +212,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	LightingResult lit = ComputeLighting(IN.worldPos, normalize(IN.Norm));
 
 	float4 texColor = { 1, 1, 1, 1 };
-	float4 texNormal = {0, 0, 0, 0};
+
 	float4 emissive = Material.Emissive;
 	float4 ambient = Material.Ambient * GlobalAmbient;
 	float4 diffuse = Material.Diffuse * lit.Diffuse;
@@ -221,8 +221,6 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	if (Material.UseTexture)
 	{
 		texColor = txDiffuse.Sample(samNormal, IN.Tex);
-		texNormal = txNormal.Sample(samNormal, IN.Tex);
-		texNormal = (texNormal * 2.0f) - 1.0f;
 	}
 
 	float4 finalColor = (emissive + ambient + diffuse + specular) * texColor;

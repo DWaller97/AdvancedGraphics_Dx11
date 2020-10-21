@@ -94,5 +94,11 @@
     <FxCompile Include="normal.fx">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="StandardPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="StandardVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

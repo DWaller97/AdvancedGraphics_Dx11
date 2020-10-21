@@ -57,9 +57,11 @@ ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
 ID3D11Texture2D*        g_pDepthStencil = nullptr;
 ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
 ID3D11VertexShader*     g_pVertexShader = nullptr;
+ID3D11VertexShader*     g_pVertexShaderStandard = nullptr;
 
 ID3D11PixelShader*      g_pPixelShader = nullptr;
 ID3D11PixelShader*      g_pPixelShaderSolid = nullptr;
+ID3D11PixelShader*      g_pPixelShaderStandard = nullptr;
 
 ID3D11InputLayout*      g_pVertexLayout = nullptr;
 ID3D11Buffer*           g_pVertexBuffer = nullptr;
@@ -451,7 +453,9 @@ HRESULT InitImGui()
 // ***************************************************************************************
 
 HRESULT		InitMesh()
-{
+{ 
+
+#pragma region NormalShaders
 	// Compile the vertex shader
 	ID3DBlob* pVSBlob = nullptr;
 	HRESULT hr = CompileShaderFromFile(L"normal.fx", "VS", "vs_4_0", &pVSBlob);
@@ -507,8 +511,68 @@ HRESULT		InitMesh()
 	pPSBlob->Release();
 	if (FAILED(hr))
 		return hr;
+#pragma endregion NormalShaders
 
+#pragma region StandardShaders
 
+    ID3DBlob *standardVSBlob = nullptr;
+    ID3DBlob *standardPSBlob = nullptr;
+
+    // Standard vertex shader
+    hr = CompileShaderFromFile(L"StandardVS.hlsl", "main", "vs_4_0", &standardVSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+
+    hr = g_pd3dDevice->CreateVertexShader(standardVSBlob->GetBufferPointer(), standardVSBlob->GetBufferSize(), nullptr, &g_pVertexShaderStandard);
+    if (FAILED(hr))
+    {
+        standardVSBlob->Release();
+        return hr;
+    }
+
+    // Standard pixel shader
+    hr = CompileShaderFromFile(L"StandardPS.hlsl", "main", "ps_4_0", &standardPSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+
+    hr = g_pd3dDevice->CreatePixelShader(standardPSBlob->GetBufferPointer(), standardPSBlob->GetBufferSize(), nullptr, &g_pPixelShaderStandard);
+    standardPSBlob->Release();
+    if (FAILED(hr))
+        return hr;
+
+    D3D11_INPUT_ELEMENT_DESC standardLayout[] =
+    {
+        { "SV_POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        { "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+
+    };
+    numElements = ARRAYSIZE(standardLayout);
+    ID3D11InputLayout* vsLayout = nullptr;
+    // Create the input layout
+    hr = g_pd3dDevice->CreateInputLayout(standardLayout, numElements, standardVSBlob->GetBufferPointer(),
+        standardVSBlob->GetBufferSize(), &vsLayout);
+    standardVSBlob->Release();
+
+    if (FAILED(hr))
+        return hr;
+
+    // Set the input layout
+    g_pImmediateContext->IASetInputLayout(vsLayout);
+
+#pragma endregion StandardShaders
+
+#pragma region SolidShaders
 	// Compile the SOLID pixel shader
 	pPSBlob = nullptr;
 	hr = CompileShaderFromFile(L"normal.fx", "PSSolid", "ps_4_0", &pPSBlob);
@@ -524,7 +588,8 @@ HRESULT		InitMesh()
 	pPSBlob->Release();
 	if (FAILED(hr))
 		return hr;
-   
+#pragma endregion SolidShaders
+
     D3D11_BUFFER_DESC bd = {};
 
 	
@@ -537,11 +602,6 @@ HRESULT		InitMesh()
 	hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pLightConstantBuffer);
 	if (FAILED(hr))
 		return hr;
-
-
-
-    
-	
 
 	return hr;
 }
@@ -565,7 +625,7 @@ HRESULT InitObjects() {
 
     g_Cube = new DrawableObjectCube();
     g_Cube->InitMesh(g_pd3dDevice, g_pImmediateContext);
-    g_Cube->SetShaders(g_pVertexShader, g_pPixelShader);
+    g_Cube->SetShaders(g_pVertexShaderStandard, g_pPixelShaderStandard);
     g_Cube->SetPosition(XMFLOAT3(0, 0, 0));
     newCube = new DrawableObjectCube();
     newCube->SetShaders(g_pVertexShader, g_pPixelShader);
