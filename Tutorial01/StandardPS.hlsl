@@ -38,6 +38,7 @@ cbuffer Lighting : register(b2) {
 
 struct PS_INPUT {
 	float4 Position : SV_POSITION;
+	float4 WorldPosition : POSITION;
 	float2 TexCoord : TEXCOORD;
 	float3 Normal : NORMAL;
 	float3 Tangent : TANGENT;
@@ -61,26 +62,31 @@ float4 main(PS_INPUT input) : SV_TARGET
 	lightDir = -lightDir;
 	
 	float4 txColour = txDiffuse.Sample(samLinear, input.TexCoord);
-	//txColour = saturate(txColour * 2.0f);
 	
 	float4 normalMap = txNormal.Sample(samLinear, input.TexCoord);
-	normalMap = (normalMap * 2.0) - 1.0f;
-	
-	float3 normal = input.Normal;
+	normalMap = normalMap * 2.0f - 1.0f;
+	//OpenGL Normal Map
+	normalMap.g = -normalMap.g;
+
+	float3x3 TBN = float3x3(input.Tangent, input.BiNormal, input.Normal);
+	input.Normal = normalize(mul(normalMap, TBN));
+
+	float3 normal = normalize(input.Normal);
 	normal = (normalMap.x * input.Tangent) + (normalMap.y * input.BiNormal) + (normalMap.z * input.Normal);
 	normal = normalize(normal);
-	//
+	
 
-	float3 eyeVertex = normalize(Eye - input.Position).xyz;
-	float3 lightDirToVertex = (input.Position - LightData.Position).xyz;
+
+	float3 eyeVertex = normalize(Eye - input.WorldPosition).xyz;
+	float3 lightDirToVertex = (input.WorldPosition - LightData.Position).xyz;
 	float dist = length(lightDirToVertex);
 	lightDirToVertex = lightDirToVertex / dist;
 
-	float4 diffuse = Material.Diffuse;
-	float4 specular = Material.Specular;
-	float4 ambient = Material.Ambient;
+	float4 diffuse;
+	float4 specular;
+	float4 ambient = Material.Ambient * GlobalAmbient;
 
-	float3 vertexToLight = (LightData.Position - input.Position).xyz;
+	float3 vertexToLight = (LightData.Position - input.WorldPosition).xyz;
 	dist = length(vertexToLight);
 	vertexToLight = vertexToLight / dist;
 
@@ -92,14 +98,14 @@ float4 main(PS_INPUT input) : SV_TARGET
 	float lightIntensity = saturate(dot(normal, lightDirection));
 	if (lightIntensity > 0) {
 		float3 reflection = normalize(2 * lightIntensity * normal - lightDirection);
-		specular = pow(saturate(dot(reflection, eyeVertex)), 32);
+		specular = pow(saturate(dot(reflection, eyeVertex)), Material.SpecularPower);
 	}
 	
 	diffuse = Material.Diffuse * diffuse;
 	specular = Material.Specular * specular;
 	//
-	//colour = saturate(diffuse * intensity);
-	colour = colour * txColour;
-	float4 final = (Material.Emissive + ambient + diffuse + specular) * txColour;
+	
+	colour = saturate(diffuse * lightIntensity);
+	float4 final = (Material.Emissive + ambient + colour) * txColour;
 	return final;
 }

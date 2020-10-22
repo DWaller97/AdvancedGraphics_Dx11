@@ -1,3 +1,19 @@
+struct Light {
+	float4 Position;
+	float4 Direction;
+	float4 Colour;
+	float SpotAngle;
+	float ConstantAttenuation;
+	float LinearAttenuation;
+	float QuadraticAttenuation;
+};
+
+cbuffer Lighting : register(b2) {
+	float4 Eye;
+	float4 GlobalAmbient;
+	Light LightData : LIGHT;
+}
+
 cbuffer WorldViewProjection : register(b0)
 {
 	matrix World;
@@ -8,7 +24,7 @@ cbuffer WorldViewProjection : register(b0)
 
 
 struct VS_INPUT {
-	float4 Position : SV_POSITION;
+	float4 Position : POSITION;
 	float3 Normal : NORMAL;
 	float2 TexCoord : TEXCOORD;
 	float3 Tangent : TANGENT;
@@ -17,6 +33,7 @@ struct VS_INPUT {
 
 struct PS_INPUT {
 	float4 Position : SV_POSITION;
+	float4 WorldPosition : POSITION;
 	float2 TexCoord : TEXCOORD;
 	float3 Normal : NORMAL;
 	float3 Tangent : TANGENT;
@@ -26,16 +43,14 @@ struct PS_INPUT {
 PS_INPUT main( VS_INPUT input )
 {
 	PS_INPUT output;
-	float4 pos = input.Position;
-	pos.w = 1.0f;
-	pos = mul(pos, World);
-	pos = mul(pos, View);
-	pos = mul(pos, Projection);
+	output.Position = mul(input.Position, World);
+	output.WorldPosition = output.Position;
+	output.Position = mul(output.Position, View);
+	output.Position = mul(output.Position, Projection);
 
-	output.Position = pos;
 	output.TexCoord = input.TexCoord;
 
-	output.Normal = mul(input.Normal, (float3x3) World);
+	output.Normal = mul(float4(input.Normal, 1), World).xyz;
 	output.Normal = normalize(output.Normal);
 
 	output.Tangent = mul(input.Tangent, (float3x3) World);
@@ -43,6 +58,12 @@ PS_INPUT main( VS_INPUT input )
 
 	output.BiNormal = mul(input.BiNormal, (float3x3) World);
 	output.BiNormal = normalize(output.BiNormal);
+
+	//float4x4 TBN4 = { output.Tangent.x, output.Tangent.y, output.Tangent.z, 0,
+	//				output.BiNormal.x, output.BiNormal.y, output.BiNormal.z, 0,
+	//				output.Normal.x, output.Normal.y, output.Normal.z, 0,
+	//				0, 0, 0, 1 };
+	//output.Eye = mul(input.Eye, TBN4);
 
 	return output;
 }
