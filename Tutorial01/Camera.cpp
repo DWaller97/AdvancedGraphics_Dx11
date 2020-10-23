@@ -51,6 +51,12 @@ void Camera::Move(float dist)
 
 }
 
+void Camera::MoveUp(float dist)
+{
+    at.y += (dist * moveSpeed);
+
+}
+
 void Camera::Pitch(float angle)
 {
     DirectX::XMMATRIX r = DirectX::XMMatrixRotationAxis(DirectX::XMLoadFloat3(&right), angle * pitchSpeed);

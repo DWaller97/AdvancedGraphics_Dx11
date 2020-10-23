@@ -69,8 +69,8 @@ float4 main(PS_INPUT input) : SV_TARGET
 	normalMap.g = -normalMap.g;
 
 	float3x3 TBN = float3x3(input.Tangent, input.BiNormal, input.Normal);
+	
 	input.Normal = normalize(mul(normalMap, TBN));
-
 	float3 normal = normalize(input.Normal);
 	normal = (normalMap.x * input.Tangent) + (normalMap.y * input.BiNormal) + (normalMap.z * input.Normal);
 	normal = normalize(normal);
@@ -105,7 +105,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 	specular = Material.Specular * specular;
 	//
 	
-	colour = saturate(diffuse * lightIntensity);
-	float4 final = (Material.Emissive + ambient + colour) * txColour;
+	diffuse = saturate(diffuse * lightIntensity);
+	float4 final = /*float4(input.Normal.xyz, 1.0f);*/(Material.Emissive + ambient + diffuse /*+ specular*/ )* txColour;
 	return final;
 }

@@ -32,6 +32,7 @@ public:
 
 	void Strafe(float dist);
 	void Move(float dist);
+	void MoveUp(float dist);
 	void Pitch(float angle);
 
 	void RotateY(float angle);

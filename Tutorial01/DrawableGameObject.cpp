@@ -160,10 +160,6 @@ void DrawableGameObject::CalculateModelVectors(SimpleVertex* _vertices, int _ver
 	// Go through all the faces and calculate the the tangent, binormal, and normal vectors.
 	for (i = 0; i < faceCount; i++)
 	{
-		if (i == 8)
-		{
-			int x = 1;
-		}
 		// Get the three _vertices for this face from the model.
 		vertex1.pos.x = _vertices[index].pos.x;
 		vertex1.pos.y = _vertices[index].pos.y;

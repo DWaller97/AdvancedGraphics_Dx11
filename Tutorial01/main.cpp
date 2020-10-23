@@ -555,8 +555,6 @@ HRESULT		InitMesh()
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
         { "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        { "EYE", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        { "LIGHTPOS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
     numElements = ARRAYSIZE(standardLayout);
     ID3D11InputLayout* vsLayout = nullptr;
@@ -719,6 +717,10 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
                 g_Camera->RotateY(time->GetDeltaTime());
             if (wParam == 0x45) // E
                 g_Camera->RotateY(-time->GetDeltaTime());
+            if (wParam == 0x20) // Space
+                g_Camera->MoveUp(-time->GetDeltaTime());
+            if (wParam == 0x10) // L Shift
+                g_Camera->MoveUp(time->GetDeltaTime());
 
         break;
     case WM_DESTROY:   
