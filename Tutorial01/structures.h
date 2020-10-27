@@ -21,6 +21,9 @@ struct ConstantBuffer
 	XMMATRIX mView;
 	XMMATRIX mProjection;
 	XMFLOAT4 vOutputColor;
+	float parallaxBias;
+	float parallaxScale;
+	XMFLOAT2 padding;
 };
 
 struct _Material
@@ -30,7 +33,7 @@ struct _Material
 		, Ambient(0.1f, 0.1f, 0.1f, 1.0f)
 		, Diffuse(1.0f, 1.0f, 1.0f, 1.0f)
 		, Specular(1.0f, 1.0f, 1.0f, 1.0f)
-		, SpecularPower(128.0f)
+		, SpecularPower(32.0f)
 		, UseTexture(false)
 	{}
 

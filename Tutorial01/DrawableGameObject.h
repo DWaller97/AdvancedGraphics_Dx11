@@ -36,6 +36,9 @@ public:
 	void								SetShader(ID3D11PixelShader* _pixelShader);
 	void								SetShader(ID3D11VertexShader* _vertexShader);
 	void								SetShaders(ID3D11VertexShader* _vertexShader, ID3D11PixelShader* _pixelShader);
+	void								SetParallaxScale(float _scale);
+	void								SetParallaxBias(float _bias);
+
 	void								virtual Release();
 protected:
 	
@@ -60,7 +63,10 @@ protected:
 
 	ID3D11ShaderResourceView*			m_albedoTexture =  nullptr;
 	ID3D11ShaderResourceView*			m_normalTexture = nullptr;
+	ID3D11ShaderResourceView*			m_parallaxTexture = nullptr;
 	int									NUM_VERTICES = 0;
+	float								m_parallaxBias;
+	float								m_parallaxScale;
 private:
 	ID3D11VertexShader* vertexShader = nullptr;
 	ID3D11PixelShader* pixelShader = nullptr;

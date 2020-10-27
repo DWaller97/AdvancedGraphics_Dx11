@@ -86,6 +86,21 @@
     <Image Include="Resources\conenormal.dds">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\Crate_COLOR.dds">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Crate_DISP.dds">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Crate_NRM.dds">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Crate_OCC.dds">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Crate_SPEC.dds">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader.fx">

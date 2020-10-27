@@ -413,6 +413,11 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\conenormal.dds" />
+    <Image Include="Resources\Crate_COLOR.dds" />
+    <Image Include="Resources\Crate_DISP.dds" />
+    <Image Include="Resources\Crate_NRM.dds" />
+    <Image Include="Resources\Crate_OCC.dds" />
+    <Image Include="Resources\Crate_SPEC.dds" />
     <Image Include="Resources\stone.dds" />
   </ItemGroup>
   <ItemGroup>

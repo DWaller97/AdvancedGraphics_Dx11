@@ -786,9 +786,9 @@ void Render()
         ImGui::NewFrame();
         ImGui::Begin("Light");
         ImGui::ColorEdit3("Light Colour", lightColour);
-        ImGui::SliderFloat("X", &lightPosition.x, -100.0f, 100.0f);
-        ImGui::SliderFloat("Y", &lightPosition.y, -100.0f, 100.0f);
-        ImGui::SliderFloat("Z", &lightPosition.z, -100.0f, 100.0f);
+        ImGui::SliderFloat("X", &lightPosition.x, -3, 3.0f);
+        ImGui::SliderFloat("Y", &lightPosition.y, -3.0f, 3.0f);
+        ImGui::SliderFloat("Z", &lightPosition.z, -3.0f, 3.0f);
         ImGui::End();
     }
     {

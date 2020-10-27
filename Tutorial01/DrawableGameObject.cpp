@@ -10,6 +10,8 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 	cb1.mView = XMMatrixTranspose(XMLoadFloat4x4(viewMat));
 	cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(projMat));
 	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
+	cb1.parallaxBias = m_parallaxBias;
+	cb1.parallaxScale = m_parallaxScale;
 	pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
 
 	// Set vertex buffer
@@ -28,7 +30,11 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
 	pContext->PSSetShaderResources(1, 1, &m_normalTexture);
+	pContext->PSSetShaderResources(2, 1, &m_parallaxTexture);
+	pContext->VSSetShaderResources(0, 1, &m_parallaxTexture);
+
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
+	pContext->VSSetSamplers(0, 1, &m_pSamplerLinear);
 	pContext->PSSetSamplers(1, 1, &m_pSamplerNormal);
 	pContext->DrawIndexed(36, 0, 0);
 }
@@ -52,6 +58,16 @@ void DrawableGameObject::SetShaders(ID3D11VertexShader* _vertexShader, ID3D11Pix
 {
 	vertexShader = _vertexShader;
 	pixelShader = _pixelShader;
+}
+
+void DrawableGameObject::SetParallaxScale(float _scale)
+{
+	m_parallaxScale = _scale;
+}
+
+void DrawableGameObject::SetParallaxBias(float _bias)
+{
+	m_parallaxBias = _bias;
 }
 
 void DrawableGameObject::Release()

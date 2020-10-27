@@ -33,22 +33,49 @@ struct VS_INPUT {
 
 struct PS_INPUT {
 	float4 Position : SV_POSITION;
-	float4 WorldPosition : POSITION;
+	float4 WorldPosition : TEXCOORD1;
 	float2 TexCoord : TEXCOORD;
 	float3 Normal : NORMAL;
 	float3 Tangent : TANGENT;
 	float3 BiNormal : BINORMAL;
+	float3 Eye : POSITION3;
+	float3 Light : POSITION4;
+	float3 PosTS : POSITION5;
+	float3 EyePosTS : POSITION6;
+	float3 WorldPosTS : POSITION7;
 };
+
+Texture2D txParallax : register(t0);
+SamplerState samLinear : register(s0);
+
+float3 VectorToTangentSpace(float3 vectorV, float3x3 TBN_inv)
+{
+	// Transform from tangent space to world space.
+	float3 tangentSpaceNormal = normalize(mul(vectorV, TBN_inv));
+	return tangentSpaceNormal;
+}
+
+float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) {
+	float height = txParallax.SampleLevel(samLinear, _texCoords, 0).x;
+	float2 p = _viewDir.xy / _viewDir.z * (height*0.1f);
+		return _texCoords - p;
+}
 
 PS_INPUT main( VS_INPUT input )
 {
 	PS_INPUT output;
 	output.Position = mul(input.Position, World);
-	output.WorldPosition = output.Position;
+	float4 worldPos = output.Position;
+	float4 normalWS = mul(input.Normal, World);
 	output.Position = mul(output.Position, View);
 	output.Position = mul(output.Position, Projection);
 
-	output.TexCoord = input.TexCoord;
+	float3 vertexToEye = Eye.xyz - worldPos.xyz;
+	float3 vertexToLight = LightData.Position.xyz - worldPos.xyz;
+
+
+
+	output.TexCoord = ParallaxMapping(input.TexCoord, vertexToEye);
 
 	output.Normal = mul(float4(input.Normal, 1), World).xyz;
 	output.Normal = normalize(output.Normal);
@@ -59,11 +86,18 @@ PS_INPUT main( VS_INPUT input )
 	output.BiNormal = mul(input.BiNormal, (float3x3) World);
 	output.BiNormal = normalize(output.BiNormal);
 
-	//float4x4 TBN4 = { output.Tangent.x, output.Tangent.y, output.Tangent.z, 0,
-	//				output.BiNormal.x, output.BiNormal.y, output.BiNormal.z, 0,
-	//				output.Normal.x, output.Normal.y, output.Normal.z, 0,
-	//				0, 0, 0, 1 };
-	//output.Eye = mul(input.Eye, TBN4);
+	float3 T = normalize(mul(input.Tangent, World));
+	float3 B = normalize(mul(input.BiNormal, World));
+	float3 N = normalize(mul(input.Normal, World));
+	float3x3 TBN = float3x3(T, B, N);
+	float3x3 TBNInverse = transpose(TBN);
+	
+	output.Eye = VectorToTangentSpace(vertexToEye.xyz, TBNInverse);
+	output.Light = VectorToTangentSpace(vertexToLight.xyz, TBNInverse);
+	output.Normal = VectorToTangentSpace(normalWS.xyz, TBNInverse);
+	output.EyePosTS = VectorToTangentSpace(Eye.xyz, TBNInverse);
+	output.WorldPosTS = VectorToTangentSpace(worldPos.xyz, TBNInverse);
+
 
 	return output;
 }
