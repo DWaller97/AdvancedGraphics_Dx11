@@ -58,10 +58,12 @@ ID3D11Texture2D*        g_pDepthStencil = nullptr;
 ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
 ID3D11VertexShader*     g_pVertexShader = nullptr;
 ID3D11VertexShader*     g_pVertexShaderStandard = nullptr;
+ID3D11VertexShader*     g_pVertexShader2 = nullptr;
 
 ID3D11PixelShader*      g_pPixelShader = nullptr;
 ID3D11PixelShader*      g_pPixelShaderSolid = nullptr;
 ID3D11PixelShader*      g_pPixelShaderStandard = nullptr;
+ID3D11PixelShader*      g_pPixelShader2 = nullptr;
 
 ID3D11InputLayout*      g_pVertexLayout = nullptr;
 ID3D11Buffer*           g_pVertexBuffer = nullptr;
@@ -448,6 +450,10 @@ HRESULT InitImGui()
     return S_OK;
 }
 
+DrawableGameObject::ShaderData standardShader;
+DrawableGameObject::ShaderData shader2;
+
+
 // ***************************************************************************************
 // InitMesh
 // ***************************************************************************************
@@ -565,9 +571,12 @@ HRESULT		InitMesh()
 
     if (FAILED(hr))
         return hr;
+    standardShader._pixelShader = g_pPixelShaderStandard;
+    standardShader._vertexShader = g_pVertexShaderStandard;
+    standardShader._inputLayout = vsLayout;
 
     // Set the input layout
-    g_pImmediateContext->IASetInputLayout(vsLayout);
+    //g_pImmediateContext->IASetInputLayout(vsLayout);
 
 #pragma endregion StandardShaders
 
@@ -589,6 +598,63 @@ HRESULT		InitMesh()
 		return hr;
 #pragma endregion SolidShaders
 
+#pragma region Shader2
+
+    ID3DBlob* VSBlob2 = nullptr;
+    ID3DBlob* PSBlob2 = nullptr;
+
+    // Standard vertex shader
+    hr = CompileShaderFromFile(L"VS2.hlsl", "main", "vs_4_0", &VSBlob2);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+
+    hr = g_pd3dDevice->CreateVertexShader(VSBlob2->GetBufferPointer(), VSBlob2->GetBufferSize(), nullptr, &g_pVertexShader2);
+    if (FAILED(hr))
+    {
+        VSBlob2->Release();
+        return hr;
+    }
+
+    // Standard pixel shader
+    hr = CompileShaderFromFile(L"PS2.hlsl", "main", "ps_4_0", &PSBlob2);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+
+
+    hr = g_pd3dDevice->CreatePixelShader(PSBlob2->GetBufferPointer(), PSBlob2->GetBufferSize(), nullptr, &g_pPixelShader2);
+    PSBlob2->Release();
+    if (FAILED(hr))
+        return hr;
+
+    D3D11_INPUT_ELEMENT_DESC layout2[] =
+    {
+        { "SV_POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    numElements = ARRAYSIZE(layout2);
+    // Create the input layout
+    ID3D11InputLayout* vsLayout2 = nullptr;
+
+    hr = g_pd3dDevice->CreateInputLayout(layout2, numElements, VSBlob2->GetBufferPointer(),
+        VSBlob2->GetBufferSize(), &vsLayout2);
+    VSBlob2->Release();
+    
+    shader2._vertexShader = g_pVertexShader2;
+    shader2._pixelShader = g_pPixelShader2;
+    shader2._inputLayout = vsLayout2;
+    //g_pImmediateContext->IASetInputLayout(vsLayout2);
+
+    if (FAILED(hr))
+        return hr;
+
+#pragma endregion Shader2
     D3D11_BUFFER_DESC bd = {};
 
 	
@@ -624,10 +690,10 @@ HRESULT InitObjects() {
 
     g_Cube = new DrawableObjectCube();
     g_Cube->InitMesh(g_pd3dDevice, g_pImmediateContext);
-    g_Cube->SetShaders(g_pVertexShaderStandard, g_pPixelShaderStandard);
+    g_Cube->SetShaders(standardShader);
     g_Cube->SetPosition(XMFLOAT3(0, 0, 0));
     newCube = new DrawableObjectCube();
-    newCube->SetShaders(g_pVertexShader, g_pPixelShader);
+    newCube->SetShaders(shader2);
     newCube->SetPosition(XMFLOAT3(5, 0, 0));
     newCube->InitMesh(g_pd3dDevice, g_pImmediateContext);
     vecDrawables.push_back(g_Cube);
@@ -648,7 +714,9 @@ void CleanupDevice()
     if( g_pIndexBuffer )        g_pIndexBuffer->Release();
     if( g_pVertexLayout )       g_pVertexLayout->Release();
     if( g_pVertexShader )       g_pVertexShader->Release();
+    if( g_pVertexShaderStandard )       g_pVertexShaderStandard->Release();
     if( g_pPixelShader )        g_pPixelShader->Release();
+    if( g_pPixelShaderStandard )        g_pPixelShaderStandard->Release();
     if( g_pDepthStencil )       g_pDepthStencil->Release();
     if( g_pDepthStencilView )   g_pDepthStencilView->Release();
     if( g_pRenderTargetView )   g_pRenderTargetView->Release();

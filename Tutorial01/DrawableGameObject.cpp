@@ -10,9 +10,12 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 	cb1.mView = XMMatrixTranspose(XMLoadFloat4x4(viewMat));
 	cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(projMat));
 	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
-	cb1.parallaxBias = m_parallaxBias;
-	cb1.parallaxScale = m_parallaxScale;
 	pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
+
+	//ConstantBuffer cb2;
+	//cb2.parallaxBias = m_parallaxBias;
+	//cb2.parallaxScale = m_parallaxScale;
+	//pContext->UpdateSubresource(m_parallaxBuffer, 0, nullptr, &cb2, 0, 0);
 
 	// Set vertex buffer
 	UINT stride = sizeof(SimpleVertex);
@@ -20,6 +23,8 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 	pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
 	// Set index buffer
 	pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	if(m_inputLayout != nullptr)
+		pContext->IASetInputLayout(m_inputLayout);
 	// Render the cube
 	pContext->VSSetShader(vertexShader, nullptr, 0);
 	pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
@@ -27,21 +32,26 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 
 	pContext->PSSetConstantBuffers(1, 1, &m_pMaterialConstantBuffer);
 	pContext->PSSetConstantBuffers(2, 1, &lightConstantBuffer);
-
+	//pContext->PSSetConstantBuffers(3, 1, &m_parallaxBuffer);
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
 	pContext->PSSetShaderResources(1, 1, &m_normalTexture);
 	pContext->PSSetShaderResources(2, 1, &m_parallaxTexture);
-	pContext->VSSetShaderResources(0, 1, &m_parallaxTexture);
 
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
-	pContext->VSSetSamplers(0, 1, &m_pSamplerLinear);
-	pContext->PSSetSamplers(1, 1, &m_pSamplerNormal);
 	pContext->DrawIndexed(36, 0, 0);
 }
 
 void DrawableGameObject::SetPosition(XMFLOAT3 position)
 {
 	m_position = position;
+}
+
+void DrawableGameObject::SetShaders(ShaderData shaderData)
+{
+	pixelShader = shaderData._pixelShader;
+	vertexShader = shaderData._vertexShader;
+	m_inputLayout = shaderData._inputLayout;
+
 }
 
 void DrawableGameObject::SetShader(ID3D11PixelShader* _pixelShader)

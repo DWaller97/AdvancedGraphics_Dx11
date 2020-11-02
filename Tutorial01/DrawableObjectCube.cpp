@@ -188,7 +188,7 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 	if (FAILED(hr))
 		return hr;
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\conenormal.dds", nullptr, &m_parallaxTexture);
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Crate_DISP.dds", nullptr, &m_parallaxTexture);
 	if (FAILED(hr))
 		return hr;
 

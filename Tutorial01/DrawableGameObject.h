@@ -19,7 +19,11 @@ using namespace DirectX;
 class DrawableGameObject
 {
 public:
-
+	struct ShaderData {
+		ID3D11PixelShader* _pixelShader;
+		ID3D11VertexShader* _vertexShader;
+		ID3D11InputLayout* _inputLayout;
+	};
 	HRESULT								virtual InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext) = 0;
 	void								virtual Update(float t) = 0;
 	void								virtual Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat);
@@ -33,6 +37,7 @@ public:
 	ID3D11SamplerState**				GetTextureSamplerState() { return &m_pSamplerLinear; }
 	MaterialPropertiesConstantBuffer	GetMaterial() { return m_material;}
 	void								SetPosition(XMFLOAT3 position);
+	void								SetShaders(ShaderData shaderData);
 	void								SetShader(ID3D11PixelShader* _pixelShader);
 	void								SetShader(ID3D11VertexShader* _vertexShader);
 	void								SetShaders(ID3D11VertexShader* _vertexShader, ID3D11PixelShader* _pixelShader);
@@ -53,13 +58,14 @@ protected:
 	ID3D11Buffer*						m_pIndexBuffer = nullptr;
 	ID3D11Buffer*						m_pConstantBuffer = nullptr;
 	ID3D11Buffer*						m_pMaterialConstantBuffer = nullptr;
+	ID3D11Buffer*						m_parallaxBuffer = nullptr;
 
 	ID3D11ShaderResourceView*			m_pTextureResourceView = nullptr;
 	ID3D11SamplerState *				m_pSamplerLinear = nullptr;
 	ID3D11SamplerState*					m_pSamplerNormal = nullptr;
 	MaterialPropertiesConstantBuffer	m_material;
 	XMFLOAT3							m_position = XMFLOAT3(0, 0, 0);
-
+	ID3D11InputLayout*					m_inputLayout = nullptr;
 
 	ID3D11ShaderResourceView*			m_albedoTexture =  nullptr;
 	ID3D11ShaderResourceView*			m_normalTexture = nullptr;

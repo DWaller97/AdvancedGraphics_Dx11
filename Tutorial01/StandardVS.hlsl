@@ -45,8 +45,6 @@ struct PS_INPUT {
 	float3 WorldPosTS : POSITION7;
 };
 
-Texture2D txParallax : register(t0);
-SamplerState samLinear : register(s0);
 
 float3 VectorToTangentSpace(float3 vectorV, float3x3 TBN_inv)
 {
@@ -55,27 +53,24 @@ float3 VectorToTangentSpace(float3 vectorV, float3x3 TBN_inv)
 	return tangentSpaceNormal;
 }
 
-float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) {
-	float height = txParallax.SampleLevel(samLinear, _texCoords, 0).x;
-	float2 p = _viewDir.xy / _viewDir.z * (height*0.1f);
-		return _texCoords - p;
-}
 
-PS_INPUT main( VS_INPUT input )
+
+PS_INPUT main(VS_INPUT input)
 {
 	PS_INPUT output;
 	output.Position = mul(input.Position, World);
 	float4 worldPos = output.Position;
-	float4 normalWS = mul(input.Normal, World);
 	output.Position = mul(output.Position, View);
 	output.Position = mul(output.Position, Projection);
+	float4 normalWS = mul(input.Normal, World);
+
 
 	float3 vertexToEye = Eye.xyz - worldPos.xyz;
 	float3 vertexToLight = LightData.Position.xyz - worldPos.xyz;
 
 
 
-	output.TexCoord = ParallaxMapping(input.TexCoord, vertexToEye);
+	output.TexCoord = input.TexCoord;
 
 	output.Normal = mul(float4(input.Normal, 1), World).xyz;
 	output.Normal = normalize(output.Normal);
@@ -91,8 +86,9 @@ PS_INPUT main( VS_INPUT input )
 	float3 N = normalize(mul(input.Normal, World));
 	float3x3 TBN = float3x3(T, B, N);
 	float3x3 TBNInverse = transpose(TBN);
-	
+
 	output.Eye = VectorToTangentSpace(vertexToEye.xyz, TBNInverse);
+	output.WorldPosition = worldPos;
 	output.Light = VectorToTangentSpace(vertexToLight.xyz, TBNInverse);
 	output.Normal = VectorToTangentSpace(normalWS.xyz, TBNInverse);
 	output.EyePosTS = VectorToTangentSpace(Eye.xyz, TBNInverse);
