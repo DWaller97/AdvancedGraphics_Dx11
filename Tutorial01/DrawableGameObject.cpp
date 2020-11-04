@@ -26,8 +26,8 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 	if(m_inputLayout != nullptr)
 		pContext->IASetInputLayout(m_inputLayout);
 	// Render the cube
-	pContext->VSSetShader(vertexShader, nullptr, 0);
 	pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+	pContext->VSSetShader(vertexShader, nullptr, 0);
 	pContext->PSSetShader(pixelShader, nullptr, 0);
 
 	pContext->PSSetConstantBuffers(1, 1, &m_pMaterialConstantBuffer);

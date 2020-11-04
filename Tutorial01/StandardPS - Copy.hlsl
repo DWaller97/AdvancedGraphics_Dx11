@@ -43,7 +43,7 @@ cbuffer Lighting : register(b2) {
 
 struct PS_INPUT {
 	float4 Position : SV_POSITION;
-	float4 WorldPosition : POSITION8;
+	float4 WorldPosition : TEXCOORD1;
 	float2 TexCoord : TEXCOORD;
 	float3 Normal : NORMAL;
 	float3 Tangent : TANGENT;
@@ -79,19 +79,19 @@ float4 main(PS_INPUT input) : SV_TARGET
 
 	float4 colour = float4(0, 0, 0, 0);
 	float4 txColour = txDiffuse.Sample(samLinear, texCoords);
-
+	
 	float4 normalMap = txNormal.Sample(samLinear, texCoords);
 	normalMap = normalMap * 2.0f - 1.0f;
 	//OpenGL Normal Map
 	//normalMap.g = -normalMap.g;
 
 	float3x3 TBN = float3x3(input.Tangent, input.BiNormal, input.Normal);
-
+	
 	input.Normal = normalize(mul(normalMap, TBN));
 	float3 normal = normalize(input.Normal);
 	normal = (normalMap.x * input.Tangent) + (normalMap.y * input.BiNormal) + (normalMap.z * input.Normal);
 	normal = normalize(normal);
-
+	
 
 
 	float3 eyeVertex = normalize(input.Eye - input.WorldPosition).xyz;
@@ -117,12 +117,12 @@ float4 main(PS_INPUT input) : SV_TARGET
 		float3 reflection = reflect(normalize(lightDirection), normalize(normal))/*normalize(2 * lightIntensity * normal - lightDirection)*/;
 		specular = pow(saturate(dot(reflection, eyeVertex)), Material.SpecularPower);
 	}
-
+	
 	diffuse = Material.Diffuse * diffuse;
 	specular = Material.Specular * specular;
 	//
-
+	
 	diffuse = saturate(diffuse * lightIntensity);
-	float4 final = /*float4(input.Normal.xyz, 1.0f);*/(Material.Emissive + ambient + diffuse /*+ specular*/) * txColour;
+	float4 final = /*float4(input.Normal.xyz, 1.0f);*/(Material.Emissive + ambient + diffuse + specular )* txColour;
 	return final;
 }

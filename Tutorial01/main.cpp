@@ -68,7 +68,6 @@ ID3D11PixelShader*      g_pPixelShader2 = nullptr;
 ID3D11InputLayout*      g_pVertexLayout = nullptr;
 ID3D11Buffer*           g_pVertexBuffer = nullptr;
 ID3D11Buffer*           g_pIndexBuffer = nullptr;
-
 ID3D11Buffer*           g_pConstantBuffer = nullptr;
 ID3D11Buffer*           g_pMaterialConstantBuffer = nullptr;
 ID3D11Buffer*           g_pLightConstantBuffer = nullptr;
@@ -637,6 +636,9 @@ HRESULT		InitMesh()
     D3D11_INPUT_ELEMENT_DESC layout2[] =
     {
         { "SV_POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
     numElements = ARRAYSIZE(layout2);
     // Create the input layout
@@ -708,15 +710,14 @@ HRESULT InitObjects() {
 void CleanupDevice()
 {
     if( g_pImmediateContext )   g_pImmediateContext->ClearState();
-
     if( g_pConstantBuffer )     g_pConstantBuffer->Release();
     if( g_pVertexBuffer )       g_pVertexBuffer->Release();
     if( g_pIndexBuffer )        g_pIndexBuffer->Release();
     if( g_pVertexLayout )       g_pVertexLayout->Release();
     if( g_pVertexShader )       g_pVertexShader->Release();
-    if( g_pVertexShaderStandard )       g_pVertexShaderStandard->Release();
+    if( g_pVertexShaderStandard)g_pVertexShaderStandard->Release();
     if( g_pPixelShader )        g_pPixelShader->Release();
-    if( g_pPixelShaderStandard )        g_pPixelShaderStandard->Release();
+    if( g_pPixelShaderStandard) g_pPixelShaderStandard->Release();
     if( g_pDepthStencil )       g_pDepthStencil->Release();
     if( g_pDepthStencilView )   g_pDepthStencilView->Release();
     if( g_pRenderTargetView )   g_pRenderTargetView->Release();
@@ -826,7 +827,7 @@ void Update() {
     // set up the light
 
     light.Position = lightPosition;
-    XMVECTOR LightDirection = XMVectorSet(-lightPosition.x, -lightPosition.y, -lightPosition.z, 0.0f);
+    XMVECTOR LightDirection = XMVectorSet(-lightPosition.x, -lightPosition.y, -lightPosition.z, 1.0f);
     LightDirection = XMVector3Normalize(LightDirection);
     XMStoreFloat4(&light.Direction, LightDirection);
 
