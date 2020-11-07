@@ -704,7 +704,7 @@ HRESULT InitObjects() {
     g_Cube->SetShaders(shaderFX);
     g_Cube->SetPosition(XMFLOAT3(0, 0, 0));
     newCube = new DrawableObjectCube();
-    newCube->SetShaders(standardShader);
+    newCube->SetShaders(shader2);
     newCube->SetPosition(XMFLOAT3(5, 0, 0));
     newCube->InitMesh(g_pd3dDevice, g_pImmediateContext);
     vecDrawables.push_back(g_Cube);
@@ -840,7 +840,7 @@ void Update() {
     // set up the light
 
     light.Position = lightPosition;
-    XMVECTOR LightDirection = XMVectorSet(lightPosition.x, lightPosition.y, lightPosition.z, 1.0f);
+    XMVECTOR LightDirection = XMVectorSet(-lightPosition.x, -lightPosition.y, -lightPosition.z, 1.0f);
     LightDirection = XMVector3Normalize(LightDirection);
     XMStoreFloat4(&light.Direction, LightDirection);
 

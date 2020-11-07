@@ -4,7 +4,7 @@
 DrawableObjectCube::DrawableObjectCube()
 {
 	SetWorldMatrix(new XMFLOAT4X4());
-	NUM_VERTICES = 24;
+	NUM_VERTICES = 36;
 
 }
 
@@ -275,9 +275,4 @@ void DrawableObjectCube::Update(float t)
 void DrawableObjectCube::SetSpin(bool spin)
 {
 	spinning = spin;
-}
-
-void DrawableObjectCube::LoadCube(char* filePath)
-{
-	
 }
