@@ -391,6 +391,8 @@
     <ClInclude Include="DrawableGameObject.h" />
     <ClInclude Include="DrawableObjectCube.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="miniz.h" />
+    <ClInclude Include="ofbx.h" />
     <CLInclude Include="resource.h" />
     <ClInclude Include="structures.h" />
     <ClInclude Include="Time.h" />
@@ -408,6 +410,8 @@
     <ClCompile Include="DrawableGameObject.cpp" />
     <ClCompile Include="DrawableObjectCube.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="miniz.c" />
+    <ClCompile Include="ofbx.cpp" />
     <ClCompile Include="Source1.cpp" />
     <ClCompile Include="Time.cpp" />
   </ItemGroup>

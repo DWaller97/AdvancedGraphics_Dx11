@@ -26,6 +26,12 @@
     <ClCompile Include="Time.cpp" />
     <ClCompile Include="Source1.cpp" />
     <ClCompile Include="DrawableObjectCube.cpp" />
+    <ClCompile Include="miniz.c">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="ofbx.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -36,6 +42,9 @@
     </Filter>
     <Filter Include="Dear ImGui">
       <UniqueIdentifier>{e5d61927-9792-4793-97fa-e218dacc676b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External">
+      <UniqueIdentifier>{9608d093-6ebc-4190-85ef-a4555e0ba818}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -73,6 +82,12 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Time.h" />
     <ClInclude Include="DrawableObjectCube.h" />
+    <ClInclude Include="miniz.h">
+      <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="ofbx.h">
+      <Filter>External</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tutorial01.rc">
