@@ -18,6 +18,8 @@ cbuffer ConstantBuffer : register( b0 )
 }
 
 Texture2D txDiffuse : register(t0);
+Texture2D txNormal : register(t1);
+Texture2D txParallax : register(t2);
 SamplerState samLinear : register(s0);
 
 #define MAX_LIGHTS 1
@@ -199,10 +201,13 @@ PS_INPUT VS( VS_INPUT input )
 
 float4 PS(PS_INPUT IN) : SV_TARGET
 {
-	LightingResult lit = ComputeLighting(IN.worldPos, normalize(IN.Norm));
+	float4 texNormal = { 1, 1, 1, 1 };
+	texNormal = txNormal.Sample(samLinear, IN.Tex);
+	//IN.Norm = IN.Norm * 2 - 1;
+	//texNormal.g = -texNormal;
+	LightingResult lit = ComputeLighting(IN.worldPos, normalize(texNormal));
 
 	float4 texColor = { 1, 1, 1, 1 };
-
 	float4 emissive = Material.Emissive;
 	float4 ambient = Material.Ambient * GlobalAmbient;
 	float4 diffuse = Material.Diffuse * lit.Diffuse;
@@ -212,6 +217,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	{
 		texColor = txDiffuse.Sample(samLinear, IN.Tex);
 	}
+
 
 	float4 finalColor = (emissive + ambient + diffuse + specular) * texColor;
 

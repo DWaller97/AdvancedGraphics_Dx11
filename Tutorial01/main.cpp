@@ -71,6 +71,7 @@ ID3D11Buffer*           g_pIndexBuffer = nullptr;
 ID3D11Buffer*           g_pConstantBuffer = nullptr;
 ID3D11Buffer*           g_pMaterialConstantBuffer = nullptr;
 ID3D11Buffer*           g_pLightConstantBuffer = nullptr;
+ID3D11Buffer*           g_pCameraBuffer = nullptr;
 
 ID3D11ShaderResourceView * g_pTextureRV = nullptr;
 ID3D11ShaderResourceView * g_pNormalTextureRV = nullptr;
@@ -451,6 +452,7 @@ HRESULT InitImGui()
 
 DrawableGameObject::ShaderData standardShader;
 DrawableGameObject::ShaderData shader2;
+DrawableGameObject::ShaderData shaderFX;
 
 
 // ***************************************************************************************
@@ -460,10 +462,10 @@ DrawableGameObject::ShaderData shader2;
 HRESULT		InitMesh()
 { 
 
-#pragma region NormalShaders
+#pragma region FX
 	// Compile the vertex shader
 	ID3DBlob* pVSBlob = nullptr;
-	HRESULT hr = CompileShaderFromFile(L"normal.fx", "VS", "vs_4_0", &pVSBlob);
+	HRESULT hr = CompileShaderFromFile(L"shader.fx", "VS", "vs_4_0", &pVSBlob);
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr,
@@ -499,11 +501,11 @@ HRESULT		InitMesh()
 		return hr;
 
 	// Set the input layout
-	g_pImmediateContext->IASetInputLayout(g_pVertexLayout);
+	//g_pImmediateContext->IASetInputLayout(g_pVertexLayout);
 
 	// Compile the pixel shader
 	ID3DBlob* pPSBlob = nullptr;
-	hr = CompileShaderFromFile(L"normal.fx", "PS", "ps_4_0", &pPSBlob);
+	hr = CompileShaderFromFile(L"shader.fx", "PS", "ps_4_0", &pPSBlob);
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr,
@@ -514,6 +516,11 @@ HRESULT		InitMesh()
 	// Create the pixel shader
 	hr = g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShader);
 	pPSBlob->Release();
+
+    shaderFX._inputLayout = g_pVertexLayout;
+    shaderFX._pixelShader = g_pPixelShader;
+    shaderFX._vertexShader = g_pVertexShader;
+
 	if (FAILED(hr))
 		return hr;
 #pragma endregion NormalShaders
@@ -670,6 +677,8 @@ HRESULT		InitMesh()
 	if (FAILED(hr))
 		return hr;
 
+    hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pCameraBuffer);
+
 	return hr;
 }
 DrawableObjectCube* newCube = nullptr;
@@ -692,10 +701,10 @@ HRESULT InitObjects() {
 
     g_Cube = new DrawableObjectCube();
     g_Cube->InitMesh(g_pd3dDevice, g_pImmediateContext);
-    g_Cube->SetShaders(standardShader);
+    g_Cube->SetShaders(shaderFX);
     g_Cube->SetPosition(XMFLOAT3(0, 0, 0));
     newCube = new DrawableObjectCube();
-    newCube->SetShaders(shader2);
+    newCube->SetShaders(standardShader);
     newCube->SetPosition(XMFLOAT3(5, 0, 0));
     newCube->InitMesh(g_pd3dDevice, g_pImmediateContext);
     vecDrawables.push_back(g_Cube);
@@ -713,6 +722,7 @@ void CleanupDevice()
     if( g_pConstantBuffer )     g_pConstantBuffer->Release();
     if( g_pVertexBuffer )       g_pVertexBuffer->Release();
     if( g_pIndexBuffer )        g_pIndexBuffer->Release();
+    if (g_pCameraBuffer)       g_pCameraBuffer->Release();
     if( g_pVertexLayout )       g_pVertexLayout->Release();
     if( g_pVertexShader )       g_pVertexShader->Release();
     if( g_pVertexShaderStandard)g_pVertexShaderStandard->Release();
@@ -803,6 +813,8 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     return 0;
 }
 
+DrawableGameObject::CameraBuffer camBuff;
+
 void Update() {
 
     time->UpdateDeltaTime();
@@ -810,8 +822,9 @@ void Update() {
         vecDrawables.at(i)->Update(time->GetDeltaTime());
     }
 
-
-
+    camBuff.cameraPosition = g_Camera->GetPosition();
+    shader2._cameraBuffer = camBuff;
+    g_pImmediateContext->UpdateSubresource(g_pCameraBuffer, 1, nullptr, &shader2, 0, 0);
 
     Light light;
     light.Enabled = static_cast<int>(true);
@@ -827,7 +840,7 @@ void Update() {
     // set up the light
 
     light.Position = lightPosition;
-    XMVECTOR LightDirection = XMVectorSet(-lightPosition.x, -lightPosition.y, -lightPosition.z, 1.0f);
+    XMVECTOR LightDirection = XMVectorSet(lightPosition.x, lightPosition.y, lightPosition.z, 1.0f);
     LightDirection = XMVector3Normalize(LightDirection);
     XMStoreFloat4(&light.Direction, LightDirection);
 

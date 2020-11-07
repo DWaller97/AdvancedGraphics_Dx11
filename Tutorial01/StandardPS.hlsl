@@ -75,22 +75,22 @@ float4 main(PS_INPUT input) : SV_TARGET
 	float4 parallax = txParallax.Sample(samLinear, input.TexCoord);
 	float3 viewDirection = input.EyePosTS - input.WorldPosTS;
 	viewDirection = normalize(viewDirection);
-	float2 texCoords = ParallaxMapping(input.TexCoord, viewDirection);
+	//float2 texCoords = ParallaxMapping(input.TexCoord, viewDirection);
 
 	float4 colour = float4(0, 0, 0, 0);
-	float4 txColour = txDiffuse.Sample(samLinear, texCoords);
+	float4 txColour = txDiffuse.Sample(samLinear, input.TexCoord);
 
-	float4 normalMap = txNormal.Sample(samLinear, texCoords);
+	float4 normalMap = txNormal.Sample(samLinear, input.TexCoord);
 	normalMap = normalMap * 2.0f - 1.0f;
 	//OpenGL Normal Map
 	//normalMap.g = -normalMap.g;
 
 	float3x3 TBN = float3x3(input.Tangent, input.BiNormal, input.Normal);
 
-	input.Normal = normalize(mul(normalMap, TBN));
+	input.Normal = normalize(mul(input.Normal, TBN));
 	float3 normal = normalize(input.Normal);
-	normal = (normalMap.x * input.Tangent) + (normalMap.y * input.BiNormal) + (normalMap.z * input.Normal);
-	normal = normalize(normal);
+	/*normal = (normalMap.x * input.Tangent) + (normalMap.y * input.BiNormal) + (normalMap.z * input.Normal);
+	normal = normalize(normal);*/
 
 
 
@@ -123,6 +123,6 @@ float4 main(PS_INPUT input) : SV_TARGET
 	//
 
 	diffuse = saturate(diffuse * lightIntensity);
-	float4 final = /*float4(input.Normal.xyz, 1.0f);*/(Material.Emissive + ambient + diffuse /*+ specular*/) * txColour;
+	float4 final = float4(Material.Emissive + ambient + diffuse + specular)*   txColour;
 	return final;
 }

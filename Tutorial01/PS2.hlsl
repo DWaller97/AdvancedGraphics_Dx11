@@ -38,6 +38,11 @@ cbuffer Lighting : register(b2) {
 	Light LightData : LIGHT;
 }
 
+cbuffer Camera : register(b3) {
+	float3 CameraPosition;
+	float padding;
+}
+
 struct VSOUT {
 	float4 Position : SV_POSITION;
 	float4 WorldPosition : POSITION;
@@ -45,15 +50,32 @@ struct VSOUT {
 	float3 Normal : NORMAL;
 };
 
+float4 Specular(VSOUT input) {
+	float3 lightToPixel = LightData.Position - input.WorldPosition;
+	float4 lightDir = float4(normalize(LightData.Direction));
+	float3 pixelToEye = normalize(CameraPosition - input.Position.xyz);
+
+	float lightIntensity = saturate(dot(input.Normal, lightDir));
+	float4 specular = float4(0, 0, 0, 0);
+	if (lightIntensity > 0.0f)
+	{
+		float3  reflection = normalize(2 * lightIntensity * input.Normal - lightDir);
+		specular = pow(saturate(dot(reflection, pixelToEye)), Material.SpecularPower); // 32 = specular power
+	}
+
+	return specular;
+}
+
 float4 Diffuse(VSOUT input) {
 	float4 final = float4(0, 0, 0, 0);
 	float3 lightToPixel = LightData.Position - input.WorldPosition;
 	float l = length(lightToPixel);
 	lightToPixel = lightToPixel / l;
-	float brightness = dot(lightToPixel, input.Normal);
+	float attenuation = 1.0f / (LightData.ConstantAttenuation + LightData.LinearAttenuation * l + LightData.QuadraticAttenuation * l * l);
+	float brightness = saturate(dot(input.Normal, lightToPixel));
 	if (brightness > 0.0f) {
 		final += LightData.Colour;
-		final /= LightData.ConstantAttenuation + (LightData.LinearAttenuation * l) + (LightData.QuadraticAttenuation * (l * l));
+		final /= attenuation;
 		final *= pow(max(dot(-lightToPixel, LightData.Direction), 0.0f), LightData.SpotAngle);
 	}
 	return final;
@@ -69,7 +91,7 @@ float4 main(VSOUT input) : SV_TARGET
 	float3 normal = txNormal.Sample(samLinear, input.TexCoord);
 	txColour = txColour * matAmbient * LightData.Colour;
 	float4 diffuse = Diffuse(input);
-	
+	float4 specular = Specular(input);
 	diffuse = saturate(max(GlobalAmbient, dot(LightData.Direction, input.Normal))) * matDiffuse + diffuse;
-	return saturate(mat + diffuse) * txColour;
+	return saturate(mat + diffuse/* + specular*/) * txColour;
 }

@@ -19,10 +19,17 @@ using namespace DirectX;
 class DrawableGameObject
 {
 public:
+
+	struct CameraBuffer {
+		XMFLOAT3 cameraPosition;
+		float padding;
+	};
+
 	struct ShaderData {
 		ID3D11PixelShader* _pixelShader;
 		ID3D11VertexShader* _vertexShader;
 		ID3D11InputLayout* _inputLayout;
+		CameraBuffer _cameraBuffer;
 	};
 	HRESULT								virtual InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext) = 0;
 	void								virtual Update(float t) = 0;
