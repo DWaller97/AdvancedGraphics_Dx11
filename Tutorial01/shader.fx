@@ -141,8 +141,8 @@ LightingResult DoPointLight(Light light, float3 vertexToEye, float4 vertexPos, f
 	LightingResult result;
 
 	float3 lightToVertex = (vertexPos - light.Position);
-	float distance = length(LightDirectionToVertex);
-	LightDirectionToVertex = LightDirectionToVertex / distance;
+	float distance = length(lightToVertex);
+	lightToVertex = lightToVertex / distance;
 
 	float3 vertexToLight = -lightToVertex;
 	distance = length(vertexToLight);
@@ -152,7 +152,7 @@ LightingResult DoPointLight(Light light, float3 vertexToEye, float4 vertexPos, f
 
 
 	result.Diffuse = DoDiffuse(light, vertexToLight, N) * attenuation;
-	result.Specular = DoSpecular(light, vertexToEye, LightDirectionToVertex, N) * attenuation;
+	result.Specular = DoSpecular(light, vertexToEye, lightToVertex, N) * attenuation;
 
 	return result;
 }
