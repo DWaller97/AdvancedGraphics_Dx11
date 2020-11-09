@@ -822,9 +822,9 @@ void Update() {
         vecDrawables.at(i)->Update(time->GetDeltaTime());
     }
 
-    camBuff.cameraPosition = g_Camera->GetPosition();
-    shader2._cameraBuffer = camBuff;
-    g_pImmediateContext->UpdateSubresource(g_pCameraBuffer, 1, nullptr, &shader2, 0, 0);
+    //camBuff.cameraPosition = g_Camera->GetPosition();
+    //shader2._cameraBuffer = camBuff;
+    //g_pImmediateContext->UpdateSubresource(g_pCameraBuffer, 1, nullptr, &shader2, 0, 0);
 
     Light light;
     light.Enabled = static_cast<int>(true);
@@ -841,7 +841,7 @@ void Update() {
 
     light.Position = lightPosition;
     XMVECTOR LightDirection = XMVectorSet(-lightPosition.x, -lightPosition.y, -lightPosition.z, 1.0f);
-    LightDirection = XMVector3Normalize(LightDirection);
+    LightDirection = XMVector4Normalize(LightDirection);
     XMStoreFloat4(&light.Direction, LightDirection);
 
     LightPropertiesConstantBuffer lightProperties;

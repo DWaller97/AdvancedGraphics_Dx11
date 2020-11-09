@@ -9,7 +9,7 @@
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
-cbuffer ConstantBuffer : register( b0 )
+cbuffer ConstantBuffer : register(b0)
 {
 	matrix World;
 	matrix View;
@@ -75,12 +75,12 @@ cbuffer LightProperties : register(b2)
 	float4 GlobalAmbient;               // 16 bytes
 										//----------------------------------- (16 byte boundary)
 	Light Lights[MAX_LIGHTS];           // 80 * 8 = 640 bytes
-}; 
+};
 
 //--------------------------------------------------------------------------------------
 struct VS_INPUT
 {
-    float4 Pos : POSITION;
+	float4 Pos : POSITION;
 	float3 Norm : NORMAL;
 	float2 Tex : TEXCOORD0;
 	float3 Tangent : TANGENT;
@@ -89,13 +89,13 @@ struct VS_INPUT
 
 struct PS_INPUT
 {
-    float4 Pos : SV_POSITION;
+	float4 Pos : SV_POSITION;
 	float4 worldPos : POSITION;
 	float3 Norm : NORMAL;
 	float2 Tex : TEXCOORD0;
 	float3x3 TBN: TEXCOORD1;
-	float4 Tangent : TANGENT;
-	float4 BiTangent : BINORMAL;
+	float3 Tangent : TANGENT;
+	float3 BiTangent : BINORMAL;
 	float3 LightVecTan : POSITION1;
 	float3 EyeVecTan : POSITION2;
 
@@ -110,14 +110,14 @@ float4 DoDiffuse(Light light, float3 L, float3 N)
 
 float4 DoSpecular(Light lightObject, float3 vertexToEye, float3 lightDirectionToVertex, float3 Normal)
 {
-	float4 lightDir = float4(normalize(-lightDirectionToVertex),1);
+	float4 lightDir = float4(normalize(-lightDirectionToVertex), 1);
 	vertexToEye = normalize(vertexToEye);
 
 	float lightIntensity = saturate(dot(Normal, lightDir));
 	float4 specular = float4(0, 0, 0, 0);
 	if (lightIntensity > 0.0f)
 	{
-		
+
 		float3  reflection = normalize(2 * lightIntensity * Normal - lightDir);
 		specular = pow(saturate(dot(reflection, vertexToEye)), Material.SpecularPower); // 32 = specular power
 	}
@@ -140,11 +140,11 @@ LightingResult DoPointLight(Light light, float3 vertexToEye, float4 vertexPos, f
 {
 	LightingResult result;
 
-	float3 LightDirectionToVertex = (vertexPos - light.Position).xyz;
+	float3 lightToVertex = (vertexPos - light.Position);
 	float distance = length(LightDirectionToVertex);
-	LightDirectionToVertex = LightDirectionToVertex  / distance;
+	LightDirectionToVertex = LightDirectionToVertex / distance;
 
-	float3 vertexToLight = vertToLight;
+	float3 vertexToLight = -lightToVertex;
 	distance = length(vertexToLight);
 	vertexToLight = vertexToLight / distance;
 
@@ -169,9 +169,9 @@ LightingResult ComputeLighting(float4 vertexPos, float3 N, float3 lightVec, floa
 	{
 		LightingResult result = { { 0, 0, 0, 0 },{ 0, 0, 0, 0 } };
 
-		if (!Lights[i].Enabled) 
+		if (!Lights[i].Enabled)
 			continue;
-		
+
 		result = DoPointLight(light, vertexToEye, vertexPos, N, lightVec);
 		totalResult.Diffuse += result.Diffuse;
 		totalResult.Specular += result.Specular;
@@ -186,42 +186,39 @@ LightingResult ComputeLighting(float4 vertexPos, float3 N, float3 lightVec, floa
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
-PS_INPUT VS( VS_INPUT input )
+PS_INPUT VS(VS_INPUT input)
 {
-    PS_INPUT output = (PS_INPUT)0;
-    output.Pos = mul( input.Pos, World );
+	PS_INPUT output = (PS_INPUT)0;
+	output.Pos = mul(input.Pos, World);
 	output.worldPos = output.Pos;
-    output.Pos = mul( output.Pos, View );
-    output.Pos = mul( output.Pos, Projection );
+	output.Pos = mul(output.Pos, View);
+	output.Pos = mul(output.Pos, Projection);
 
+	output.Norm = normalize(mul(input.Norm, World));
+	output.Tangent = normalize(mul(float4(input.Tangent.xyz, 1.0f), World));
+	output.BiTangent = normalize(mul(float4(input.BiTangent.xyz, 1.0f), World));
 
-	float4 T = normalize(mul(float4(input.Tangent.xyz, 1.0f), World));
-	float4 B = normalize(mul(float4(input.BiTangent.xyz, 1.0f), World));
-	float4 N = normalize(mul(float4(input.Norm.xyz, 1.0f), World));
 	float3x3 TBN = float3x3(
-		float3(T.x, T.y, T.z),
-		float3(B.x, B.y, B.z),
-		float3(N.x, N.y, N.z));
+		output.Tangent, output.BiTangent, output.Norm
+		);
 	float3x3 TBNInverse = transpose(TBN);
 	output.TBN = TBNInverse;
-	
-	float3 vertexToEye = EyePosition - output.worldPos.xyz;
-	float3 vertexToLight = Lights[0].Position - output.worldPos.xyz;
+	float3 eyePosWorld = mul(EyePosition.xyz, World);
+	float3 lightPosWorld = mul(Lights[0].Position.xyz, World);
+	float3 vertexToEye = eyePosWorld - output.worldPos.xyz;
+	float3 vertexToLight = lightPosWorld - output.worldPos.xyz;
 
 	output.EyeVecTan = normalize(mul(TBNInverse, vertexToEye.xyz));
-	
+
 	output.LightVecTan = normalize(mul(TBNInverse, vertexToLight.xyz));
 
-	output.Tangent = T;
-	output.BiTangent = B;
+
 
 	// multiply the normal by the world transform (to go from model space to world space)
-	output.Norm = mul(float4(input.Norm, 1), World).xyz;
-	output.Norm = mul(float4(input.Norm, 1), TBNInverse).xyz;
 
 	output.Tex = input.Tex;
-    
-    return output;
+
+	return output;
 }
 
 
@@ -234,9 +231,11 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float4 texColor = { 1, 1, 1, 1 };
 	float4 texNormal = { 1, 1, 1, 1 };
 	texNormal = txNormal.Sample(samLinear, IN.Tex);
-	texNormal = texNormal * 2.0f - 1.0f;
 	//OpenGL normal correction
-	texNormal.g = -texNormal.g;
+	texNormal = texNormal * 2.0f - 1.0f;
+
+	texNormal.g *= -1;
+
 
 	texNormal = float4(mul(IN.TBN, texNormal), 1.0f);
 
@@ -245,8 +244,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 		texColor = txDiffuse.Sample(samLinear, IN.Tex);
 	}
 
-	float4 normal = float4(((texNormal.x* IN.Tangent) + (texNormal.y * IN.BiTangent) + (texNormal.z * IN.Norm)).xyz, 1.0f);
-	normal = normalize(normal);
+	float4 normal = float4(((texNormal.x * IN.Tangent) + (texNormal.y * IN.BiTangent) + (texNormal.z * IN.Norm)).xyz, 1.0f);
 
 	LightingResult lit = ComputeLighting(IN.worldPos, normal, IN.LightVecTan, IN.EyeVecTan);
 
@@ -255,8 +253,6 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float4 diffuse = Material.Diffuse * lit.Diffuse;
 	float4 specular = Material.Specular * lit.Specular;
 
-
-	float4 n = mul(texNormal, World);
 
 	float4 finalColor = (emissive + ambient + diffuse + specular) * texColor;
 

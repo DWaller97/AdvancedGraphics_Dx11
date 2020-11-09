@@ -68,7 +68,7 @@ float4 Specular(VSOUT input) {
 
 float4 Diffuse(VSOUT input) {
 	float4 final = float4(0, 0, 0, 0);
-	float3 lightToPixel = LightData.Position - input.WorldPosition;
+	float3 lightToPixel = input.WorldPosition - LightData.Position;
 	float l = length(lightToPixel);
 	lightToPixel = lightToPixel / l;
 	float attenuation = 1.0f / (LightData.ConstantAttenuation + LightData.LinearAttenuation * l + LightData.QuadraticAttenuation * l * l);
