@@ -13,18 +13,18 @@ Time::~Time()
     instance = nullptr;
 }
 
-void Time::UpdateDeltaTime()
+float Time::DeltaTime()
 {
-    static float t = 0.0f;
-    static ULONGLONG timeStart = 0;
-    ULONGLONG timeCur = GetTickCount64();
-    if(timeStart == 0)
-        timeStart = timeCur;
-    t = (timeCur - timeStart) / 1000.0f;
-    timeCur = timeStart;
-    totalTime += t;
-    deltaTime = 1.0f / (totalTime - t);
-    if(deltaTime < 0.16f)
-        deltaTime = 0.16f;
+	static float t = 0.0f;
+	static float prevTime = t;
+	static DWORD dwTimeStart = 0;
+	DWORD dwTimeCur = GetTickCount();
 
+	if (dwTimeStart == 0)
+		dwTimeStart = dwTimeCur;
+
+	t = (dwTimeCur - dwTimeStart) / 1000.0f;
+	float deltaTime = (t - prevTime);
+	prevTime = t;
+	return deltaTime;
 }

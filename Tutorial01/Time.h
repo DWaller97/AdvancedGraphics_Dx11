@@ -13,8 +13,7 @@ class Time
     public:    
         Time();
         ~Time();
-        void UpdateDeltaTime();
-        static float GetDeltaTime() { return deltaTime; };
+        static float DeltaTime();
         double GetTotalTime() { return totalTime; };
 };
 

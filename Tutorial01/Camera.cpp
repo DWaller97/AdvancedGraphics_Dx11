@@ -4,50 +4,49 @@
 
 using namespace DirectX;
 
-Camera::Camera(DirectX::XMFLOAT3& _eye, DirectX::XMFLOAT3& _at, DirectX::XMFLOAT3& _up, const int _width, const int _height)
+Camera::Camera(DirectX::XMFLOAT4& _eye, DirectX::XMFLOAT4& _at, DirectX::XMFLOAT4& _up, const int _width, const int _height)
 {
     eye = _eye;
     at = _at;
     up = _up;
+    forward = XMFLOAT4(0, 0, 1, 0);
 
-    DirectX::XMVECTOR Eye = DirectX::XMLoadFloat3(&eye);
-    DirectX::XMVECTOR At = DirectX::XMLoadFloat3(&at);
-    DirectX::XMVECTOR Up = DirectX::XMLoadFloat3(&up);
+    DirectX::XMVECTOR Eye = DirectX::XMLoadFloat4(&eye);
+    DirectX::XMVECTOR At = DirectX::XMLoadFloat4(&at);
+    DirectX::XMVECTOR Up = DirectX::XMLoadFloat4(&up);
 
     DirectX::XMStoreFloat4x4(&world, DirectX::XMMatrixIdentity());
     DirectX::XMStoreFloat4x4(&view,  DirectX::XMMatrixLookAtLH(Eye, At, Up));
     DirectX::XMStoreFloat4x4(&proj,  DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, _width / (float)_height, 0.01f, 100.0f));
+    LookAt();
 }
 
 Camera::~Camera()
 {
 }
 
-void Camera::LookAt(DirectX::FXMVECTOR pos, DirectX::FXMVECTOR target, DirectX::FXMVECTOR worldUp)
+void Camera::LookAt()
 {
-}
-
-void Camera::LookAt(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 target, DirectX::XMFLOAT3 worldUp)
-{
+    XMStoreFloat4x4(&view, XMMatrixLookAtLH(DirectX::XMLoadFloat4(&eye), DirectX::XMLoadFloat4(&at), DirectX::XMLoadFloat4(&up)));
 }
 
 
 void Camera::Strafe(float dist)
 {
     DirectX::XMVECTOR s = DirectX::XMVectorReplicate(dist * strafeSpeed);
-    DirectX::XMVECTOR r = DirectX::XMLoadFloat3(&right);
-    DirectX::XMVECTOR p = DirectX::XMLoadFloat3(&at);
+    DirectX::XMVECTOR r = DirectX::XMLoadFloat4(&right);
+    DirectX::XMVECTOR p = DirectX::XMLoadFloat4(&at);
 
-    DirectX::XMStoreFloat3(&at, DirectX::XMVectorMultiplyAdd(s, r, p));
+    DirectX::XMStoreFloat4(&at, DirectX::XMVectorMultiplyAdd(s, r, p));
 }
 
 void Camera::Move(float dist)
 {
     DirectX::XMVECTOR s = DirectX::XMVectorReplicate(dist * moveSpeed);
-    DirectX::XMVECTOR l = DirectX::XMLoadFloat3(&eye);
-    DirectX::XMVECTOR p = DirectX::XMLoadFloat3(&at);
+    DirectX::XMVECTOR l = DirectX::XMLoadFloat4(&eye);
+    DirectX::XMVECTOR p = DirectX::XMLoadFloat4(&at);
 
-    DirectX::XMStoreFloat3(&at, DirectX::XMVectorMultiplyAdd(s, l, p));
+    DirectX::XMStoreFloat4(&at, DirectX::XMVectorMultiplyAdd(s, l, p));
 
 
 }
@@ -59,29 +58,43 @@ void Camera::MoveUp(float dist)
 
 void Camera::Pitch(float angle)
 {
-    DirectX::XMMATRIX r = DirectX::XMMatrixRotationAxis(DirectX::XMLoadFloat3(&right), angle * pitchSpeed);
-    DirectX::XMStoreFloat3(&up, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat3(&up), r));
-    DirectX::XMStoreFloat3(&eye, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat3(&eye), r));
+    DirectX::XMMATRIX r = DirectX::XMMatrixRotationAxis(DirectX::XMLoadFloat4(&right), angle * pitchSpeed);
+    DirectX::XMStoreFloat4(&up, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat4(&up), r));
+    DirectX::XMStoreFloat4(&eye, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat4(&eye), r));
 }
 
 void Camera::RotateY(float angle)
 {
-    DirectX::XMMATRIX r = DirectX::XMMatrixRotationY(angle * rotateYSpeed);
-    DirectX::XMStoreFloat3(&right, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat3(&right), r));
+    //DirectX::XMMATRIX r = DirectX::XMMatrixRotationY(angle * rotateYSpeed);
+    //DirectX::XMStoreFloat4(&right, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat4(&right), r));
 
-    DirectX::XMStoreFloat3(&up, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat3(&up), r));
+    //DirectX::XMStoreFloat4(&up, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat4(&up), r));
 
-    DirectX::XMStoreFloat3(&eye, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat3(&eye), r));
+    //DirectX::XMStoreFloat4(&eye, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat4(&eye), r));
 
+    if (angle == 0)
+        return;
+    if (angle > 0) {
+        if (rotation.y >= XM_PI * 2)
+            rotation.y = 0;
+    }
+    else if (angle < 0) {
+        if (rotation.y <= -(XM_PI * 2))
+            rotation.y = 0;
+    }
+
+    MoveRotation(0, angle, 0);
+    float rot = angle;
+    SetForward((sin(rot)), 0, cos(rot));
 
 }
 
 void Camera::UpdateViewMatrix()
 {
-    DirectX::XMVECTOR r = DirectX::XMLoadFloat3(&right);
-    DirectX::XMVECTOR u = DirectX::XMLoadFloat3(&up);
-    DirectX::XMVECTOR e = DirectX::XMLoadFloat3(&eye);
-    DirectX::XMVECTOR a = DirectX::XMLoadFloat3(&at);
+    DirectX::XMVECTOR r = DirectX::XMLoadFloat4(&right);
+    DirectX::XMVECTOR u = DirectX::XMLoadFloat4(&up);
+    DirectX::XMVECTOR e = DirectX::XMLoadFloat4(&eye);
+    DirectX::XMVECTOR a = DirectX::XMLoadFloat4(&at);
     e = DirectX::XMVector3Normalize(e);
     u = DirectX::XMVector3Normalize(DirectX::XMVector3Cross(e, r));
     r = DirectX::XMVector3Cross(u, e);
@@ -89,9 +102,9 @@ void Camera::UpdateViewMatrix()
     float y = -DirectX::XMVectorGetX(DirectX::XMVector3Dot(a, u));
     float z = -DirectX::XMVectorGetX(DirectX::XMVector3Dot(a, e));
 
-    DirectX::XMStoreFloat3(&right, r);
-    DirectX::XMStoreFloat3(&up, u);
-    DirectX::XMStoreFloat3(&eye, e);
+    DirectX::XMStoreFloat4(&right, r);
+    DirectX::XMStoreFloat4(&up, u);
+    DirectX::XMStoreFloat4(&eye, e);
 
 
     view(0, 0) = right.x;
@@ -117,16 +130,55 @@ void Camera::UpdateViewMatrix()
 
 }
 
+void Camera::Update()
+{
+    DirectX::XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixRotationX(rotation.x) * XMMatrixRotationY(rotation.y) * XMMatrixRotationZ(rotation.z) * XMMatrixTranslation(at.x, at.y, at.z)));
+}
+
 void Camera::SetPosition(float x, float y, float z)
 {
     at.x = x;
     at.y = y;
     at.z = z;
+    eye.x = x;
+    eye.y = at.y + 1;
+    eye.z = at.z - 3;
+    LookAt();
 }
 
-void Camera::SetPosition(const DirectX::XMFLOAT3& v)
+void Camera::SetPosition(const DirectX::XMFLOAT4& v)
 {
-    DirectX::XMStoreFloat3(&at, DirectX::XMLoadFloat3(&v));
+    DirectX::XMStoreFloat4(&at, DirectX::XMLoadFloat4(&v));
+}
+
+void Camera::SetRotation(float x, float y, float z)
+{
+    rotation.x = x;
+    rotation.y = y;
+    rotation.z = z;
+}
+
+void Camera::SetForward(float x, float y, float z)
+{
+    forward = { x, y, z, 1 };
+}
+
+void Camera::MovePosition(float x, float y, float z)
+{
+    at.x += x;
+    at.y += y;
+    at.z += z;
+    eye.x = at.x;
+    eye.y = at.y + 1;
+    eye.z = at.z - 3;
+    LookAt();
+}
+
+void Camera::MoveRotation(float x, float y, float z)
+{
+    rotation.x += x;
+    rotation.y += y;
+    rotation.z += z;
 }
 
 void Camera::SetFrustum(float _fovY, float _aspect, float _nearZ, float _farZ)
@@ -139,4 +191,3 @@ void Camera::SetFrustum(float _fovY, float _aspect, float _nearZ, float _farZ)
     DirectX::XMMATRIX pers = DirectX::XMMatrixPerspectiveFovLH(fovY, aspect, nearZ, farZ);
     DirectX::XMStoreFloat4x4(&proj, pers);
 }
-

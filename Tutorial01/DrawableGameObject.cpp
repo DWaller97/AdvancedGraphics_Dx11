@@ -12,13 +12,13 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
 	pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
 
-	Camera* currCam = CameraManager::GetCurrCamera();
-	CameraBuffer cb2;
-	cb2.cameraDirection = currCam->GetLook();
-	cb2.cameraPosition = currCam->GetPosition();
+	//Camera* currCam = CameraManager::GetCurrCamera();
+	//CameraBuffer cb2;
+	//cb2.cameraDirection = currCam->GetPosition + currCam->GetFor;
+	//cb2.cameraPosition = currCam->GetPosition();
 
-	if(m_pCameraBuffer)
-		pContext->UpdateSubresource(m_pCameraBuffer, 3, nullptr, &cb2, 0, 0);
+	//if(m_pCameraBuffer)
+	//	pContext->UpdateSubresource(m_pCameraBuffer, 3, nullptr, &cb2, 0, 0);
 
 	//ConstantBuffer cb2;
 	//cb2.parallaxBias = m_parallaxBias;
@@ -40,7 +40,7 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 
 	pContext->PSSetConstantBuffers(1, 1, &m_pMaterialConstantBuffer);
 	pContext->PSSetConstantBuffers(2, 1, &lightConstantBuffer);
-	pContext->PSSetConstantBuffers(3, 1, &m_pCameraBuffer);
+	//pContext->PSSetConstantBuffers(3, 1, &m_pCameraBuffer);
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
 	pContext->PSSetShaderResources(1, 1, &m_normalTexture);
 	pContext->PSSetShaderResources(2, 1, &m_parallaxTexture);

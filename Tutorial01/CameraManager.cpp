@@ -12,7 +12,7 @@ CameraManager::~CameraManager()
     }
 }
 
-Camera* CameraManager::CreateCamera(DirectX::XMFLOAT3& _eye, DirectX::XMFLOAT3& _at, DirectX::XMFLOAT3& _up, const int _width, const int _height)
+Camera* CameraManager::CreateCamera(DirectX::XMFLOAT4& _eye, DirectX::XMFLOAT4& _at, DirectX::XMFLOAT4& _up, const int _width, const int _height)
 {
     Camera* newCam = new Camera(_eye, _at, _up, _width, _height);
     if (!currCamera) {
