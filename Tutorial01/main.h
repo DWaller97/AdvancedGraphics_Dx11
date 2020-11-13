@@ -21,6 +21,7 @@
 #include "examples/imgui_impl_dx11.h"
 #include <vector>
 
+#include "CameraManager.h"
 #include "Camera.h"
 #include "Time.h"
 

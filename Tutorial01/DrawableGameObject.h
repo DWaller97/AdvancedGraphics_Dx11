@@ -9,6 +9,7 @@
 #include <iostream>
 #include "structures.h"
 #include "Time.h"
+#include "CameraManager.h"
 
 
 
@@ -23,6 +24,8 @@ public:
 	struct CameraBuffer {
 		XMFLOAT3 cameraPosition;
 		float padding;
+		XMFLOAT3 cameraDirection;
+		float padding2;
 	};
 
 	struct ShaderData {
@@ -66,6 +69,7 @@ protected:
 	ID3D11Buffer*						m_pConstantBuffer = nullptr;
 	ID3D11Buffer*						m_pMaterialConstantBuffer = nullptr;
 	ID3D11Buffer*						m_parallaxBuffer = nullptr;
+	ID3D11Buffer*						m_pCameraBuffer = nullptr;
 
 	ID3D11ShaderResourceView*			m_pTextureResourceView = nullptr;
 	ID3D11SamplerState *				m_pSamplerLinear = nullptr;

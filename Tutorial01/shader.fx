@@ -78,6 +78,15 @@ cbuffer LightProperties : register(b2)
 };
 
 //--------------------------------------------------------------------------------------
+
+
+cbuffer CameraProperties : register(b3) {
+	float3 CameraPosition;
+	float padding;
+	float3 CameraDirection;
+	float padding2;
+}
+
 struct VS_INPUT
 {
 	float4 Pos : POSITION;
@@ -98,8 +107,15 @@ struct PS_INPUT
 	float3 BiTangent : BINORMAL;
 	float3 LightVecTan : POSITION1;
 	float3 EyeVecTan : POSITION2;
+	float3 CamDir : POSITION3;
 
 };
+
+float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) {
+	float height = txParallax.Sample(samLinear, _texCoords).x;
+	float2 p = _viewDir.xy / _viewDir.z * height;
+	return _texCoords - p;
+}
 
 
 float4 DoDiffuse(Light light, float3 L, float3 N)
@@ -195,8 +211,8 @@ PS_INPUT VS(VS_INPUT input)
 	output.Pos = mul(output.Pos, Projection);
 
 	output.Norm = normalize(mul(input.Norm, World));
-	output.Tangent = normalize(mul(float4(input.Tangent.xyz, 1.0f), World));
-	output.BiTangent = normalize(mul(float4(input.BiTangent.xyz, 1.0f), World));
+	output.Tangent = normalize(mul(float4(input.Tangent.xyz, 0.0f), World));
+	output.BiTangent = normalize(mul(float4(input.BiTangent.xyz, 0.0f), World));
 
 	float3x3 TBN = float3x3(
 		output.Tangent, output.BiTangent, output.Norm
@@ -212,10 +228,10 @@ PS_INPUT VS(VS_INPUT input)
 
 	output.LightVecTan = normalize(mul(TBNInverse, vertexToLight.xyz));
 
-
+	output.CamDir = normalize(mul(TBNInverse, CameraDirection));
 
 	// multiply the normal by the world transform (to go from model space to world space)
-
+	output.Norm = mul(output.Norm, output.TBN);
 	output.Tex = input.Tex;
 
 	return output;
@@ -230,7 +246,10 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 {
 	float4 texColor = { 1, 1, 1, 1 };
 	float4 texNormal = { 1, 1, 1, 1 };
-	texNormal = txNormal.Sample(samLinear, IN.Tex);
+	float4 texParallax = { 1, 1, 1, 1 };
+	float3 eyeVec = EyePosition - IN.worldPos;
+	float2 texCoords = ParallaxMapping(IN.Tex, IN.EyeVecTan);
+	texNormal = txNormal.Sample(samLinear, texCoords);
 	//OpenGL normal correction
 	texNormal = texNormal * 2.0f - 1.0f;
 
@@ -241,7 +260,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 
 		if (Material.UseTexture)
 	{
-		texColor = txDiffuse.Sample(samLinear, IN.Tex);
+		texColor = txDiffuse.Sample(samLinear, texCoords);
 	}
 
 	float4 normal = float4(((texNormal.x * IN.Tangent) + (texNormal.y * IN.BiTangent) + (texNormal.z * IN.Norm)).xyz, 1.0f);

@@ -26,6 +26,7 @@
     <ClCompile Include="Time.cpp" />
     <ClCompile Include="Source1.cpp" />
     <ClCompile Include="DrawableObjectCube.cpp" />
+    <ClCompile Include="CameraManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -73,6 +74,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Time.h" />
     <ClInclude Include="DrawableObjectCube.h" />
+    <ClInclude Include="CameraManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tutorial01.rc">

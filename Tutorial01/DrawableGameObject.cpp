@@ -12,6 +12,14 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
 	pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
 
+	Camera* currCam = CameraManager::GetCurrCamera();
+	CameraBuffer cb2;
+	cb2.cameraDirection = currCam->GetLook();
+	cb2.cameraPosition = currCam->GetPosition();
+
+	if(m_pCameraBuffer)
+		pContext->UpdateSubresource(m_pCameraBuffer, 3, nullptr, &cb2, 0, 0);
+
 	//ConstantBuffer cb2;
 	//cb2.parallaxBias = m_parallaxBias;
 	//cb2.parallaxScale = m_parallaxScale;
@@ -32,7 +40,7 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 
 	pContext->PSSetConstantBuffers(1, 1, &m_pMaterialConstantBuffer);
 	pContext->PSSetConstantBuffers(2, 1, &lightConstantBuffer);
-	//pContext->PSSetConstantBuffers(3, 1, &m_parallaxBuffer);
+	pContext->PSSetConstantBuffers(3, 1, &m_pCameraBuffer);
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
 	pContext->PSSetShaderResources(1, 1, &m_normalTexture);
 	pContext->PSSetShaderResources(2, 1, &m_parallaxTexture);
@@ -105,64 +113,41 @@ void DrawableGameObject::SetWorldMatrix(XMFLOAT4X4* world)
 void DrawableGameObject::CalculateTangentBinormal2(SimpleVertex v0, SimpleVertex v1, SimpleVertex v2, XMFLOAT3& normal, XMFLOAT3& tangent, XMFLOAT3& binormal)
 {
 	// http://softimage.wiki.softimage.com/xsidocs/tex_tangents_binormals_AboutTangentsandBinormals.html
+	XMFLOAT3 edge1(v1.pos.x - v0.pos.x, v1.pos.y - v0.pos.y, v1.pos.z - v0.pos.z);
+	XMFLOAT3 edge2(v2.pos.x - v0.pos.x, v2.pos.y - v0.pos.y, v2.pos.z - v0.pos.z);
 
-	// 1. CALCULATE THE NORMAL
+	XMFLOAT2 deltaUV1(v1.texCoord.x - v0.texCoord.x, v1.texCoord.y - v0.texCoord.y);
+	XMFLOAT2 deltaUV2(v2.texCoord.x - v0.texCoord.x, v2.texCoord.y - v0.texCoord.y);
+
+	float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+	tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+	tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+	tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+	XMVECTOR tn = XMLoadFloat3(&tangent);
+	tn = XMVector3Normalize(tn);
+	XMStoreFloat3(&tangent, tn);
+
+	binormal.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+	binormal.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+	binormal.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+	tn = XMLoadFloat3(&binormal);
+	tn = XMVector3Normalize(tn);
+	XMStoreFloat3(&binormal, tn);
+
+
 	XMVECTOR vv0 = XMLoadFloat3(&v0.pos);
 	XMVECTOR vv1 = XMLoadFloat3(&v1.pos);
 	XMVECTOR vv2 = XMLoadFloat3(&v2.pos);
 
-	XMVECTOR P = vv1 - vv0;
-	XMVECTOR Q = vv2 - vv0;
+	XMVECTOR e0 = vv1 - vv0;
+	XMVECTOR e1 = vv2 - vv0;
 
-	XMVECTOR e01cross = XMVector3Cross(P, Q);
+	XMVECTOR e01cross = XMVector3Cross(e0, e1);
+	e01cross = XMVector3Normalize(e01cross);
 	XMFLOAT3 normalOut;
 	XMStoreFloat3(&normalOut, e01cross);
 	normal = normalOut;
-
-	// 2. CALCULATE THE TANGENT from texture space
-
-	float s1 = v1.texCoord.x - v0.texCoord.x;
-	float t1 = v1.texCoord.y - v0.texCoord.y;
-	float s2 = v2.texCoord.x - v0.texCoord.x;
-	float t2 = v2.texCoord.y - v0.texCoord.y;
-
-
-	float tmp = 0.0f;
-	if (fabsf(s1 * t2 - s2 * t1) <= 0.0001f)
-	{
-		tmp = 1.0f;
-	}
-	else
-	{
-		tmp = 1.0f / (s1 * t2 - s2 * t1);
-	}
-
-	XMFLOAT3 PF3, QF3;
-	XMStoreFloat3(&PF3, P);
-	XMStoreFloat3(&QF3, Q);
-
-	tangent.x = (t2 * PF3.x - t1 * QF3.x);
-	tangent.y = (t2 * PF3.y - t1 * QF3.y);
-	tangent.z = (t2 * PF3.z - t1 * QF3.z);
-
-	tangent.x = tangent.x * tmp;
-	tangent.y = tangent.y * tmp;
-	tangent.z = tangent.z * tmp;
-
-	XMVECTOR vn = XMLoadFloat3(&normal);
-	XMVECTOR vt = XMLoadFloat3(&tangent);
-
-	// 3. CALCULATE THE BINORMAL
-	// left hand system b = t cross n (rh would be b = n cross t)
-	XMVECTOR vb = XMVector3Cross(vt, vn);
-
-	vn = XMVector3Normalize(vn);
-	vt = XMVector3Normalize(vt);
-	vb = XMVector3Normalize(vb);
-
-	XMStoreFloat3(&normal, vn);
-	XMStoreFloat3(&tangent, vt);
-	XMStoreFloat3(&binormal, vb);
 
 	return;
 }

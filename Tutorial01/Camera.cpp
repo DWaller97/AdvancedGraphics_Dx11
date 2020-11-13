@@ -49,12 +49,12 @@ void Camera::Move(float dist)
 
     DirectX::XMStoreFloat3(&at, DirectX::XMVectorMultiplyAdd(s, l, p));
 
+
 }
 
 void Camera::MoveUp(float dist)
 {
     at.y += (dist * moveSpeed);
-
 }
 
 void Camera::Pitch(float angle)
@@ -115,12 +115,6 @@ void Camera::UpdateViewMatrix()
     view(3, 3) = 1.0f;
 
 
-
-    //DirectX::XMVECTOR Eye = DirectX::XMLoadFloat3(&eye);
-    //DirectX::XMVECTOR At = DirectX::XMLoadFloat3(&at);
-    //DirectX::XMVECTOR Up = DirectX::XMLoadFloat3(&up);
-    //DirectX::XMStoreFloat4x4(&view, DirectX::XMMatrixLookAtLH(, Eye, Up));
-
 }
 
 void Camera::SetPosition(float x, float y, float z)
@@ -145,3 +139,4 @@ void Camera::SetFrustum(float _fovY, float _aspect, float _nearZ, float _farZ)
     DirectX::XMMATRIX pers = DirectX::XMMatrixPerspectiveFovLH(fovY, aspect, nearZ, farZ);
     DirectX::XMStoreFloat4x4(&proj, pers);
 }
+

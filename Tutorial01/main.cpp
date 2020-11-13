@@ -90,6 +90,7 @@ Time*                   time = nullptr;
 //Lighting Variables
 float lightColour[4] = { 1, 1, 1, 1 };
 XMFLOAT4 lightPosition = XMFLOAT4(0, 0, 0, 0);
+DrawableGameObject::CameraBuffer camBuff;
 
 
 //--------------------------------------------------------------------------------------
@@ -516,10 +517,10 @@ HRESULT		InitMesh()
 	// Create the pixel shader
 	hr = g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShader);
 	pPSBlob->Release();
-
     shaderFX._inputLayout = g_pVertexLayout;
     shaderFX._pixelShader = g_pPixelShader;
     shaderFX._vertexShader = g_pVertexShader;
+    shaderFX._cameraBuffer = camBuff;
 
 	if (FAILED(hr))
 		return hr;
@@ -677,7 +678,6 @@ HRESULT		InitMesh()
 	if (FAILED(hr))
 		return hr;
 
-    hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pCameraBuffer);
 
 	return hr;
 }
@@ -691,8 +691,8 @@ HRESULT		InitWorld()
     DirectX::XMFLOAT3 at = DirectX::XMFLOAT3(0, 1, 5);
     DirectX::XMFLOAT3 up = DirectX::XMFLOAT3(0, 1, 0);
 
-    g_Camera = new Camera(eye, at, up, g_viewWidth, g_viewHeight);
-    g_Camera->SetFrustum(90, 1.78f, 1, 50);
+    g_Camera = CameraManager::CreateCamera(eye, at, up, g_viewWidth, g_viewHeight);
+    g_Camera->SetFrustum(90, 1.78f, 0.001f, 50);
 
 	return S_OK;
 }
@@ -704,7 +704,7 @@ HRESULT InitObjects() {
     g_Cube->SetShaders(shaderFX);
     g_Cube->SetPosition(XMFLOAT3(0, 0, 0));
     newCube = new DrawableObjectCube();
-    newCube->SetShaders(shader2);
+    newCube->SetShaders(standardShader);
     newCube->SetPosition(XMFLOAT3(5, 0, 0));
     newCube->InitMesh(g_pd3dDevice, g_pImmediateContext);
     vecDrawables.push_back(g_Cube);
@@ -813,7 +813,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     return 0;
 }
 
-DrawableGameObject::CameraBuffer camBuff;
 
 void Update() {
 
@@ -822,9 +821,7 @@ void Update() {
         vecDrawables.at(i)->Update(time->GetDeltaTime());
     }
 
-    //camBuff.cameraPosition = g_Camera->GetPosition();
-    //shader2._cameraBuffer = camBuff;
-    //g_pImmediateContext->UpdateSubresource(g_pCameraBuffer, 1, nullptr, &shader2, 0, 0);
+
 
     Light light;
     light.Enabled = static_cast<int>(true);
@@ -878,7 +875,7 @@ void Render()
         ImGui::Text("Eye Position: %f %f %f", g_Camera->GetLook().x, g_Camera->GetLook().y, g_Camera->GetLook().z);
         ImGui::Text("At Position: %f %f %f", g_Camera->GetPosition().x, g_Camera->GetPosition().y, g_Camera->GetPosition().z);
         ImGui::Text("Up Position: %f %f %f", g_Camera->GetUp().x, g_Camera->GetUp().y, g_Camera->GetUp().z);
-
+        ImGui::Text("View Direction: %f %f %f", g_Camera->GetLook().x, g_Camera->GetLook().y, g_Camera->GetLook().z);
         ImGui::End();
     }
     {
