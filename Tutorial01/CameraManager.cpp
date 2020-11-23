@@ -22,6 +22,11 @@ Camera* CameraManager::CreateCamera(DirectX::XMFLOAT4& _eye, DirectX::XMFLOAT4& 
     return newCam;
 }
 
+Camera* CameraManager::CreateCamera(DirectX::XMFLOAT4& _eye, const int _width, const int _height)
+{
+    return nullptr;
+}
+
 void CameraManager::SwitchCamera(Camera* newCamera)
 {
     currCamera = newCamera;

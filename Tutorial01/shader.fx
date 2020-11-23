@@ -111,9 +111,9 @@ struct PS_INPUT
 
 };
 
-float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) {
+float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) { //SampleGrad for more advanced stuff?
 	float height = txParallax.Sample(samLinear, _texCoords).x;
-	float2 p = _viewDir.xy / _viewDir.z * height;
+	float2 p = 0.1f * _viewDir.xy / _viewDir.z * height;
 	return _texCoords - p;
 }
 
@@ -158,11 +158,9 @@ LightingResult DoPointLight(Light light, float3 vertexToEye, float4 vertexPos, f
 
 	float3 lightToVertex = (vertexPos - light.Position);
 	float distance = length(lightToVertex);
-	lightToVertex = lightToVertex / distance;
 
-	float3 vertexToLight = -lightToVertex;
+	float3 vertexToLight = light.Position + (light.Direction * distance);
 	distance = length(vertexToLight);
-	vertexToLight = vertexToLight / distance;
 
 	float attenuation = DoAttenuation(light, distance);
 
@@ -220,12 +218,10 @@ PS_INPUT VS(VS_INPUT input)
 	float3x3 TBNInverse = transpose(TBN);
 	output.TBN = TBNInverse;
 	float3 eyePosWorld = mul(EyePosition.xyz, World);
-	float3 lightPosWorld = mul(Lights[0].Position.xyz, World);
+	float3 lightPosWorld = mul(Lights[0].Direction.xyz, World);
 	float3 vertexToEye = eyePosWorld - output.worldPos.xyz;
 	float3 vertexToLight = lightPosWorld - output.worldPos.xyz;
-
 	output.EyeVecTan = normalize(mul(TBNInverse, vertexToEye.xyz));
-
 	output.LightVecTan = normalize(mul(TBNInverse, vertexToLight.xyz));
 
 	output.CamDir = normalize(mul(TBNInverse, CameraDirection));
@@ -247,7 +243,6 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float4 texColor = { 1, 1, 1, 1 };
 	float4 texNormal = { 1, 1, 1, 1 };
 	float4 texParallax = { 1, 1, 1, 1 };
-	float3 eyeVec = EyePosition - IN.worldPos;
 	float2 texCoords = ParallaxMapping(IN.Tex, IN.EyeVecTan);
 	texNormal = txNormal.Sample(samLinear, texCoords);
 	//OpenGL normal correction
@@ -265,7 +260,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 
 	float4 normal = float4(((texNormal.x * IN.Tangent) + (texNormal.y * IN.BiTangent) + (texNormal.z * IN.Norm)).xyz, 1.0f);
 
-	LightingResult lit = ComputeLighting(IN.worldPos, normal, IN.LightVecTan, IN.EyeVecTan);
+	LightingResult lit = ComputeLighting(IN.worldPos, texNormal, IN.LightVecTan, IN.EyeVecTan);
 
 	float4 emissive = Material.Emissive;
 	float4 ambient = Material.Ambient * GlobalAmbient;

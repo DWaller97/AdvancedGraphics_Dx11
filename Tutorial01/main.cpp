@@ -90,6 +90,7 @@ Time*                   time = nullptr;
 //Lighting Variables
 float lightColour[4] = { 1, 1, 1, 1 };
 XMFLOAT4 lightPosition = XMFLOAT4(0, 0, 0, 0);
+XMFLOAT4 lightRotation = XMFLOAT4(0, 0, -1, 1);
 DrawableGameObject::CameraBuffer camBuff;
 
 
@@ -687,7 +688,7 @@ DrawableObjectCube* newCube = nullptr;
 // ***************************************************************************************
 HRESULT		InitWorld()
 {
-    DirectX::XMFLOAT4 eye = DirectX::XMFLOAT4(0, 2, 2, 1);
+    DirectX::XMFLOAT4 eye = DirectX::XMFLOAT4(0, 2, -3, 1);
     DirectX::XMFLOAT4 at = DirectX::XMFLOAT4(0, 1, 5, 1);
     DirectX::XMFLOAT4 up = DirectX::XMFLOAT4(0, 1, 0, 1);
 
@@ -794,6 +795,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     return 0;
 }
 
+Light light;
 
 void Update() {
 
@@ -819,26 +821,25 @@ void Update() {
     if (GetAsyncKeyState(VK_SHIFT)) // L Shift
         g_Camera->MovePosition(0, -dTime, 0);
 
-    Light light;
     light.Enabled = static_cast<int>(true);
     light.LightType = PointLight;
     light.Color = XMFLOAT4(lightColour);
-    light.SpotAngle = XMConvertToRadians(45.0f);
+    light.SpotAngle = XMConvertToRadians(35.0f);
     light.ConstantAttenuation = 1.0f;
     light.LinearAttenuation = 1;
     light.QuadraticAttenuation = 1;
-
-
+    light.Direction = lightRotation;
+    light.LightType = LightType::SpotLight;
 
     // set up the light
 
     light.Position = lightPosition;
-    XMVECTOR LightDirection = XMVectorSet(-lightPosition.x, -lightPosition.y, -lightPosition.z, 1.0f);
+    XMVECTOR LightDirection = XMLoadFloat4(&light.Direction);
     LightDirection = XMVector4Normalize(LightDirection);
     XMStoreFloat4(&light.Direction, LightDirection);
 
     LightPropertiesConstantBuffer lightProperties;
-    XMStoreFloat4(&lightProperties.EyePosition, g_Camera->GetPositionVec());
+    XMStoreFloat4(&lightProperties.EyePosition, g_Camera->GetLookVec());
     lightProperties.Lights[0] = light;
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
 
@@ -860,10 +861,25 @@ void Render()
     {
         ImGui::NewFrame();
         ImGui::Begin("Light");
+        ImGui::Text("Colour");
+        ImGui::Separator();
+        ImGui::Indent();
         ImGui::ColorEdit3("Light Colour", lightColour);
-        ImGui::SliderFloat("X", &lightPosition.x, -3, 3.0f);
-        ImGui::SliderFloat("Y", &lightPosition.y, -3.0f, 3.0f);
-        ImGui::SliderFloat("Z", &lightPosition.z, -3.0f, 3.0f);
+        ImGui::NewLine();
+        ImGui::Unindent();
+        ImGui::Text("Positions");
+        ImGui::Separator();
+        ImGui::Indent();
+        ImGui::SliderFloat("Position X", &lightPosition.x, -3, 3.0f);
+        ImGui::SliderFloat("Position Y", &lightPosition.y, -3.0f, 3.0f);
+        ImGui::SliderFloat("Position Z", &lightPosition.z, -3.0f, 3.0f);
+        ImGui::Unindent();
+        ImGui::Text("Rotations");
+        ImGui::Separator();
+        ImGui::Indent();
+        ImGui::SliderFloat("Rotation X", &lightRotation.x, -1, 1.0f);
+        ImGui::SliderFloat("Rotation Y", &lightRotation.y, -1.0f, 1.0f);
+        ImGui::SliderFloat("Rotation Z", &lightRotation.z, -1.0f, 1.0f);
         ImGui::End();
     }
     {
@@ -873,8 +889,6 @@ void Render()
         ImGui::Text("Up Position: %f %f %f", g_Camera->GetUp().x, g_Camera->GetUp().y, g_Camera->GetUp().z);
         ImGui::Text("View Direction: %f %f %f", g_Camera->GetLook().x, g_Camera->GetLook().y, g_Camera->GetLook().z);
         ImGui::End();
-    }
-    {
     }
     ImGui::Render();
 
