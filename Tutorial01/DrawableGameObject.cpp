@@ -3,6 +3,80 @@
 using namespace std;
 using namespace DirectX;
 
+DrawableGameObject::DrawableGameObject()
+{
+	SetWorldMatrix(new XMFLOAT4X4());
+}
+
+DrawableGameObject::~DrawableGameObject()
+{
+}
+
+HRESULT DrawableGameObject::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
+{
+	HRESULT hr;
+
+	D3D11_BUFFER_DESC bd = {};
+
+
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(ConstantBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_pConstantBuffer);
+	if (FAILED(hr))
+		return hr;
+
+	// Create the material constant buffer
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(MaterialPropertiesConstantBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_pMaterialConstantBuffer);
+	if (FAILED(hr))
+		return hr;
+
+	MaterialPropertiesConstantBuffer redPlasticMaterial;
+	redPlasticMaterial.Material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	redPlasticMaterial.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
+	redPlasticMaterial.Material.SpecularPower = 32.0f;
+	redPlasticMaterial.Material.UseTexture = true;
+	pContext->UpdateSubresource(m_pMaterialConstantBuffer, 0, nullptr, &redPlasticMaterial, 0, 0);
+
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
+
+
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Crate_COLOR.dds", nullptr, &m_albedoTexture);
+	if (FAILED(hr))
+		return hr;
+
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\conenormal.dds", nullptr, &m_normalTexture);
+	if (FAILED(hr))
+		return hr;
+
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\conedisp.dds", nullptr, &m_parallaxTexture);
+	if (FAILED(hr))
+		return hr;
+}
+
+void DrawableGameObject::Update(float t)
+{
+	XMMATRIX mTranslate = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
+	XMMATRIX world = mTranslate;
+	XMStoreFloat4x4(m_World, world);
+}
+
 void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
 {
 	ConstantBuffer cb1;
@@ -28,9 +102,10 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 	// Set vertex buffer
 	UINT stride = sizeof(SimpleVertex);
 	UINT offset = 0;
-	pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
+	pContext->IASetVertexBuffers(0, 1, &mesh.VertexBuffer, &stride, &offset);
 	// Set index buffer
-	pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	pContext->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
 	if(m_inputLayout != nullptr)
 		pContext->IASetInputLayout(m_inputLayout);
 	// Render the cube
@@ -46,7 +121,7 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 	pContext->PSSetShaderResources(2, 1, &m_parallaxTexture);
 
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
-	pContext->DrawIndexed(36, 0, 0);
+	pContext->DrawIndexed(NUM_VERTICES, 0, 0);
 }
 
 void DrawableGameObject::SetPosition(XMFLOAT3 position)
@@ -88,13 +163,19 @@ void DrawableGameObject::SetParallaxBias(float _bias)
 	m_parallaxBias = _bias;
 }
 
+void DrawableGameObject::SetMesh(char* filename, ID3D11Device* _pd3dDevice, bool invertTexCoords)
+{
+	mesh = OBJLoader::Load(filename, _pd3dDevice, invertTexCoords);
+	NUM_VERTICES = mesh.VertexCount;
+}
+
 void DrawableGameObject::Release()
 {
-	if (m_pVertexBuffer)
-		m_pVertexBuffer->Release();
+	if (mesh.VertexBuffer)
+		mesh.VertexBuffer->Release();
 
-	if (m_pIndexBuffer)
-		m_pIndexBuffer->Release();
+	if (mesh.IndexBuffer)
+		mesh.IndexBuffer->Release();
 
 	if (m_pTextureResourceView)
 		m_pTextureResourceView->Release();

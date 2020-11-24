@@ -27,6 +27,7 @@
     <ClCompile Include="Source1.cpp" />
     <ClCompile Include="DrawableObjectCube.cpp" />
     <ClCompile Include="CameraManager.cpp" />
+    <ClCompile Include="OBJLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -75,6 +76,7 @@
     <ClInclude Include="Time.h" />
     <ClInclude Include="DrawableObjectCube.h" />
     <ClInclude Include="CameraManager.h" />
+    <ClInclude Include="OBJLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tutorial01.rc">
@@ -101,6 +103,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Resources\Crate_SPEC.dds">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\conedisp.dds">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

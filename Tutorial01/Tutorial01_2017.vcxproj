@@ -392,6 +392,7 @@
     <ClInclude Include="DrawableGameObject.h" />
     <ClInclude Include="DrawableObjectCube.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="OBJLoader.h" />
     <CLInclude Include="resource.h" />
     <ClInclude Include="structures.h" />
     <ClInclude Include="Time.h" />
@@ -410,10 +411,12 @@
     <ClCompile Include="DrawableGameObject.cpp" />
     <ClCompile Include="DrawableObjectCube.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="Source1.cpp" />
     <ClCompile Include="Time.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Resources\conedisp.dds" />
     <Image Include="Resources\conenormal.dds" />
     <Image Include="Resources\Crate_COLOR.dds" />
     <Image Include="Resources\Crate_DISP.dds" />

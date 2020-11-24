@@ -113,8 +113,8 @@ struct PS_INPUT
 
 float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) { //SampleGrad for more advanced stuff?
 	float height = txParallax.Sample(samLinear, _texCoords).x;
-	float2 p = 0.1f * _viewDir.xy / _viewDir.z * height;
-	return _texCoords - p;
+	float2 p = 0.6f * _viewDir.xy / _viewDir.z * height;
+	return _texCoords;
 }
 
 
@@ -166,7 +166,7 @@ LightingResult DoPointLight(Light light, float3 vertexToEye, float4 vertexPos, f
 
 
 	result.Diffuse = DoDiffuse(light, vertexToLight, N) * attenuation;
-	result.Specular = DoSpecular(light, vertexToEye, lightToVertex, N) * attenuation;
+	result.Specular = DoSpecular(light, vertexToEye, -vertexToLight, N) * attenuation;
 
 	return result;
 }
@@ -221,7 +221,7 @@ PS_INPUT VS(VS_INPUT input)
 	float3 lightPosWorld = mul(Lights[0].Direction.xyz, World);
 	float3 vertexToEye = eyePosWorld - output.worldPos.xyz;
 	float3 vertexToLight = lightPosWorld - output.worldPos.xyz;
-	output.EyeVecTan = normalize(mul(TBNInverse, vertexToEye.xyz));
+	output.EyeVecTan = normalize(mul(vertexToEye, TBNInverse));
 	output.LightVecTan = normalize(mul(TBNInverse, vertexToLight.xyz));
 
 	output.CamDir = normalize(mul(TBNInverse, CameraDirection));

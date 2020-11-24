@@ -1,4 +1,5 @@
 #pragma once
+#include <DirectXMath.h>
 using namespace std;
 using namespace DirectX;
 
@@ -13,6 +14,21 @@ struct SimpleVertex
 	XMFLOAT2 texCoord;
 	XMFLOAT3 tangent;
 	XMFLOAT3 biTangent;
+
+	bool operator<(const SimpleVertex other) const
+	{
+		return memcmp((void*)this, (void*)&other, sizeof(SimpleVertex)) > 0;
+	};
+};
+
+struct MeshData
+{
+	ID3D11Buffer* VertexBuffer;
+	ID3D11Buffer* IndexBuffer;
+	UINT VBStride;
+	UINT VBOffset;
+	UINT IndexCount;
+	UINT VertexCount;
 };
 
 struct ConstantBuffer

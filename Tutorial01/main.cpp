@@ -84,6 +84,7 @@ const int				g_viewWidth = 1920;
 const int				g_viewHeight = 1080;
 
 DrawableObjectCube*		g_Cube = nullptr;
+DrawableGameObject*     g_Monkey = nullptr;
 Camera*                 g_Camera = nullptr;
 Time*                   time = nullptr;
 
@@ -708,8 +709,18 @@ HRESULT InitObjects() {
     newCube->SetShaders(standardShader);
     newCube->SetPosition(XMFLOAT3(5, 0, 0));
     newCube->InitMesh(g_pd3dDevice, g_pImmediateContext);
+    
+    g_Monkey = new DrawableGameObject();
+    g_Monkey->InitMesh(g_pd3dDevice, g_pImmediateContext);
+    g_Monkey->SetMesh((char*)"Resources/monkey.obj", g_pd3dDevice, true);
+    g_Monkey->SetShaders(shaderFX);
+    g_Monkey->SetPosition(XMFLOAT3(0, 1, 5));
+    vecDrawables.push_back(g_Monkey);
     vecDrawables.push_back(g_Cube);
     vecDrawables.push_back(newCube);
+
+
+
     return S_OK;
 }
 
@@ -755,6 +766,12 @@ void Cleanup() {
     delete time;
     time = nullptr;
     
+    delete g_Monkey;
+    g_Monkey = nullptr;
+
+    delete g_Cube;
+    g_Cube = nullptr;
+
 }
 
 //--------------------------------------------------------------------------------------

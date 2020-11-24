@@ -139,7 +139,7 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 
 	D3D11_SUBRESOURCE_DATA InitData = {};
 	InitData.pSysMem = vertices;
-	HRESULT hr = pd3dDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer);
+	HRESULT hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.VertexBuffer);
 	if (FAILED(hr))
 		return hr;
 
@@ -190,38 +190,6 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 	//if (FAILED(hr))
 	//	return hr;
 
-
-	MaterialPropertiesConstantBuffer redPlasticMaterial;
-	redPlasticMaterial.Material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	redPlasticMaterial.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
-	redPlasticMaterial.Material.SpecularPower = 32.0f;
-	redPlasticMaterial.Material.UseTexture = true;
-	pContext->UpdateSubresource(m_pMaterialConstantBuffer, 0, nullptr, &redPlasticMaterial, 0, 0);
-
-	D3D11_SAMPLER_DESC sampDesc;
-	ZeroMemory(&sampDesc, sizeof(sampDesc));
-	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	sampDesc.MinLOD = 0;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
-
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Crate_COLOR.dds", nullptr, &m_albedoTexture);
-	if (FAILED(hr))
-		return hr;
-
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\conenormal.dds", nullptr, &m_normalTexture);
-	if (FAILED(hr))
-		return hr;
-
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Crate_DISP.dds", nullptr, &m_parallaxTexture);
-	if (FAILED(hr))
-		return hr;
-
-	// Create index buffer
 	WORD indices[] =
 	{
 		//3,1,0,
@@ -269,16 +237,10 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 
 	ZeroMemory(&InitData, sizeof(InitData));
 	InitData.pSysMem = indices;
-	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &m_pIndexBuffer);
+	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.IndexBuffer);
 	if (FAILED(hr)) 
 		return hr;
-
-
-	// Set index buffer
-	pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);    
-	  
-	// Set primitive topology
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	DrawableGameObject::InitMesh(pd3dDevice, pContext);
 
 } 
 
