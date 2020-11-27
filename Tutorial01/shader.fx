@@ -113,7 +113,7 @@ struct PS_INPUT
 
 float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) { //SampleGrad for more advanced stuff?
 	float height = txParallax.Sample(samLinear, _texCoords).x;
-	float2 p = 0.6f * _viewDir.xy / _viewDir.z * height;
+	float2 p = 2 * _viewDir.xy / _viewDir.z * height;
 	return _texCoords;
 }
 
@@ -221,7 +221,7 @@ PS_INPUT VS(VS_INPUT input)
 	float3 lightPosWorld = mul(Lights[0].Direction.xyz, World);
 	float3 vertexToEye = eyePosWorld - output.worldPos.xyz;
 	float3 vertexToLight = lightPosWorld - output.worldPos.xyz;
-	output.EyeVecTan = normalize(mul(vertexToEye, TBNInverse));
+	output.EyeVecTan = normalize(mul(TBNInverse, vertexToEye.xyz));
 	output.LightVecTan = normalize(mul(TBNInverse, vertexToLight.xyz));
 
 	output.CamDir = normalize(mul(TBNInverse, CameraDirection));
@@ -240,15 +240,15 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT IN) : SV_TARGET
 {
-	float4 texColor = { 1, 1, 1, 1 };
+	float4 texColor = { 0, 0, 0, 0 };
 	float4 texNormal = { 1, 1, 1, 1 };
 	float4 texParallax = { 1, 1, 1, 1 };
-	float2 texCoords = ParallaxMapping(IN.Tex, IN.EyeVecTan);
+	float2 texCoords = ParallaxMapping(IN.Tex, CameraDirection);
 	texNormal = txNormal.Sample(samLinear, texCoords);
 	//OpenGL normal correction
 	texNormal = texNormal * 2.0f - 1.0f;
-
-	texNormal.g *= -1;
+	
+	//texNormal.g *= -1;
 
 
 	texNormal = float4(mul(IN.TBN, texNormal), 1.0f);

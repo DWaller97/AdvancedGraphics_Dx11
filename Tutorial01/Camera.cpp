@@ -176,9 +176,9 @@ void Camera::MovePosition(float x, float y, float z)
 
 void Camera::MoveRotation(float x, float y, float z)
 {
-    rotation.x += x;
-    rotation.y += y;
-    rotation.z += z;
+    rotation.x = 10;
+    rotation.y = 10;
+    rotation.z = 10;
 }
 
 void Camera::SetFrustum(float _fovY, float _aspect, float _nearZ, float _farZ)

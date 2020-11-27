@@ -416,6 +416,7 @@
     <ClCompile Include="Time.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Resources\color.dds" />
     <Image Include="Resources\conedisp.dds" />
     <Image Include="Resources\conenormal.dds" />
     <Image Include="Resources\Crate_COLOR.dds" />
@@ -423,6 +424,8 @@
     <Image Include="Resources\Crate_NRM.dds" />
     <Image Include="Resources\Crate_OCC.dds" />
     <Image Include="Resources\Crate_SPEC.dds" />
+    <Image Include="Resources\displacement.dds" />
+    <Image Include="Resources\normals.dds" />
     <Image Include="Resources\stone.dds" />
   </ItemGroup>
   <ItemGroup>

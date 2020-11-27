@@ -20,120 +20,68 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 
 
 
-	SimpleVertex vertices[] =
+	SimpleVertex vertices[24] =
 	{
 		//Bottom
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)},
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f)},
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f)},
+		{ XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 0)},
+		{ XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 0)},
+		{ XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 1)},
+		{ XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 1)},
 
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f)},
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)},
-		
 		//Top
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)},
-
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f)},
-		
-		//Front
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f)},
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f)},
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 1.0f)},
-
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f)},
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f)},
-
-
-		//Back
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(0.0f, 0.0f)},
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 0.0f)},
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 1.0f)},
-
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(0.0f, 0.0f)},
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 1.0f)},
-
+		{ XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 0)},
+		{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 0)},
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 1)},
+		{ XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 1)},
 		//Left
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f)},
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)},
-
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)},
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f)},
-
+		{ XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 0)},
+		{ XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 0)},
+		{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 1)},
+		{ XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 1)},
 		//Right
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)},
-
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)},
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f)}
-
-
-		//Old
-		/*{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f)},
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)},
-
-
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)},
-		
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f)},
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f)},
-
-
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f)},
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f)},
-		
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f)},
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)},
-
-
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)},
-		
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f)},
-
-
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 0.0f)},
-		
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 0.0f)},
-
-
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f)},
-		
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 1.0f)},
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f)},*/
+		{ XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 0)},
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 0)},
+		{ XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 1)},
+		{ XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 1)},
+		//Front
+		{ XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 0)},
+		{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 0)},
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 1)},
+		{ XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 1)},
+		//Back
+		{ XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 0)},
+		{ XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 0)},
+		{ XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 1)},
+		{ XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 1)},
 	};
 
-	CalculateModelVectors(vertices, 36);
+	WORD indices[36] =
+	{
+		0,3,2,
+		2,1,0,
+
+		4,7,6,
+		6,5,4,
+
+		8,11,10,
+		10,9,8,
+
+		12,15,14,
+		14,13,12,
+
+		16,19,18,
+		18,17,16,
+
+		20,23,22,
+		22,21,20,
+	};
+
+	CalculateModelVectors(vertices, 24);
 
 
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(SimpleVertex) * 36;
+	bd.ByteWidth = sizeof(SimpleVertex) * 24;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
@@ -190,44 +138,6 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 	//if (FAILED(hr))
 	//	return hr;
 
-	WORD indices[] =
-	{
-		//3,1,0,
-		//2,1,3,
-
-		//6,4,5,
-		//7,4,6,
-
-		//11,9,8,
-		//10,9,11,
-
-		//14,12,13,
-		//15,12,14,
-
-		//19,17,16, 
-		//18,17,19,
-
-		//22,20,21,
-		//23,20,22
-
-		0,1,2,
-		3,4,5,
-
-		8,7,6,
-		11,10,9,
-
-		14,13,12,
-		17,16,15,
-
-		18,19,20,
-		21,22,23,
-
-		26,25,24,
-		29,28,27,
-
-		32,31,30,
-		35,34,33
-	};
 
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;  

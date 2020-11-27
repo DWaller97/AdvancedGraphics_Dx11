@@ -4,7 +4,7 @@ class DrawableObjectCube :
     public DrawableGameObject
 {
 private:
-    bool spinning = false;
+    bool spinning = true;
 public:
     DrawableObjectCube();
     ~DrawableObjectCube();

@@ -57,15 +57,15 @@ HRESULT DrawableGameObject::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
 
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Crate_COLOR.dds", nullptr, &m_albedoTexture);
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\color.dds", nullptr, &m_albedoTexture);
 	if (FAILED(hr))
 		return hr;
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\conenormal.dds", nullptr, &m_normalTexture);
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\displacement.dds", nullptr, &m_normalTexture);
 	if (FAILED(hr))
 		return hr;
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\conedisp.dds", nullptr, &m_parallaxTexture);
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\normals.dds", nullptr, &m_parallaxTexture);
 	if (FAILED(hr))
 		return hr;
 }

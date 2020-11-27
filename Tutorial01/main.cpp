@@ -383,6 +383,8 @@ HRESULT InitDevice()
     if( FAILED( hr ) )
         return hr;
 
+    g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
     // Create depth stencil texture
     D3D11_TEXTURE2D_DESC descDepth = {};
     descDepth.Width = width;
@@ -712,7 +714,7 @@ HRESULT InitObjects() {
     
     g_Monkey = new DrawableGameObject();
     g_Monkey->InitMesh(g_pd3dDevice, g_pImmediateContext);
-    g_Monkey->SetMesh((char*)"Resources/monkey.obj", g_pd3dDevice, true);
+    g_Monkey->SetMesh((char*)"Resources/cube.obj", g_pd3dDevice, true);
     g_Monkey->SetShaders(shaderFX);
     g_Monkey->SetPosition(XMFLOAT3(0, 1, 5));
     vecDrawables.push_back(g_Monkey);
@@ -841,7 +843,7 @@ void Update() {
     light.Enabled = static_cast<int>(true);
     light.LightType = PointLight;
     light.Color = XMFLOAT4(lightColour);
-    light.SpotAngle = XMConvertToRadians(35.0f);
+    light.SpotAngle = XMConvertToRadians(15.0f);
     light.ConstantAttenuation = 1.0f;
     light.LinearAttenuation = 1;
     light.QuadraticAttenuation = 1;
