@@ -113,7 +113,7 @@ struct PS_INPUT
 
 float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) { //SampleGrad for more advanced stuff?
 	float height = txParallax.Sample(samLinear, _texCoords).x;
-	float2 p = 2 * _viewDir.xy / _viewDir.z * height;
+	float2 p = _viewDir.xy / _viewDir.z * height;
 	return _texCoords;
 }
 
@@ -208,28 +208,24 @@ PS_INPUT VS(VS_INPUT input)
 	output.Pos = mul(output.Pos, View);
 	output.Pos = mul(output.Pos, Projection);
 
-	output.Norm = normalize(mul(input.Norm, World));
-	output.Tangent = normalize(mul(float4(input.Tangent.xyz, 0.0f), World));
-	output.BiTangent = normalize(mul(float4(input.BiTangent.xyz, 0.0f), World));
+	output.Norm = normalize(mul(normalize(input.Norm), World));
+	output.Tangent = normalize(mul(float4(normalize(input.Tangent.xyz), 0.0f), World));
+	output.BiTangent = normalize(mul(float4(normalize(input.BiTangent.xyz), 0.0f), World));
 
 	float3x3 TBN = float3x3(
 		output.Tangent, output.BiTangent, output.Norm
 		);
 	float3x3 TBNInverse = transpose(TBN);
 	output.TBN = TBNInverse;
-	float3 eyePosWorld = mul(EyePosition.xyz, World);
 	float3 lightPosWorld = mul(Lights[0].Direction.xyz, World);
-	float3 vertexToEye = eyePosWorld - output.worldPos.xyz;
-	float3 vertexToLight = lightPosWorld - output.worldPos.xyz;
-	output.EyeVecTan = normalize(mul(TBNInverse, vertexToEye.xyz));
-	output.LightVecTan = normalize(mul(TBNInverse, vertexToLight.xyz));
-
-	output.CamDir = normalize(mul(TBNInverse, CameraDirection));
+	float3 vertexToEye = output.worldPos - EyePosition.xyz;
+	float3 vertexToLight = lightPosWorld - output.worldPos;
+	output.EyeVecTan = mul(vertexToEye.xyz, TBNInverse);
+	output.LightVecTan = mul(vertexToLight.xyz, TBNInverse);
 
 	// multiply the normal by the world transform (to go from model space to world space)
-	output.Norm = mul(output.Norm, output.TBN);
+	output.Norm = mul(output.Norm, TBNInverse);
 	output.Tex = input.Tex;
-
 	return output;
 }
 
@@ -243,15 +239,15 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float4 texColor = { 0, 0, 0, 0 };
 	float4 texNormal = { 1, 1, 1, 1 };
 	float4 texParallax = { 1, 1, 1, 1 };
-	float2 texCoords = ParallaxMapping(IN.Tex, CameraDirection);
-	texNormal = txNormal.Sample(samLinear, texCoords);
+	float2 texCoords = ParallaxMapping(IN.Tex, IN.EyeVecTan);
+	texNormal = txNormal.Sample(samLinear, IN.Tex);
 	//OpenGL normal correction
-	texNormal = texNormal * 2.0f - 1.0f;
+	//texNormal = texNormal * 2.0f - 1.0f;
 	
-	//texNormal.g *= -1;
+	texNormal.y = 1 - texNormal.y;
 
 
-	texNormal = float4(mul(IN.TBN, texNormal), 1.0f);
+	//texNormal = float4(mul(IN.TBN, texNormal), 1.0f);
 
 		if (Material.UseTexture)
 	{
@@ -260,7 +256,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 
 	float4 normal = float4(((texNormal.x * IN.Tangent) + (texNormal.y * IN.BiTangent) + (texNormal.z * IN.Norm)).xyz, 1.0f);
 
-	LightingResult lit = ComputeLighting(IN.worldPos, texNormal, IN.LightVecTan, IN.EyeVecTan);
+	LightingResult lit = ComputeLighting(IN.worldPos, normal, IN.LightVecTan, IN.EyeVecTan);
 
 	float4 emissive = Material.Emissive;
 	float4 ambient = Material.Ambient * GlobalAmbient;

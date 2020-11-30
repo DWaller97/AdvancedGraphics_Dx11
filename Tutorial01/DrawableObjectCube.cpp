@@ -163,7 +163,7 @@ void DrawableObjectCube::Update(float t)
 		spin += 0.001f;
 		if (spin > 360)
 			spin = 0;
-		XMMATRIX mSpin = XMMatrixRotationY(spin * (Time::DeltaTime()));
+		XMMATRIX mSpin = XMMatrixRotationY(spin * (t));
 
 	}
 	// Cube:  Rotate around origin

@@ -61,11 +61,11 @@ HRESULT DrawableGameObject::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 	if (FAILED(hr))
 		return hr;
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\displacement.dds", nullptr, &m_normalTexture);
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\normals.dds", nullptr, &m_normalTexture);
 	if (FAILED(hr))
 		return hr;
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\normals.dds", nullptr, &m_parallaxTexture);
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\displacement.dds", nullptr, &m_parallaxTexture);
 	if (FAILED(hr))
 		return hr;
 }
