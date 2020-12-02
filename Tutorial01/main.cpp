@@ -455,8 +455,6 @@ HRESULT InitImGui()
     return S_OK;
 }
 
-DrawableGameObject::ShaderData standardShader;
-DrawableGameObject::ShaderData shader2;
 DrawableGameObject::ShaderData shaderFX;
 
 
@@ -530,145 +528,6 @@ HRESULT		InitMesh()
 		return hr;
 #pragma endregion NormalShaders
 
-#pragma region StandardShaders
-
-    ID3DBlob *standardVSBlob = nullptr;
-    ID3DBlob *standardPSBlob = nullptr;
-
-    // Standard vertex shader
-    hr = CompileShaderFromFile(L"StandardVS.hlsl", "main", "vs_4_0", &standardVSBlob);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr,
-            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-        return hr;
-    }
-
-    hr = g_pd3dDevice->CreateVertexShader(standardVSBlob->GetBufferPointer(), standardVSBlob->GetBufferSize(), nullptr, &g_pVertexShaderStandard);
-    if (FAILED(hr))
-    {
-        standardVSBlob->Release();
-        return hr;
-    }
-
-    // Standard pixel shader
-    hr = CompileShaderFromFile(L"StandardPS.hlsl", "main", "ps_4_0", &standardPSBlob);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr,
-            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-        return hr;
-    }
-
-    hr = g_pd3dDevice->CreatePixelShader(standardPSBlob->GetBufferPointer(), standardPSBlob->GetBufferSize(), nullptr, &g_pPixelShaderStandard);
-    standardPSBlob->Release();
-    if (FAILED(hr))
-        return hr;
-
-    D3D11_INPUT_ELEMENT_DESC standardLayout[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        { "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
-    numElements = ARRAYSIZE(standardLayout);
-    ID3D11InputLayout* vsLayout = nullptr;
-    // Create the input layout
-    hr = g_pd3dDevice->CreateInputLayout(standardLayout, numElements, standardVSBlob->GetBufferPointer(),
-        standardVSBlob->GetBufferSize(), &vsLayout);
-    standardVSBlob->Release();
-
-    if (FAILED(hr))
-        return hr;
-    standardShader._pixelShader = g_pPixelShaderStandard;
-    standardShader._vertexShader = g_pVertexShaderStandard;
-    standardShader._inputLayout = vsLayout;
-
-    // Set the input layout
-    //g_pImmediateContext->IASetInputLayout(vsLayout);
-
-#pragma endregion StandardShaders
-
-#pragma region SolidShaders
-	// Compile the SOLID pixel shader
-	pPSBlob = nullptr;
-	hr = CompileShaderFromFile(L"normal.fx", "PSSolid", "ps_4_0", &pPSBlob);
-	if (FAILED(hr))
-	{
-		MessageBox(nullptr,
-			L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-		return hr;
-	}
-
-	// Create the SOLID pixel shader
-	hr = g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShaderSolid);
-	pPSBlob->Release();
-	if (FAILED(hr))
-		return hr;
-#pragma endregion SolidShaders
-
-#pragma region Shader2
-
-    ID3DBlob* VSBlob2 = nullptr;
-    ID3DBlob* PSBlob2 = nullptr;
-
-    // Standard vertex shader
-    hr = CompileShaderFromFile(L"VS2.hlsl", "main", "vs_4_0", &VSBlob2);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr,
-            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-        return hr;
-    }
-
-    hr = g_pd3dDevice->CreateVertexShader(VSBlob2->GetBufferPointer(), VSBlob2->GetBufferSize(), nullptr, &g_pVertexShader2);
-    if (FAILED(hr))
-    {
-        VSBlob2->Release();
-        return hr;
-    }
-
-    // Standard pixel shader
-    hr = CompileShaderFromFile(L"PS2.hlsl", "main", "ps_4_0", &PSBlob2);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr,
-            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-        return hr;
-    }
-
-
-    hr = g_pd3dDevice->CreatePixelShader(PSBlob2->GetBufferPointer(), PSBlob2->GetBufferSize(), nullptr, &g_pPixelShader2);
-    PSBlob2->Release();
-    if (FAILED(hr))
-        return hr;
-
-    D3D11_INPUT_ELEMENT_DESC layout2[] =
-    {
-        { "SV_POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
-    numElements = ARRAYSIZE(layout2);
-    // Create the input layout
-    ID3D11InputLayout* vsLayout2 = nullptr;
-
-    hr = g_pd3dDevice->CreateInputLayout(layout2, numElements, VSBlob2->GetBufferPointer(),
-        VSBlob2->GetBufferSize(), &vsLayout2);
-    VSBlob2->Release();
-    
-    shader2._vertexShader = g_pVertexShader2;
-    shader2._pixelShader = g_pPixelShader2;
-    shader2._inputLayout = vsLayout2;
-    //g_pImmediateContext->IASetInputLayout(vsLayout2);
-
-    if (FAILED(hr))
-        return hr;
-
-#pragma endregion Shader2
     D3D11_BUFFER_DESC bd = {};
 
 	
@@ -708,7 +567,7 @@ HRESULT InitObjects() {
     g_Cube->SetShaders(shaderFX);
     g_Cube->SetPosition(XMFLOAT3(0, 0, 0));
     newCube = new DrawableObjectCube();
-    newCube->SetShaders(standardShader);
+    newCube->SetShaders(shaderFX);
     newCube->SetPosition(XMFLOAT3(5, 0, 0));
     newCube->InitMesh(g_pd3dDevice, g_pImmediateContext);
     
@@ -849,8 +708,8 @@ void Update() {
     light.QuadraticAttenuation = 1;
     light.Direction = lightRotation;
     light.LightType = LightType::SpotLight;
-
     // set up the light
+    g_Camera->Update();
 
     light.Position = lightPosition;
     XMVECTOR LightDirection = XMLoadFloat4(&light.Direction);
@@ -860,9 +719,9 @@ void Update() {
     LightPropertiesConstantBuffer lightProperties;
     XMStoreFloat4(&lightProperties.EyePosition, g_Camera->GetLookVec());
     lightProperties.Lights[0] = light;
+    lightProperties.GlobalAmbient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
 
-    g_Camera->Update();
 
 
 }

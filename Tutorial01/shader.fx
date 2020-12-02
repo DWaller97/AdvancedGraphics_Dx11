@@ -111,11 +111,7 @@ struct PS_INPUT
 
 };
 
-float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) { //SampleGrad for more advanced stuff?
-	float height = txParallax.Sample(samLinear, _texCoords).x;
-	float2 p = _viewDir.xy / _viewDir.z * height;
-	return _texCoords;
-}
+
 
 
 float4 DoDiffuse(Light light, float3 L, float3 N)
@@ -218,9 +214,12 @@ PS_INPUT VS(VS_INPUT input)
 	float3x3 TBNInverse = transpose(TBN);
 	output.TBN = TBNInverse;
 	float3 lightPosWorld = mul(Lights[0].Direction.xyz, World);
-	float3 vertexToEye = output.worldPos - EyePosition.xyz;
+
+	float3 e = mul(EyePosition.xyz, TBNInverse);
+	float3 p = mul(output.worldPos.xyz, TBNInverse);
+	float3 vertexToEye = e - p;
 	float3 vertexToLight = lightPosWorld - output.worldPos;
-	output.EyeVecTan = mul(vertexToEye.xyz, TBNInverse);
+	output.EyeVecTan = vertexToEye;
 	output.LightVecTan = mul(vertexToLight.xyz, TBNInverse);
 
 	// multiply the normal by the world transform (to go from model space to world space)
@@ -228,6 +227,16 @@ PS_INPUT VS(VS_INPUT input)
 	output.Tex = input.Tex;
 	return output;
 }
+
+
+float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) { //SampleGrad for more advanced stuff?
+	float height = txParallax.Sample(samLinear, _texCoords).x;
+	height *= 0.0125f;
+	float2 p = _viewDir.xy / _viewDir.z * height;
+	return _texCoords - p;
+}
+
+
 
 
 //--------------------------------------------------------------------------------------
@@ -239,12 +248,61 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float4 texColor = { 0, 0, 0, 0 };
 	float4 texNormal = { 1, 1, 1, 1 };
 	float4 texParallax = { 1, 1, 1, 1 };
-	float2 texCoords = ParallaxMapping(IN.Tex, IN.EyeVecTan);
-	texNormal = txNormal.Sample(samLinear, IN.Tex);
+	float2 texCoords = IN.Tex;
+	texCoords = ParallaxMapping(IN.Tex, IN.EyeVecTan);
+
+	//float heightMapScale = 0.002f;
+	//float parallaxLimit = -length(IN.EyeVecTan.xy) / IN.EyeVecTan.z;
+	//parallaxLimit *= heightMapScale;
+
+	//float2 offsetDir = normalize(IN.EyeVecTan.xy);
+	//float2 maxOffset = offsetDir * parallaxLimit;
+	//int minSamples = 5;
+	//int maxSamples = 20;
+	//int samples = lerp(maxSamples, minSamples, abs(dot(IN.Norm, IN.EyeVecTan)));
+
+	//float stepSize = 1 / float(samples);
+
+	//float2 dx = ddx(IN.Tex);
+	//float2 dy = ddy(IN.Tex);
+
+	//float currRayHeight = 1.0f;
+	//float2 currOffset = float2(0, 0);
+	//float2 lastOffset = float2(0, 0);
+	//float currSampledHeight = 1.0f;
+	//float lastSampledHeight = 1.0f;
+	//int currSample = 0;
+
+	//while (currSample < samples) {
+	//	currSampledHeight = txParallax.SampleGrad(samLinear, IN.Tex + currOffset, dx, dy).a;
+	//	if (currSampledHeight > currRayHeight) {
+	//		float d1 = currSampledHeight - currRayHeight;
+	//		float d2 = (currRayHeight + stepSize) - lastSampledHeight;
+	//		float ratio = d1 / (d1 + d2);
+	//		currOffset = (ratio)*lastOffset + (1.0 - ratio) * currOffset;
+	//		currSample += 1;
+	//	}
+	//	else {
+	//		currSample += 1;
+	//		currRayHeight -= stepSize;
+	//		lastOffset = currOffset;
+	//		currOffset += stepSize * maxOffset;
+	//		lastSampledHeight = currSampledHeight;
+	//	}
+	//}
+	//currOffset *= 2;
+	//texCoords = IN.Tex + currOffset;
+
+	if (texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0 || texCoords.y < 0)
+		discard;
+
+
+
+	texNormal = txNormal.Sample(samLinear, texCoords);
 	//OpenGL normal correction
-	//texNormal = texNormal * 2.0f - 1.0f;
-	
-	texNormal.y = 1 - texNormal.y;
+	texNormal = texNormal * 2.0f - 1.0f;
+
+	//texNormal.y = 1 - texNormal.y;
 
 
 	//texNormal = float4(mul(IN.TBN, texNormal), 1.0f);
