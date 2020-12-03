@@ -551,11 +551,11 @@ DrawableObjectCube* newCube = nullptr;
 HRESULT		InitWorld()
 {
     DirectX::XMFLOAT4 eye = DirectX::XMFLOAT4(0, 2, -3, 1);
-    DirectX::XMFLOAT4 at = DirectX::XMFLOAT4(0, 1, 5, 1);
+    DirectX::XMFLOAT4 at = DirectX::XMFLOAT4(0, -0.5f, 0, 1);
     DirectX::XMFLOAT4 up = DirectX::XMFLOAT4(0, 1, 0, 1);
 
     g_Camera = CameraManager::CreateCamera(eye, at, up, g_viewWidth, g_viewHeight);
-    g_Camera->SetFrustum(90, 1.78f, 0.001f, 50);
+    g_Camera->SetFrustum(DirectX::XM_PIDIV2, g_viewWidth / (float)g_viewHeight, 0.001f, 100);
 
 	return S_OK;
 }
@@ -691,9 +691,9 @@ void Update() {
     if (GetAsyncKeyState('D')) // D
         g_Camera->MovePosition(dTime, 0, 0);
     if (GetAsyncKeyState('Q')) // Q
-        g_Camera->RotateY(dTime);
+        g_Camera->Pitch(dTime);
     if (GetAsyncKeyState('E')) // E
-        g_Camera->RotateY(-dTime);
+        g_Camera->Pitch(-dTime);
     if (GetAsyncKeyState(VK_SPACE)) // Space
         g_Camera->MovePosition(0, dTime, 0);
     if (GetAsyncKeyState(VK_SHIFT)) // L Shift

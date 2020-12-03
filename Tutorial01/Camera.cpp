@@ -10,7 +10,9 @@ Camera::Camera(DirectX::XMFLOAT4& _eye, DirectX::XMFLOAT4& _at, DirectX::XMFLOAT
     at = _at;
     up = _up;
     forward = XMFLOAT4(0, 0, 1, 0);
-
+    eye.x = at.x;
+    eye.y = at.y + 1;
+    eye.z = at.z - 3;
     DirectX::XMVECTOR Eye = DirectX::XMLoadFloat4(&eye);
     DirectX::XMVECTOR At = DirectX::XMLoadFloat4(&at);
     DirectX::XMVECTOR Up = DirectX::XMLoadFloat4(&up);
@@ -58,9 +60,12 @@ void Camera::MoveUp(float dist)
 
 void Camera::Pitch(float angle)
 {
+    //TODO: Fix
     DirectX::XMMATRIX r = DirectX::XMMatrixRotationAxis(DirectX::XMLoadFloat4(&right), angle * pitchSpeed);
-    DirectX::XMStoreFloat4(&up, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat4(&up), r));
-    DirectX::XMStoreFloat4(&eye, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat4(&eye), r));
+    //DirectX::XMStoreFloat4(&at, DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat4(&eye), r));
+    //DirectX::XMStoreFloat4(&at, DirectX::XMVectorMultiplyAdd(r, DirectX::XMLoadFloat4(&eye), DirectX::XMLoadFloat4(&at)));
+
+
 }
 
 void Camera::RotateY(float angle)

@@ -99,10 +99,9 @@ struct VS_INPUT
 struct PS_INPUT
 {
 	float4 Pos : SV_POSITION;
-	float4 worldPos : POSITION;
-	float3 Norm : NORMAL;
+	float4 WorldPos : POSITION;
+	float3 NormTan : NORMAL;
 	float2 Tex : TEXCOORD0;
-	float3x3 TBN: TEXCOORD1;
 	float3 Tangent : TANGENT;
 	float3 BiTangent : BINORMAL;
 	float3 LightVecTan : POSITION1;
@@ -200,40 +199,43 @@ PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output = (PS_INPUT)0;
 	output.Pos = mul(input.Pos, World);
-	output.worldPos = output.Pos;
-	output.Pos = mul(output.Pos, View);
-	output.Pos = mul(output.Pos, Projection);
+	output.WorldPos = output.Pos;
+	output.Pos = mul(mul(output.Pos, View), Projection);
 
-	output.Norm = normalize(mul(normalize(input.Norm), World));
-	output.Tangent = normalize(mul(float4(normalize(input.Tangent.xyz), 0.0f), World));
-	output.BiTangent = normalize(mul(float4(normalize(input.BiTangent.xyz), 0.0f), World));
+	output.Tangent = input.Tangent.xyz;
+	output.BiTangent = input.BiTangent.xyz;
 
-	float3x3 TBN = float3x3(
-		output.Tangent, output.BiTangent, output.Norm
-		);
-	float3x3 TBNInverse = transpose(TBN);
-	output.TBN = TBNInverse;
-	float3 lightPosWorld = mul(Lights[0].Direction.xyz, World);
+	float3x3 TBN = transpose(float3x3(output.Tangent, output.BiTangent, input.Norm));
 
-	float3 e = mul(EyePosition.xyz, TBNInverse);
-	float3 p = mul(output.worldPos.xyz, TBNInverse);
-	float3 vertexToEye = e - p;
-	float3 vertexToLight = lightPosWorld - output.worldPos;
-	output.EyeVecTan = vertexToEye;
-	output.LightVecTan = mul(vertexToLight.xyz, TBNInverse);
+	float3 e = mul(EyePosition.xyz, TBN);
+	float3 p = mul(output.WorldPos.xyz, TBN);
+	float3 l = mul(Lights[0].Position.xyz, TBN);
+	output.EyeVecTan = e - p;
+	output.LightVecTan = l - p;
 
-	// multiply the normal by the world transform (to go from model space to world space)
-	output.Norm = mul(output.Norm, TBNInverse);
+	output.NormTan = mul(input.Norm, TBN);
 	output.Tex = input.Tex;
 	return output;
 }
 
 
 float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) { //SampleGrad for more advanced stuff?
-	float height = txParallax.Sample(samLinear, _texCoords).x;
-	height *= 0.0125f;
-	float2 p = _viewDir.xy / _viewDir.z * height;
-	return _texCoords - p;
+	float numLayers = 20;
+	float layerDepth = 1.0 / numLayers;
+	float currLayerDepth = 0.0f;
+	float heightScale = 0.1f;
+	float2 p = _viewDir.xy * heightScale;
+	float2 offset = p / numLayers;
+	float2 currCoords = _texCoords;
+	float currDepth = txParallax.Sample(samLinear, currCoords);
+	float2 dx = ddx(_texCoords);
+	float2 dy = ddy(_texCoords);
+	while (currLayerDepth < currDepth) {
+		currCoords -= offset;
+		currDepth = txParallax.SampleGrad(samLinear, currCoords, dx, dy).x;
+		currLayerDepth += layerDepth;
+	}
+	return currCoords;
 }
 
 
@@ -251,47 +253,47 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float2 texCoords = IN.Tex;
 	texCoords = ParallaxMapping(IN.Tex, IN.EyeVecTan);
 
-	//float heightMapScale = 0.002f;
-	//float parallaxLimit = -length(IN.EyeVecTan.xy) / IN.EyeVecTan.z;
-	//parallaxLimit *= heightMapScale;
 
-	//float2 offsetDir = normalize(IN.EyeVecTan.xy);
-	//float2 maxOffset = offsetDir * parallaxLimit;
-	//int minSamples = 5;
-	//int maxSamples = 20;
-	//int samples = lerp(maxSamples, minSamples, abs(dot(IN.Norm, IN.EyeVecTan)));
+	float heightMapScale = 0.1f;
+	float parallaxLimit = (IN.EyeVecTan.xy) / IN.EyeVecTan.z;
+	parallaxLimit *= heightMapScale;
 
-	//float stepSize = 1 / float(samples);
+	float2 offsetDir = normalize(IN.EyeVecTan.xy);
+	float2 maxOffset = offsetDir *parallaxLimit;
+	int minSamples = 5;
+	int maxSamples = 20;
+	int samples = lerp(maxSamples, minSamples, abs(dot(IN.NormTan, IN.EyeVecTan)));
 
-	//float2 dx = ddx(IN.Tex);
-	//float2 dy = ddy(IN.Tex);
+	float stepSize = 1 / float(samples);
 
-	//float currRayHeight = 1.0f;
-	//float2 currOffset = float2(0, 0);
-	//float2 lastOffset = float2(0, 0);
-	//float currSampledHeight = 1.0f;
-	//float lastSampledHeight = 1.0f;
-	//int currSample = 0;
+	float2 dx = ddx(IN.Tex);
+	float2 dy = ddy(IN.Tex);
 
-	//while (currSample < samples) {
-	//	currSampledHeight = txParallax.SampleGrad(samLinear, IN.Tex + currOffset, dx, dy).a;
-	//	if (currSampledHeight > currRayHeight) {
-	//		float d1 = currSampledHeight - currRayHeight;
-	//		float d2 = (currRayHeight + stepSize) - lastSampledHeight;
-	//		float ratio = d1 / (d1 + d2);
-	//		currOffset = (ratio)*lastOffset + (1.0 - ratio) * currOffset;
-	//		currSample += 1;
-	//	}
-	//	else {
-	//		currSample += 1;
-	//		currRayHeight -= stepSize;
-	//		lastOffset = currOffset;
-	//		currOffset += stepSize * maxOffset;
-	//		lastSampledHeight = currSampledHeight;
-	//	}
-	//}
-	//currOffset *= 2;
-	//texCoords = IN.Tex + currOffset;
+	float currRayHeight = 1.0f;
+	float2 currOffset = float2(0, 0);
+	float2 lastOffset = float2(0, 0);
+	float currSampledHeight = 1.0f;
+	float lastSampledHeight = 1.0f;
+	int currSample = 0;
+	while (currSample < samples) {
+		currSampledHeight = txParallax.SampleGrad(samLinear, IN.Tex + currOffset, dx, dy).a;
+		if (currSampledHeight > currRayHeight) {
+			float d1 = currSampledHeight - currRayHeight;
+			float d2 = (currRayHeight + stepSize) - lastSampledHeight;
+			float ratio = d1 / (d1 + d2);
+			currOffset = (ratio)*lastOffset + (1.0 - ratio) * currOffset;
+			currSample += 1;
+		}
+		else {
+			currSample += 1;
+			currRayHeight -= stepSize;
+			lastOffset = currOffset;
+			currOffset += stepSize * maxOffset;
+			lastSampledHeight = currSampledHeight;
+		}
+	}
+	currOffset *= 0.03f;
+	//texCoords -= currOffset;
 
 	if (texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0 || texCoords.y < 0)
 		discard;
@@ -305,16 +307,15 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	//texNormal.y = 1 - texNormal.y;
 
 
-	//texNormal = float4(mul(IN.TBN, texNormal), 1.0f);
 
 		if (Material.UseTexture)
 	{
 		texColor = txDiffuse.Sample(samLinear, texCoords);
 	}
 
-	float4 normal = float4(((texNormal.x * IN.Tangent) + (texNormal.y * IN.BiTangent) + (texNormal.z * IN.Norm)).xyz, 1.0f);
+	float4 normal = float4(((texNormal.x * IN.Tangent) + (texNormal.y * IN.BiTangent) + (texNormal.z * IN.NormTan)).xyz, 1.0f);
 
-	LightingResult lit = ComputeLighting(IN.worldPos, normal, IN.LightVecTan, IN.EyeVecTan);
+	LightingResult lit = ComputeLighting(IN.WorldPos, normal, IN.LightVecTan, IN.EyeVecTan);
 
 	float4 emissive = Material.Emissive;
 	float4 ambient = Material.Ambient * GlobalAmbient;
