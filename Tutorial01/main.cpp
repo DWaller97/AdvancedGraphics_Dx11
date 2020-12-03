@@ -707,7 +707,6 @@ void Update() {
     light.LinearAttenuation = 1;
     light.QuadraticAttenuation = 1;
     light.Direction = lightRotation;
-    light.LightType = LightType::SpotLight;
     // set up the light
     g_Camera->Update();
 

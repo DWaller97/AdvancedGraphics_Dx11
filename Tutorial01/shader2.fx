@@ -1,4 +1,4 @@
-//--------------------------------------------------------------------------------------
+﻿//--------------------------------------------------------------------------------------
 // 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //--------------------------------------------------------------------------------------
@@ -103,7 +103,6 @@ struct PS_INPUT
 	float3 NormTan : NORMAL;
 	float3 EyeTan : POSITION4;
 	float3 PosTan : POSITION5;
-	float3 LightPosTan : POSITION6;
 	float2 Tex : TEXCOORD0;
 	float3 Tangent : TANGENT;
 	float3 BiTangent : BINORMAL;
@@ -209,13 +208,12 @@ PS_INPUT VS(VS_INPUT input)
 	output.BiTangent = input.BiTangent.xyz;
 
 	float3x3 TBN = transpose(float3x3(output.Tangent, output.BiTangent, input.Norm));
-	float3 lw = mul(Lights[0].Position, World);
+
 	float3 e = mul(EyePosition.xyz, TBN);
 	float3 p = mul(output.WorldPos.xyz, TBN);
-	float3 l = mul(lw.xyz, TBN);
+	float3 l = mul(Lights[0].Position.xyz, TBN);
 	//output.EyeVecTan = e - p;
 	output.LightVecTan = l - p;
-	output.LightPosTan = l;
 	output.EyeTan = e;
 	output.PosTan = p;
 	output.NormTan = mul(input.Norm, TBN);
@@ -286,16 +284,15 @@ float SelfShadow(float2 _texCoords, float3 _lightVec) {
 	float3 L = _lightVec;
 	const float minLayers = 15;
 	const float maxLayers = 30;
+	float initialHeight = txParallax.Sample(samLinear, _texCoords).x;
 	float heightScale = 0.05f;
-	float2 dx = ddx(_texCoords);
-	float2 dy = ddy(_texCoords);
+
 	if (dot(float3(0, 0, 1), L) > 0)
 	{
 		// calculate initial parameters
 		float numSamplesUnderSurface = 0;
 		shadowMultiplier = 0;
 		float numLayers = lerp(maxLayers, minLayers, abs(dot(float3(0, 0, 1), L)));
-		float initialHeight = txParallax.Sample(samLinear, _texCoords).x;
 		float layerHeight = initialHeight / numLayers;
 		float2 texStep = heightScale * L.xy / L.z / numLayers;
 
@@ -303,19 +300,19 @@ float SelfShadow(float2 _texCoords, float3 _lightVec) {
 		float currLayerHeight = initialHeight - layerHeight;
 		float2 currCoords = _texCoords + texStep;
 		// get current height from heightmap
-		float currHeight = txParallax.Sample(samLinear, currCoords).x;
 		int stepIndex = 1;
+		float texHeight;
 		// while point is below depth 0.0 )
 		while (currLayerHeight > 0)
 		{
-			//if (stepIndex > 4)
-			//	break;
+			float heightFromTexture = txParallax.Sample(samLinear, currCoords).x;
+
 			// if point is under the surface
-			if (currHeight < currLayerHeight)
+			if (heightFromTexture < currLayerHeight)
 			{
 				// calculate partial shadowing factor
 				numSamplesUnderSurface += 1;
-				float newShadowMultiplier = (currLayerHeight - currHeight) * (1.0f - stepIndex / numLayers);
+				float newShadowMultiplier = (currLayerHeight – heightFromTexture) * (1.0f - stepIndex / numLayers);
 				shadowMultiplier = max(shadowMultiplier, newShadowMultiplier);
 
 			}
@@ -325,7 +322,6 @@ float SelfShadow(float2 _texCoords, float3 _lightVec) {
 			currLayerHeight -= layerHeight;
 			currCoords += texStep;
 			//get current height from map      
-			currHeight = txParallax.SampleGrad(samLinear, currCoords, dx, dy).x;
 		}
 		// Shadowing factor should be 1 if there were no points under the surface
 		if (numSamplesUnderSurface < 1)
@@ -354,10 +350,9 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float2 texCoords = IN.Tex;
 
 	float3 EyeVecTan = normalize(IN.EyeTan - IN.PosTan);
-	float3 LightTan = normalize(IN.LightPosTan - IN.PosTan);
+
 	texCoords = ParallaxOcclusionMapping(IN.Tex, EyeVecTan, IN.NormTan);
-	float shadowFactor = 1;
-	shadowFactor = SelfShadow(IN.Tex, LightTan);
+	float shadowFactor = SelfShadow(IN.Tex, IN.LightVecTan);
 	//texCoords = SteepParallaxMapping(IN.Tex, EyeVecTan, IN.NormTan);
 
 
@@ -422,7 +417,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 
 	float4 normal = float4(texNormal.x, texNormal.y, texNormal.z, 1.0f);//float4(((texNormal.x * IN.Tangent) + (texNormal.y * IN.BiTangent) + (texNormal.z * IN.NormTan)).xyz, 1.0f);
 
-	LightingResult lit = ComputeLighting(IN.WorldPos, normal, LightTan, IN.EyeVecTan);
+	LightingResult lit = ComputeLighting(IN.WorldPos, normal, IN.LightVecTan, IN.EyeVecTan);
 
 	float4 emissive = Material.Emissive;
 	float4 ambient = Material.Ambient * GlobalAmbient;
