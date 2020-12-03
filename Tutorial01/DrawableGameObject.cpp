@@ -68,6 +68,30 @@ HRESULT DrawableGameObject::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\displacement.dds", nullptr, &m_parallaxTexture);
 	if (FAILED(hr))
 		return hr;
+
+	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Crate_COLOR.dds", nullptr, &m_albedoTexture);
+	//if (FAILED(hr))
+	//	return hr;
+
+	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Crate_NRM.dds", nullptr, &m_normalTexture);
+	//if (FAILED(hr))
+	//	return hr;
+
+	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Crate_DISP.dds", nullptr, &m_parallaxTexture);
+	//if (FAILED(hr))
+	//	return hr;
+
+	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\stone.dds", nullptr, &m_albedoTexture);
+	//if (FAILED(hr))
+	//	return hr;
+
+	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\conenormal.dds", nullptr, &m_normalTexture);
+	//if (FAILED(hr))
+	//	return hr;
+
+	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\conedisp.dds", nullptr, &m_parallaxTexture);
+	//if (FAILED(hr))
+	//	return hr;
 }
 
 void DrawableGameObject::Update(float t)

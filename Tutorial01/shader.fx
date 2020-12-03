@@ -101,6 +101,8 @@ struct PS_INPUT
 	float4 Pos : SV_POSITION;
 	float4 WorldPos : POSITION;
 	float3 NormTan : NORMAL;
+	float3 EyeTan : POSITION4;
+	float3 PosTan : POSITION5;
 	float2 Tex : TEXCOORD0;
 	float3 Tangent : TANGENT;
 	float3 BiTangent : BINORMAL;
@@ -210,26 +212,30 @@ PS_INPUT VS(VS_INPUT input)
 	float3 e = mul(EyePosition.xyz, TBN);
 	float3 p = mul(output.WorldPos.xyz, TBN);
 	float3 l = mul(Lights[0].Position.xyz, TBN);
-	output.EyeVecTan = e - p;
+	//output.EyeVecTan = e - p;
 	output.LightVecTan = l - p;
-
+	output.EyeTan = e;
+	output.PosTan = p;
 	output.NormTan = mul(input.Norm, TBN);
 	output.Tex = input.Tex;
 	return output;
 }
 
 
-float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) { //SampleGrad for more advanced stuff?
-	float numLayers = 20;
-	float layerDepth = 1.0 / numLayers;
+float2 SteepParallaxMapping(float2 _texCoords, float3 _viewDir, float3 _norm) {
+	int minSamples = 5;
+	int maxSamples = 20;
+	int numSamples = lerp(maxSamples, minSamples, abs(dot(_norm, _viewDir)));
+	float layerDepth = 1.0 / numSamples;
 	float currLayerDepth = 0.0f;
 	float heightScale = 0.1f;
 	float2 p = _viewDir.xy * heightScale;
-	float2 offset = p / numLayers;
+	float2 offset = p / numSamples;
 	float2 currCoords = _texCoords;
 	float currDepth = txParallax.Sample(samLinear, currCoords);
 	float2 dx = ddx(_texCoords);
 	float2 dy = ddy(_texCoords);
+
 	while (currLayerDepth < currDepth) {
 		currCoords -= offset;
 		currDepth = txParallax.SampleGrad(samLinear, currCoords, dx, dy).x;
@@ -238,7 +244,40 @@ float2 ParallaxMapping(float2 _texCoords, float3 _viewDir) { //SampleGrad for mo
 	return currCoords;
 }
 
+float2 ParallaxOcclusionMapping(float2 _texCoords, float3 _viewDir, float3 _norm) {
+	int minSamples = 5;
+	int maxSamples = 20;
+	int numSamples = lerp(maxSamples, minSamples, abs(dot(_norm, _viewDir)));
+	float layerDepth = 1.0 / numSamples;
+	float currLayerDepth = 0.0f;
+	float heightScale = 0.05f;
+	float2 p = _viewDir.xy * heightScale;
+	float2 offset = p / numSamples;
+	float2 currCoords = _texCoords;
+	float currDepth = txParallax.Sample(samLinear, currCoords);
+	float2 dx = ddx(_texCoords);
+	float2 dy = ddy(_texCoords);
 
+	float2 prevCoords;
+	float afterDepth;
+	float prevDepth;
+	float weight;
+	while (currLayerDepth < currDepth) {
+
+		currCoords -= offset; 
+		currDepth = txParallax.SampleGrad(samLinear, currCoords, dx, dy).x;
+		currLayerDepth += layerDepth;
+
+	}
+
+	prevCoords = currCoords + offset;
+	afterDepth = currDepth - currLayerDepth;
+
+	prevDepth = txParallax.Sample(samLinear, prevCoords).x - currLayerDepth + layerDepth;
+	weight = afterDepth / (afterDepth - prevDepth);
+
+	return prevCoords * weight + currCoords * (1.0 - weight);
+}
 
 
 //--------------------------------------------------------------------------------------
@@ -251,7 +290,10 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float4 texNormal = { 1, 1, 1, 1 };
 	float4 texParallax = { 1, 1, 1, 1 };
 	float2 texCoords = IN.Tex;
-	texCoords = ParallaxMapping(IN.Tex, IN.EyeVecTan);
+
+	float3 EyeVecTan = normalize(IN.EyeTan - IN.PosTan);
+
+	texCoords = ParallaxOcclusionMapping(IN.Tex, EyeVecTan, IN.NormTan);
 
 
 	float heightMapScale = 0.1f;
