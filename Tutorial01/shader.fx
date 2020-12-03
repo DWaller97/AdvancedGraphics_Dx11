@@ -281,62 +281,33 @@ float2 ParallaxOcclusionMapping(float2 _texCoords, float3 _viewDir, float3 _norm
 	return prevCoords * weight + currCoords * (1.0 - weight);
 }
 
-float SelfShadow(float2 _texCoords, float3 _lightVec) {
-	float shadowMultiplier = 1;
-	float3 L = _lightVec;
-	const float minLayers = 15;
-	const float maxLayers = 30;
+float SelfShadow(float2 _texCoords, float3 _lightVec, float3 _norm) {
+	int minSamples = 5;
+	int maxSamples = 20;
+	int numSamples = lerp(maxSamples, minSamples, abs(dot(_norm, _lightVec)));
+	float layerDepth = 1.0 / numSamples;
+	float currLayerDepth = 0.0f;
 	float heightScale = 0.05f;
+	float2 p = _lightVec.xy * heightScale;
+	float2 offset = p / numSamples;
+	float2 currCoords = _texCoords;
+	float currDepth = txParallax.Sample(samLinear, currCoords);
 	float2 dx = ddx(_texCoords);
 	float2 dy = ddy(_texCoords);
-	if (dot(float3(0, 0, 1), L) > 0)
-	{
-		// calculate initial parameters
-		float numSamplesUnderSurface = 0;
-		shadowMultiplier = 0;
-		float numLayers = lerp(maxLayers, minLayers, abs(dot(float3(0, 0, 1), L)));
-		float initialHeight = txParallax.Sample(samLinear, _texCoords).x;
-		float layerHeight = initialHeight / numLayers;
-		float2 texStep = heightScale * L.xy / L.z / numLayers;
+	float2 prevCoords;
+	float afterDepth;
+	float prevDepth;
+	float weight;
+	if (currLayerDepth > 0.0) {
+		while (currLayerDepth < currDepth) {
 
-		// current parameters
-		float currLayerHeight = initialHeight - layerHeight;
-		float2 currCoords = _texCoords + texStep;
-		// get current height from heightmap
-		float currHeight = txParallax.Sample(samLinear, currCoords).x;
-		int stepIndex = 1;
-		// while point is below depth 0.0 )
-		while (currLayerHeight > 0)
-		{
-			//if (stepIndex > 4)
-			//	break;
-			// if point is under the surface
-			if (currHeight < currLayerHeight)
-			{
-				// calculate partial shadowing factor
-				numSamplesUnderSurface += 1;
-				float newShadowMultiplier = (currLayerHeight - currHeight) * (1.0f - stepIndex / numLayers);
-				shadowMultiplier = max(shadowMultiplier, newShadowMultiplier);
+			currCoords += offset;
+			currDepth = txParallax.SampleGrad(samLinear, currCoords, dx, dy).x;
+			currLayerDepth -= layerDepth;
 
-			}
-
-			// offset to the next layer
-			stepIndex += 1;
-			currLayerHeight -= layerHeight;
-			currCoords += texStep;
-			//get current height from map      
-			currHeight = txParallax.SampleGrad(samLinear, currCoords, dx, dy).x;
-		}
-		// Shadowing factor should be 1 if there were no points under the surface
-		if (numSamplesUnderSurface < 1)
-		{
-			shadowMultiplier = 1;
-		}
-		else
-		{
-			shadowMultiplier = 1.0 - shadowMultiplier;
 		}
 	}
+	float shadowMultiplier = currLayerDepth > currDepth ? 0.0f : 1.0f;
 	return shadowMultiplier;
 
 }
@@ -357,7 +328,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float3 LightTan = normalize(IN.LightPosTan - IN.PosTan);
 	texCoords = ParallaxOcclusionMapping(IN.Tex, EyeVecTan, IN.NormTan);
 	float shadowFactor = 1;
-	shadowFactor = SelfShadow(IN.Tex, LightTan);
+	
 	//texCoords = SteepParallaxMapping(IN.Tex, EyeVecTan, IN.NormTan);
 
 
@@ -402,8 +373,8 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	currOffset *= 0.03f;*/
 	//texCoords -= currOffset;
 
-	//if (texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0 || texCoords.y < 0)
-	//	discard;
+	if (texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0 || texCoords.y < 0)
+		discard;
 
 
 
@@ -429,8 +400,11 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float4 diffuse = Material.Diffuse * lit.Diffuse;
 	float4 specular = Material.Specular * lit.Specular;
 
-
-	float4 finalColor = (emissive + ambient + (diffuse * shadowFactor) + (specular * shadowFactor)) * texColor;
+	float dc = max(0.0f, dot(-LightTan, normal));
+	if (dc > 0.0f) {
+		shadowFactor = SelfShadow(IN.Tex, -LightTan, IN.NormTan);
+	}
+	float4 finalColor = (emissive + ambient + (shadowFactor * dc * diffuse) + (shadowFactor * dc * specular)) * texColor;
 
 	return finalColor;
 }
