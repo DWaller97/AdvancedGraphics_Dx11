@@ -83,7 +83,7 @@ const int				g_viewHeight = 1080;
 
 DrawableObjectCube*		g_Cube = nullptr;
 DrawableGameObject*     g_Monkey = nullptr;
-DrawableGameObjectPlane*g_plane = nullptr;
+DrawableGameObjectPlane* g_plane = nullptr;
 Camera*                 g_Camera = nullptr;
 Time*                   time = nullptr;
 
@@ -536,8 +536,7 @@ HRESULT		InitMesh()
     g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &g_pVertexShaderRTT);
     D3D11_INPUT_ELEMENT_DESC layoutRTT[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "SV_POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
@@ -555,15 +554,15 @@ HRESULT		InitMesh()
     g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShaderRTT);
     pPSBlob->Release();
 
-
+    shaderRTT._inputLayout = g_pVertexLayoutRTT;
+    shaderRTT._vertexShader = g_pVertexShaderRTT;
+    shaderRTT._pixelShader = g_pPixelShaderRTT;
 
 
 
     if (FAILED(hr))
         return hr;
-    shaderRTT._inputLayout = g_pVertexLayoutRTT;
-    shaderRTT._vertexShader = g_pVertexShaderRTT;
-    shaderRTT._pixelShader = g_pPixelShaderRTT;
+
 
 #pragma endregion RTT
     D3D11_BUFFER_DESC bd = {};
@@ -605,26 +604,28 @@ HRESULT InitObjects() {
     g_Cube->SetShaders(shaderFX);
     g_Cube->SetPosition(XMFLOAT3(0, 0, 0));
     newCube = new DrawableObjectCube();
-    newCube->SetShaders(shaderRTT);
+    newCube->SetShaders(shaderFX);
     newCube->SetPosition(XMFLOAT3(5, 0, 0));
     newCube->InitMesh(g_pd3dDevice, g_pImmediateContext);
     
+    g_plane = new DrawableGameObjectPlane();
+    g_plane->SetShaders(shaderRTT);
+    g_plane->SetPosition(XMFLOAT3(0, 0, 0));
+    g_plane->InitMesh(g_pd3dDevice, g_pImmediateContext);
+
     g_Monkey = new DrawableGameObject();
     g_Monkey->InitMesh(g_pd3dDevice, g_pImmediateContext);
     g_Monkey->SetMesh((char*)"Resources/cube.obj", g_pd3dDevice, true);
     g_Monkey->SetShaders(shaderFX);
     g_Monkey->SetPosition(XMFLOAT3(0, 1, 5));
     
-    g_plane = new DrawableGameObjectPlane();
-    g_plane->InitMesh(g_pd3dDevice, g_pImmediateContext);
-    g_plane->SetShaders(shaderRTT);
-    g_plane->SetPosition(XMFLOAT3(0, -1, 0));
+
 
     
     vecDrawables.push_back(g_Monkey);
+    vecDrawables.push_back(g_plane);
     vecDrawables.push_back(g_Cube);
     vecDrawables.push_back(newCube);
-    vecDrawables.push_back(g_plane);
 
 
 
@@ -722,7 +723,9 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 }
 
 Light light;
-
+float planePosX;
+float planePosY;
+float planePosZ;
 void Update() {
 
     float dTime = time->DeltaTime();
@@ -765,7 +768,7 @@ void Update() {
     lightProperties.Lights[0] = light;
     lightProperties.GlobalAmbient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
-
+    (g_Cube)->SetPosition(XMFLOAT3(planePosX, planePosY, planePosZ));
     for (int i = 0; i < vecDrawables.size(); i++) {
         vecDrawables.at(i)->Update(dTime);
     }
@@ -812,6 +815,13 @@ void Render()
         ImGui::Text("At Position: %f %f %f", g_Camera->GetPosition().x, g_Camera->GetPosition().y, g_Camera->GetPosition().z);
         ImGui::Text("Up Position: %f %f %f", g_Camera->GetUp().x, g_Camera->GetUp().y, g_Camera->GetUp().z);
         ImGui::Text("View Direction: %f %f %f", g_Camera->GetLook().x, g_Camera->GetLook().y, g_Camera->GetLook().z);
+        ImGui::End();
+    }
+    {
+        ImGui::Begin("Object");
+        ImGui::SliderFloat("Position X: %f", &planePosX, 0, 5);
+        ImGui::SliderFloat("Position Y: %f", &planePosY, 0, 5);
+        ImGui::SliderFloat("Position Z: %f", &planePosZ, 0, 5);
         ImGui::End();
     }
     ImGui::Render();
