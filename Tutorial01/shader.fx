@@ -110,7 +110,7 @@ struct PS_INPUT
 	float3 LightVecTan : POSITION1;
 	float3 EyeVecTan : POSITION2;
 	float3 CamDir : POSITION3;
-
+	float3x3 TBN : POSITION7;
 };
 
 
@@ -209,6 +209,7 @@ PS_INPUT VS(VS_INPUT input)
 	output.BiTangent = input.BiTangent.xyz;
 
 	float3x3 TBN = transpose(float3x3(output.Tangent, output.BiTangent, input.Norm));
+	output.TBN = TBN;
 	float3 lw = mul(Lights[0].Position, World);
 	float3 e = mul(EyePosition.xyz, TBN);
 	float3 p = mul(output.WorldPos.xyz, TBN);
@@ -249,7 +250,7 @@ float2 SteepParallaxMapping(float2 _texCoords, float3 _viewDir, float3 _norm) {
 float2 ParallaxOcclusionMapping(float2 _texCoords, float3 _viewDir, float3 _norm) {
 	int minSamples = 5;
 	int maxSamples = 20;
-	int numSamples = lerp(maxSamples, minSamples, abs(dot(_norm, _viewDir)));
+	int numSamples = lerp(maxSamples, minSamples, abs(dot(float3(0, 0, 1), _viewDir)));
 	float layerDepth = 1.0 / numSamples;
 	float currLayerDepth = 0.0f;
 	float heightScale = 0.05f;
@@ -282,32 +283,37 @@ float2 ParallaxOcclusionMapping(float2 _texCoords, float3 _viewDir, float3 _norm
 }
 
 float SelfShadow(float2 _texCoords, float3 _lightVec, float3 _norm) {
-	int minSamples = 5;
-	int maxSamples = 20;
-	int numSamples = lerp(maxSamples, minSamples, abs(dot(_norm, _lightVec)));
+	int numSamples = 4;
 	float layerDepth = 1.0 / numSamples;
-	float currLayerDepth = 0.0f;
 	float heightScale = 0.05f;
-	float2 p = _lightVec.xy * heightScale;
-	float2 offset = p / numSamples;
+	float2 offset = heightScale * _lightVec.xy / _lightVec.z / numSamples;
 	float2 currCoords = _texCoords;
-	float currDepth = txParallax.Sample(samLinear, currCoords);
-	float2 dx = ddx(_texCoords);
-	float2 dy = ddy(_texCoords);
-	float2 prevCoords;
-	float afterDepth;
-	float prevDepth;
-	float weight;
-	if (currLayerDepth > 0.0) {
-		while (currLayerDepth < currDepth) {
-
-			currCoords += offset;
-			currDepth = txParallax.SampleGrad(samLinear, currCoords, dx, dy).x;
-			currLayerDepth -= layerDepth;
-
+	float depthMap = txParallax.Sample(samLinear, currCoords);
+	float currLayerDepth = depthMap / numSamples;
+	float2 dx = ddx(depthMap);
+	float2 dy = ddy(depthMap);
+	float samplesUnderSurface = 0;
+	float shadowMultiplier = 0;
+	float stepIndex = 1;
+	while (currLayerDepth > 0) {
+		if (depthMap < currLayerDepth) {
+			samplesUnderSurface++;
+			float newShadow = (currLayerDepth - depthMap) * (1.0 - stepIndex / numSamples);
+			shadowMultiplier = max(shadowMultiplier, newShadow);
 		}
+		stepIndex++;
+		currLayerDepth -= layerDepth;
+		currCoords += offset;
+		depthMap = txParallax.SampleGrad(samLinear, currCoords, dx, dy).x;
 	}
-	float shadowMultiplier = currLayerDepth > currDepth ? 0.0f : 1.0f;
+
+	if (samplesUnderSurface < 1) {
+		shadowMultiplier = 1;
+	}
+	else {
+		shadowMultiplier = 1.0 - shadowMultiplier;
+	}
+
 	return shadowMultiplier;
 
 }
@@ -324,54 +330,12 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float4 texParallax = { 1, 1, 1, 1 };
 	float2 texCoords = IN.Tex;
 
-	float3 EyeVecTan = normalize(IN.EyeTan - IN.PosTan);
-	float3 LightTan = normalize(IN.LightPosTan - IN.PosTan);
+	float3 EyeVecTan = normalize(mul(EyePosition, IN.TBN) - IN.PosTan);
+	float3 LightTan = normalize(mul(Lights[0].Position, IN.TBN) - IN.PosTan);//normalize(IN.LightPosTan - IN.PosTan);
+
 	texCoords = ParallaxOcclusionMapping(IN.Tex, EyeVecTan, IN.NormTan);
 	float shadowFactor = 1;
 	
-	//texCoords = SteepParallaxMapping(IN.Tex, EyeVecTan, IN.NormTan);
-
-
-	/*float heightMapScale = 0.1f;
-	float parallaxLimit = (IN.EyeVecTan.xy) / IN.EyeVecTan.z;
-	parallaxLimit *= heightMapScale;
-
-	float2 offsetDir = normalize(IN.EyeVecTan.xy);
-	float2 maxOffset = offsetDir *parallaxLimit;
-	int minSamples = 5;
-	int maxSamples = 20;
-	int samples = lerp(maxSamples, minSamples, abs(dot(IN.NormTan, IN.EyeVecTan)));
-
-	float stepSize = 1 / float(samples);
-
-	float2 dx = ddx(IN.Tex);
-	float2 dy = ddy(IN.Tex);
-
-	float currRayHeight = 1.0f;
-	float2 currOffset = float2(0, 0);
-	float2 lastOffset = float2(0, 0);
-	float currSampledHeight = 1.0f;
-	float lastSampledHeight = 1.0f;
-	int currSample = 0;
-	while (currSample < samples) {
-		currSampledHeight = txParallax.SampleGrad(samLinear, IN.Tex + currOffset, dx, dy).a;
-		if (currSampledHeight > currRayHeight) {
-			float d1 = currSampledHeight - currRayHeight;
-			float d2 = (currRayHeight + stepSize) - lastSampledHeight;
-			float ratio = d1 / (d1 + d2);
-			currOffset = (ratio)*lastOffset + (1.0 - ratio) * currOffset;
-			currSample += 1;
-		}
-		else {
-			currSample += 1;
-			currRayHeight -= stepSize;
-			lastOffset = currOffset;
-			currOffset += stepSize * maxOffset;
-			lastSampledHeight = currSampledHeight;
-		}
-	}
-	currOffset *= 0.03f;*/
-	//texCoords -= currOffset;
 
 	if (texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0 || texCoords.y < 0)
 		discard;
@@ -391,20 +355,16 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 		texColor = txDiffuse.Sample(samLinear, texCoords);
 	}
 
-	float4 normal = float4(texNormal.x, texNormal.y, texNormal.z, 1.0f);//float4(((texNormal.x * IN.Tangent) + (texNormal.y * IN.BiTangent) + (texNormal.z * IN.NormTan)).xyz, 1.0f);
-
-	LightingResult lit = ComputeLighting(IN.WorldPos, normal, LightTan, IN.EyeVecTan);
+	LightingResult lit = ComputeLighting(IN.WorldPos, texNormal, LightTan, IN.EyeVecTan);
 
 	float4 emissive = Material.Emissive;
 	float4 ambient = Material.Ambient * GlobalAmbient;
 	float4 diffuse = Material.Diffuse * lit.Diffuse;
 	float4 specular = Material.Specular * lit.Specular;
 
-	float dc = max(0.0f, dot(-LightTan, normal));
-	if (dc > 0.0f) {
-		shadowFactor = SelfShadow(IN.Tex, -LightTan, IN.NormTan);
-	}
-	float4 finalColor = (emissive + ambient + (shadowFactor * dc * diffuse) + (shadowFactor * dc * specular)) * texColor;
+
+	shadowFactor = SelfShadow(texCoords, LightTan, texNormal);
+	float4 finalColor = (emissive + ambient + (shadowFactor  * diffuse) + (shadowFactor * specular)) * texColor;
 
 	return finalColor;
 }

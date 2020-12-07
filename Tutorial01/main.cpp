@@ -91,7 +91,7 @@ Time*                   time = nullptr;
 //Lighting Variables
 float lightColour[4] = { 1, 1, 1, 1 };
 XMFLOAT4 lightPosition = XMFLOAT4(0, 0, 0, 0);
-XMFLOAT4 lightRotation = XMFLOAT4(0, 0, -1, 1);
+XMFLOAT4 lightRotation = XMFLOAT4(0, 0, 1, 1);
 DrawableGameObject::CameraBuffer camBuff;
 
 
@@ -99,8 +99,7 @@ DrawableGameObject::CameraBuffer camBuff;
 // Entry point to the program. Initializes everything and goes into a message processing 
 // loop. Idle time is used to render the scene.
 //--------------------------------------------------------------------------------------
-int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow )
-{
+int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow ){
     UNREFERENCED_PARAMETER( hPrevInstance );
     UNREFERENCED_PARAMETER( lpCmdLine );
 
@@ -678,9 +677,7 @@ Light light;
 void Update() {
 
     float dTime = time->DeltaTime();
-    for (int i = 0; i < vecDrawables.size(); i++) {
-        vecDrawables.at(i)->Update(dTime);
-    }
+
 
     if (GetAsyncKeyState('W')) // W
         g_Camera->MovePosition(0, 0, dTime);
@@ -707,7 +704,6 @@ void Update() {
     light.LinearAttenuation = 1;
     light.QuadraticAttenuation = 1;
     light.Direction = lightRotation;
-    // set up the light
     g_Camera->Update();
 
     light.Position = lightPosition;
@@ -718,10 +714,12 @@ void Update() {
     LightPropertiesConstantBuffer lightProperties;
     XMStoreFloat4(&lightProperties.EyePosition, g_Camera->GetLookVec());
     lightProperties.Lights[0] = light;
-    lightProperties.GlobalAmbient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+    lightProperties.GlobalAmbient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
 
-
+    for (int i = 0; i < vecDrawables.size(); i++) {
+        vecDrawables.at(i)->Update(dTime);
+    }
 
 }
 
