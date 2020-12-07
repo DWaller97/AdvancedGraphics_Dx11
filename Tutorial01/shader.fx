@@ -5,6 +5,7 @@
 
 // the lighting equations in this code have been taken from https://www.3dgep.com/texturing-lighting-directx-11/
 // with some modifications by David White
+// added to by Dan Waller.
 
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
@@ -257,7 +258,7 @@ float2 ParallaxOcclusionMapping(float2 _texCoords, float3 _viewDir, float3 _norm
 	float2 p = _viewDir.xy * heightScale;
 	float2 offset = p / numSamples;
 	float2 currCoords = _texCoords;
-	float currDepth = txParallax.Sample(samLinear, currCoords);
+	float currDepth = txParallax.Sample(samLinear, currCoords).x;
 	float2 dx = ddx(_texCoords);
 	float2 dy = ddy(_texCoords);
 
@@ -294,7 +295,7 @@ float SelfShadow(float2 _texCoords, in float3 _lightVec, float3 _norm) {
 		float2 p = _lightVec.xy * heightScale;
 		float2 offset = p / numSamples;
 		float2 currCoords = _texCoords;
-		float currDepth = txParallax.Sample(samLinear, currCoords);
+		float currDepth = txParallax.Sample(samLinear, currCoords).x;
 		float2 dx = ddx(_texCoords);
 		float2 dy = ddy(_texCoords);
 

@@ -22,18 +22,11 @@ class DrawableGameObject
 {
 public:
 
-	struct CameraBuffer {
-		XMFLOAT3 cameraPosition;
-		float padding;
-		XMFLOAT3 cameraDirection;
-		float padding2;
-	};
 
 	struct ShaderData {
 		ID3D11PixelShader* _pixelShader;
 		ID3D11VertexShader* _vertexShader;
 		ID3D11InputLayout* _inputLayout;
-		CameraBuffer _cameraBuffer;
 	};
 
 	DrawableGameObject();
@@ -68,6 +61,7 @@ public:
 	void								SetParallaxScale(float _scale);
 	void								SetParallaxBias(float _bias);
 	void								SetMesh(char* filename, ID3D11Device* _pd3dDevice, bool invertTexCoords);
+
 	void								virtual Release();
 protected:
 	
@@ -75,12 +69,9 @@ protected:
 
 	XMFLOAT4X4*							m_World = nullptr;
 
-	ID3D11Buffer*						m_tangentBuffer = nullptr;
-	ID3D11Buffer*						m_bitangentBuffer = nullptr;
 	ID3D11Buffer*						m_pConstantBuffer = nullptr;
 	ID3D11Buffer*						m_pMaterialConstantBuffer = nullptr;
 	ID3D11Buffer*						m_parallaxBuffer = nullptr;
-	ID3D11Buffer*						m_pCameraBuffer = nullptr;
 
 	ID3D11ShaderResourceView*			m_pTextureResourceView = nullptr;
 	ID3D11SamplerState *				m_pSamplerLinear = nullptr;
@@ -95,8 +86,8 @@ protected:
 	int									NUM_VERTICES = 0;
 	float								m_parallaxBias;
 	float								m_parallaxScale;
-private:
 	ID3D11VertexShader* vertexShader = nullptr;
 	ID3D11PixelShader* pixelShader = nullptr;
+
 };
 

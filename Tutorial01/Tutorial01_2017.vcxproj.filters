@@ -28,6 +28,7 @@
     <ClCompile Include="DrawableObjectCube.cpp" />
     <ClCompile Include="CameraManager.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
+    <ClCompile Include="DrawableGameObjectPlane.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -77,6 +78,7 @@
     <ClInclude Include="DrawableObjectCube.h" />
     <ClInclude Include="CameraManager.h" />
     <ClInclude Include="OBJLoader.h" />
+    <ClInclude Include="DrawableGameObjectPlane.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tutorial01.rc">
@@ -135,6 +137,9 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="PS2.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="RTTShader.fx">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

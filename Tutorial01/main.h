@@ -14,6 +14,7 @@
 
 #include "DrawableGameObject.h"
 #include "DrawableObjectCube.h"
+#include "DrawableGameObjectPlane.h"
 #include "structures.h"
 
 #include "imgui.h"

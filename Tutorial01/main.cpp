@@ -55,29 +55,27 @@ IDXGISwapChain*         g_pSwapChain = nullptr;
 IDXGISwapChain1*        g_pSwapChain1 = nullptr;
 ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
 ID3D11Texture2D*        g_pDepthStencil = nullptr;
+ID3D11Texture2D*        g_pRenderTexture = nullptr;
 ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
 ID3D11VertexShader*     g_pVertexShader = nullptr;
-ID3D11VertexShader*     g_pVertexShaderStandard = nullptr;
-ID3D11VertexShader*     g_pVertexShader2 = nullptr;
+ID3D11VertexShader*     g_pVertexShaderRTT = nullptr;
 
 ID3D11PixelShader*      g_pPixelShader = nullptr;
-ID3D11PixelShader*      g_pPixelShaderSolid = nullptr;
-ID3D11PixelShader*      g_pPixelShaderStandard = nullptr;
-ID3D11PixelShader*      g_pPixelShader2 = nullptr;
+ID3D11PixelShader*      g_pPixelShaderRTT = nullptr;
 
 ID3D11InputLayout*      g_pVertexLayout = nullptr;
+ID3D11InputLayout*      g_pVertexLayoutRTT = nullptr;
+
 ID3D11Buffer*           g_pVertexBuffer = nullptr;
 ID3D11Buffer*           g_pIndexBuffer = nullptr;
 ID3D11Buffer*           g_pConstantBuffer = nullptr;
-ID3D11Buffer*           g_pMaterialConstantBuffer = nullptr;
 ID3D11Buffer*           g_pLightConstantBuffer = nullptr;
-ID3D11Buffer*           g_pCameraBuffer = nullptr;
 
-ID3D11ShaderResourceView * g_pTextureRV = nullptr;
-ID3D11ShaderResourceView * g_pNormalTextureRV = nullptr;
-
-ID3D11SamplerState *	g_pSamplerLinear = nullptr;
-ID3D11SamplerState *	g_pSamplerNormal = nullptr;
+ID3D11ShaderResourceView*   g_pTextureRV = nullptr;
+ID3D11ShaderResourceView*   g_pNormalTextureRV = nullptr;
+ID3D11ShaderResourceView*   g_pRTTTargetView = nullptr;
+ID3D11SamplerState*	        g_pSamplerLinear = nullptr;
+ID3D11SamplerState*	        g_pSamplerNormal = nullptr;
 
 
 const int				g_viewWidth = 1920;
@@ -85,6 +83,7 @@ const int				g_viewHeight = 1080;
 
 DrawableObjectCube*		g_Cube = nullptr;
 DrawableGameObject*     g_Monkey = nullptr;
+DrawableGameObjectPlane*g_plane = nullptr;
 Camera*                 g_Camera = nullptr;
 Time*                   time = nullptr;
 
@@ -92,7 +91,6 @@ Time*                   time = nullptr;
 float lightColour[4] = { 1, 1, 1, 1 };
 XMFLOAT4 lightPosition = XMFLOAT4(0, 0, 0, 0);
 XMFLOAT4 lightRotation = XMFLOAT4(0, 0, 1, 1);
-DrawableGameObject::CameraBuffer camBuff;
 
 
 //--------------------------------------------------------------------------------------
@@ -455,6 +453,7 @@ HRESULT InitImGui()
 }
 
 DrawableGameObject::ShaderData shaderFX;
+DrawableGameObject::ShaderData shaderRTT;
 
 
 // ***************************************************************************************
@@ -464,7 +463,7 @@ DrawableGameObject::ShaderData shaderFX;
 HRESULT		InitMesh()
 { 
 
-#pragma region FX
+#pragma region Default
 	// Compile the vertex shader
 	ID3DBlob* pVSBlob = nullptr;
 	HRESULT hr = CompileShaderFromFile(L"shader.fx", "VS", "vs_4_0", &pVSBlob);
@@ -521,12 +520,52 @@ HRESULT		InitMesh()
     shaderFX._inputLayout = g_pVertexLayout;
     shaderFX._pixelShader = g_pPixelShader;
     shaderFX._vertexShader = g_pVertexShader;
-    shaderFX._cameraBuffer = camBuff;
 
 	if (FAILED(hr))
 		return hr;
-#pragma endregion NormalShaders
+#pragma endregion Default
+#pragma region RTT
+    pVSBlob = nullptr;
+    hr = CompileShaderFromFile(L"RTTShader.fx", "VS", "vs_4_0", &pVSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+    g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &g_pVertexShaderRTT);
+    D3D11_INPUT_ELEMENT_DESC layoutRTT[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "SV_POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    // Create the input layout
+    hr = g_pd3dDevice->CreateInputLayout(layoutRTT, ARRAYSIZE(layoutRTT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayoutRTT);
+    pVSBlob->Release();
+    pPSBlob = nullptr;
+    hr = CompileShaderFromFile(L"RTTShader.fx", "PS", "ps_4_0", &pPSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+    g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShaderRTT);
+    pPSBlob->Release();
 
+
+
+
+
+    if (FAILED(hr))
+        return hr;
+    shaderRTT._inputLayout = g_pVertexLayoutRTT;
+    shaderRTT._vertexShader = g_pVertexShaderRTT;
+    shaderRTT._pixelShader = g_pPixelShaderRTT;
+
+#pragma endregion RTT
     D3D11_BUFFER_DESC bd = {};
 
 	
@@ -566,7 +605,7 @@ HRESULT InitObjects() {
     g_Cube->SetShaders(shaderFX);
     g_Cube->SetPosition(XMFLOAT3(0, 0, 0));
     newCube = new DrawableObjectCube();
-    newCube->SetShaders(shaderFX);
+    newCube->SetShaders(shaderRTT);
     newCube->SetPosition(XMFLOAT3(5, 0, 0));
     newCube->InitMesh(g_pd3dDevice, g_pImmediateContext);
     
@@ -575,9 +614,17 @@ HRESULT InitObjects() {
     g_Monkey->SetMesh((char*)"Resources/cube.obj", g_pd3dDevice, true);
     g_Monkey->SetShaders(shaderFX);
     g_Monkey->SetPosition(XMFLOAT3(0, 1, 5));
+    
+    g_plane = new DrawableGameObjectPlane();
+    g_plane->InitMesh(g_pd3dDevice, g_pImmediateContext);
+    g_plane->SetShaders(shaderRTT);
+    g_plane->SetPosition(XMFLOAT3(0, -1, 0));
+
+    
     vecDrawables.push_back(g_Monkey);
     vecDrawables.push_back(g_Cube);
     vecDrawables.push_back(newCube);
+    vecDrawables.push_back(g_plane);
 
 
 
@@ -594,22 +641,22 @@ void CleanupDevice()
     if( g_pConstantBuffer )     g_pConstantBuffer->Release();
     if( g_pVertexBuffer )       g_pVertexBuffer->Release();
     if( g_pIndexBuffer )        g_pIndexBuffer->Release();
-    if (g_pCameraBuffer)       g_pCameraBuffer->Release();
     if( g_pVertexLayout )       g_pVertexLayout->Release();
+    if( g_pVertexLayoutRTT )    g_pVertexLayoutRTT->Release();
     if( g_pVertexShader )       g_pVertexShader->Release();
-    if( g_pVertexShaderStandard)g_pVertexShaderStandard->Release();
+    if( g_pVertexShaderRTT)     g_pVertexShaderRTT->Release();
     if( g_pPixelShader )        g_pPixelShader->Release();
-    if( g_pPixelShaderStandard) g_pPixelShaderStandard->Release();
+    if( g_pPixelShaderRTT)      g_pPixelShaderRTT->Release();
     if( g_pDepthStencil )       g_pDepthStencil->Release();
     if( g_pDepthStencilView )   g_pDepthStencilView->Release();
     if( g_pRenderTargetView )   g_pRenderTargetView->Release();
     if( g_pSwapChain1 )         g_pSwapChain1->Release();
     if( g_pSwapChain )          g_pSwapChain->Release();
     if( g_pImmediateContext1 )  g_pImmediateContext1->Release();
-    if( g_pImmediateContext )   g_pImmediateContext->Release();
     if( g_pd3dDevice1 )         g_pd3dDevice1->Release();
     if( g_pd3dDevice )          g_pd3dDevice->Release();
-
+    if (g_pRenderTexture)       g_pRenderTexture->Release();
+    if (g_pRTTTargetView)       g_pRTTTargetView->Release();
     delete g_Camera;
     g_Camera = nullptr;
 }
@@ -622,7 +669,6 @@ void CleanupImGui() {
 
 void Cleanup() {
 
-    if(time)time->~Time();
     delete time;
     time = nullptr;
     
@@ -631,6 +677,9 @@ void Cleanup() {
 
     delete g_Cube;
     g_Cube = nullptr;
+
+    delete g_plane;
+    g_plane = nullptr;
 
 }
 
