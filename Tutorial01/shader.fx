@@ -171,7 +171,7 @@ LightingResult DoPointLight(Light light, float3 vertexToEye, float4 vertexPos, f
 
 LightingResult ComputeLighting(float4 vertexPos, float3 N, float3 lightVec, float3 eye)
 {
-	float3 vertexToEye = eye;
+	float3 vertexToEye = eye - vertexPos;
 
 	LightingResult totalResult = { { 0, 0, 0, 0 },{ 0, 0, 0, 0 } };
 	Light light;
@@ -282,38 +282,44 @@ float2 ParallaxOcclusionMapping(float2 _texCoords, float3 _viewDir, float3 _norm
 	return prevCoords * weight + currCoords * (1.0 - weight);
 }
 
-float SelfShadow(float2 _texCoords, float3 _lightVec, float3 _norm) {
-	int numSamples = 4;
-	float layerDepth = 1.0 / numSamples;
-	float heightScale = 0.05f;
-	float2 offset = heightScale * _lightVec.xy / _lightVec.z / numSamples;
-	float2 currCoords = _texCoords;
-	float depthMap = txParallax.Sample(samLinear, currCoords);
-	float currLayerDepth = depthMap / numSamples;
-	float2 dx = ddx(depthMap);
-	float2 dy = ddy(depthMap);
-	float samplesUnderSurface = 0;
-	float shadowMultiplier = 0;
-	float stepIndex = 1;
-	while (currLayerDepth > 0) {
-		if (depthMap < currLayerDepth) {
-			samplesUnderSurface++;
-			float newShadow = (currLayerDepth - depthMap) * (1.0 - stepIndex / numSamples);
-			shadowMultiplier = max(shadowMultiplier, newShadow);
+float SelfShadow(float2 _texCoords, in float3 _lightVec, float3 _norm) {
+	float shadowMultiplier = 1;
+	float minLayers = 15;
+	float maxLayers = 30;
+	int numSamples = lerp(maxLayers, minLayers, abs(dot(float3(0, 0, 1), _lightVec)));
+	if (dot(float3(0, 0, 1), _lightVec) > 0) {
+		float layerDepth = 1.0 / numSamples;
+		float currLayerDepth = 0.0f;
+		float heightScale = 0.05f;
+		float2 p = _lightVec.xy * heightScale;
+		float2 offset = p / numSamples;
+		float2 currCoords = _texCoords;
+		float currDepth = txParallax.Sample(samLinear, currCoords);
+		float2 dx = ddx(_texCoords);
+		float2 dy = ddy(_texCoords);
+
+		float2 prevCoords;
+		float afterDepth;
+		float prevDepth;
+		float weight;
+		float stepIndex = 1;
+		while (currLayerDepth < 0) {
+			currCoords += offset;
+			currDepth = txParallax.SampleGrad(samLinear, currCoords, dx, dy).x;
+			currLayerDepth -= layerDepth;
+
+			stepIndex++;
 		}
-		stepIndex++;
-		currLayerDepth -= layerDepth;
-		currCoords += offset;
-		depthMap = txParallax.SampleGrad(samLinear, currCoords, dx, dy).x;
-	}
 
-	if (samplesUnderSurface < 1) {
-		shadowMultiplier = 1;
-	}
-	else {
-		shadowMultiplier = 1.0 - shadowMultiplier;
-	}
+		prevCoords = currCoords - offset;
+		afterDepth = currDepth + currLayerDepth;
 
+		prevDepth = txParallax.Sample(samLinear, prevCoords).x + currLayerDepth - layerDepth;
+		if (afterDepth < prevDepth) {
+			return 0;
+		}
+
+	}
 	return shadowMultiplier;
 
 }
@@ -355,7 +361,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 		texColor = txDiffuse.Sample(samLinear, texCoords);
 	}
 
-	LightingResult lit = ComputeLighting(IN.WorldPos, texNormal, LightTan, IN.EyeVecTan);
+	LightingResult lit = ComputeLighting(IN.WorldPos, texNormal, LightTan, EyeVecTan);
 
 	float4 emissive = Material.Emissive;
 	float4 ambient = Material.Ambient * GlobalAmbient;
@@ -363,7 +369,8 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float4 specular = Material.Specular * lit.Specular;
 
 
-	shadowFactor = SelfShadow(texCoords, LightTan, texNormal);
+	//shadowFactor = SelfShadow(texCoords, LightTan, texNormal);
+	shadowFactor = SelfShadow(texCoords, -LightTan, texNormal);
 	float4 finalColor = (emissive + ambient + (shadowFactor  * diffuse) + (shadowFactor * specular)) * texColor;
 
 	return finalColor;
