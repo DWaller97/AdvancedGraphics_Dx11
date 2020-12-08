@@ -394,6 +394,7 @@
     <ClInclude Include="DrawableObjectCube.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="OBJLoader.h" />
+    <ClInclude Include="RenderTexture.h" />
     <CLInclude Include="resource.h" />
     <ClInclude Include="structures.h" />
     <ClInclude Include="Time.h" />
@@ -414,6 +415,7 @@
     <ClCompile Include="DrawableObjectCube.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
+    <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Source1.cpp" />
     <ClCompile Include="Time.cpp" />
   </ItemGroup>

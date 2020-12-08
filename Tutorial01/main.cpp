@@ -81,6 +81,8 @@ ID3D11SamplerState*	        g_pSamplerNormal = nullptr;
 const int				g_viewWidth = 1920;
 const int				g_viewHeight = 1080;
 
+RenderTexture* rt;
+
 DrawableObjectCube*		g_Cube = nullptr;
 DrawableGameObject*     g_Monkey = nullptr;
 DrawableGameObjectPlane* g_plane = nullptr;
@@ -104,18 +106,12 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     if( FAILED( InitWindow( hInstance, nCmdShow ) ) )
         return 0;
 
-    
-
     if( FAILED( InitDevice() ) )
     {
         CleanupDevice();
         return 0;
     }
     
-    
-
-
-
     if (FAILED(InitImGui())){
         CleanupImGui();
         return 0;
@@ -375,13 +371,16 @@ HRESULT InitDevice()
     if( FAILED( hr ) )
         return hr;
 
+
+
     hr = g_pd3dDevice->CreateRenderTargetView( pBackBuffer, nullptr, &g_pRenderTargetView );
     pBackBuffer->Release();
     if( FAILED( hr ) )
         return hr;
 
     g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+    rt = new RenderTexture();
+    hr = rt->Initialise(g_pd3dDevice);
     // Create depth stencil texture
     D3D11_TEXTURE2D_DESC descDepth = {};
     descDepth.Width = width;
@@ -409,7 +408,6 @@ HRESULT InitDevice()
         return hr;
 
     g_pImmediateContext->OMSetRenderTargets( 1, &g_pRenderTargetView, g_pDepthStencilView );
-
     // Setup the viewport
     D3D11_VIEWPORT vp;
     vp.Width = (FLOAT)width;
@@ -433,7 +431,6 @@ HRESULT InitDevice()
             L"Failed to initialise mesh.", L"Error", MB_OK);
         return 0;
     }
-    InitObjects();
 
     return S_OK;
 }
@@ -500,9 +497,6 @@ HRESULT		InitMesh()
 	pVSBlob->Release();
 	if (FAILED(hr))
 		return hr;
-
-	// Set the input layout
-	//g_pImmediateContext->IASetInputLayout(g_pVertexLayout);
 
 	// Compile the pixel shader
 	ID3DBlob* pPSBlob = nullptr;
@@ -623,9 +617,9 @@ HRESULT InitObjects() {
 
     
     vecDrawables.push_back(g_Monkey);
-    vecDrawables.push_back(g_plane);
     vecDrawables.push_back(g_Cube);
-    vecDrawables.push_back(newCube);
+    //vecDrawables.push_back(newCube);
+    vecDrawables.push_back(g_plane);
 
 
 
@@ -658,8 +652,7 @@ void CleanupDevice()
     if( g_pd3dDevice )          g_pd3dDevice->Release();
     if (g_pRenderTexture)       g_pRenderTexture->Release();
     if (g_pRTTTargetView)       g_pRTTTargetView->Release();
-    delete g_Camera;
-    g_Camera = nullptr;
+
 }
 
 void CleanupImGui() {
@@ -669,6 +662,11 @@ void CleanupImGui() {
 }
 
 void Cleanup() {
+    delete g_Camera;
+    g_Camera = nullptr;
+
+    delete rt;
+    rt = nullptr;
 
     delete time;
     time = nullptr;
@@ -768,20 +766,23 @@ void Update() {
     lightProperties.Lights[0] = light;
     lightProperties.GlobalAmbient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
-    (g_Cube)->SetPosition(XMFLOAT3(planePosX, planePosY, planePosZ));
+    g_plane->SetPosition(XMFLOAT3(planePosX, planePosY, planePosZ));
     for (int i = 0; i < vecDrawables.size(); i++) {
         vecDrawables.at(i)->Update(dTime);
     }
 
 }
-
+ID3D11ShaderResourceView* test;
 //--------------------------------------------------------------------------------------
 // Render a frame
 //--------------------------------------------------------------------------------------
 void Render()
 {
-    
-
+    rt->SetAsRenderTarget(g_pImmediateContext, g_pDepthStencilView);
+    rt->ClearView(g_pImmediateContext, g_pDepthStencilView, Colors::Green);
+    //g_plane->SetAlbedoTexture(rt->GetShaderResourceView());
+    //g_plane->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_Camera->GetProjMat(), g_Camera->GetViewMat());
+    g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
     // Feed inputs to dear imgui, start new frame
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -818,25 +819,46 @@ void Render()
         ImGui::End();
     }
     {
-        ImGui::Begin("Object");
-        ImGui::SliderFloat("Position X: %f", &planePosX, 0, 5);
-        ImGui::SliderFloat("Position Y: %f", &planePosY, 0, 5);
-        ImGui::SliderFloat("Position Z: %f", &planePosZ, 0, 5);
+        ImGui::Begin("Objects");
+        for (int i = 0; i < vecDrawables.size(); i++) {
+            DrawableGameObject* currObj = vecDrawables.at(i);
+            char c[] = "##";
+            char id;
+            sprintf(c, "%d", i);
+            char finalX[18] = "##X";
+            strcat(finalX, c);
+            char finalY[18] = "##Y";
+            strcat(finalY, c);
+            char finalZ[18] = "##Z";
+            strcat(finalZ, c);
+            ImGui::Separator();
+            ImGui::Text("Object %d", i);
+            ImGui::Indent();
+            ImGui::Text("Position X");
+            ImGui::SliderFloat(finalX, &currObj->m_position.x, -15, 15);
+            ImGui::Text("Position Y");
+            ImGui::SliderFloat(finalY, &currObj->m_position.y, -15, 15);
+            ImGui::Text("Position Z");
+            ImGui::SliderFloat(finalZ, &currObj->m_position.z, -15, 15);
+            ImGui::Unindent();
+        }
         ImGui::End();
+
     }
     ImGui::Render();
 
-    // Clear the back buffer
+    //// Clear the back buffer
     g_pImmediateContext->ClearRenderTargetView( g_pRenderTargetView, Colors::MidnightBlue );
 
-    // Clear the depth buffer to 1.0 (max depth)
+    //// Clear the depth buffer to 1.0 (max depth)
     g_pImmediateContext->ClearDepthStencilView( g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
-
+    g_pImmediateContext->GSGetShaderResources(0, 0, &test);
     for (int i = 0; i < vecDrawables.size(); i++) {
         vecDrawables.at(i)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_Camera->GetProjMat(), g_Camera->GetViewMat());
     }
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-    // Present our back buffer to our front buffer
+    g_plane->SetAlbedoTexture(test);
+
     g_pSwapChain->Present( 0, 0 );
 }
 

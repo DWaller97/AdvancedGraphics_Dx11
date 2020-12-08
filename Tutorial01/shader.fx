@@ -350,12 +350,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 
 
 	texNormal = txNormal.Sample(samLinear, texCoords);
-	//OpenGL normal correction
 	texNormal = texNormal * 2.0f - 1.0f;
-
-	//texNormal.y = 1 - texNormal.y;
-
-
 
 		if (Material.UseTexture)
 	{
@@ -370,7 +365,6 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float4 specular = Material.Specular * lit.Specular;
 
 
-	//shadowFactor = SelfShadow(texCoords, LightTan, texNormal);
 	shadowFactor = SelfShadow(texCoords, -LightTan, texNormal);
 	float4 finalColor = (emissive + ambient + (shadowFactor  * diffuse) + (shadowFactor * specular)) * texColor;
 

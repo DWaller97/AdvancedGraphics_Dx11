@@ -32,6 +32,7 @@ public:
 	DrawableGameObject();
 	~DrawableGameObject();
 
+	XMFLOAT3							m_position = XMFLOAT3(0, 0, 0);
 
 
 
@@ -61,7 +62,7 @@ public:
 	void								SetParallaxScale(float _scale);
 	void								SetParallaxBias(float _bias);
 	void								SetMesh(char* filename, ID3D11Device* _pd3dDevice, bool invertTexCoords);
-
+	void								SetAlbedoTexture(ID3D11ShaderResourceView* _resourceView);
 	void								virtual Release();
 protected:
 	
@@ -77,7 +78,6 @@ protected:
 	ID3D11SamplerState *				m_pSamplerLinear = nullptr;
 	ID3D11SamplerState*					m_pSamplerNormal = nullptr;
 	MaterialPropertiesConstantBuffer	m_material;
-	XMFLOAT3							m_position = XMFLOAT3(0, 0, 0);
 	ID3D11InputLayout*					m_inputLayout = nullptr;
 
 	ID3D11ShaderResourceView*			m_albedoTexture =  nullptr;

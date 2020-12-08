@@ -110,19 +110,6 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
 	pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
 
-	//Camera* currCam = CameraManager::GetCurrCamera();
-	//CameraBuffer cb2;
-	//cb2.cameraDirection = currCam->GetPosition + currCam->GetFor;
-	//cb2.cameraPosition = currCam->GetPosition();
-
-	//if(m_pCameraBuffer)
-	//	pContext->UpdateSubresource(m_pCameraBuffer, 3, nullptr, &cb2, 0, 0);
-
-	//ConstantBuffer cb2;
-	//cb2.parallaxBias = m_parallaxBias;
-	//cb2.parallaxScale = m_parallaxScale;
-	//pContext->UpdateSubresource(m_parallaxBuffer, 0, nullptr, &cb2, 0, 0);
-
 	// Set vertex buffer
 	UINT stride = sizeof(SimpleVertex);
 	UINT offset = 0;
@@ -130,8 +117,7 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 	// Set index buffer
 	pContext->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-	if(m_inputLayout != nullptr)
-		pContext->IASetInputLayout(m_inputLayout);
+	pContext->IASetInputLayout(m_inputLayout);
 	// Render the cube
 	pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	pContext->VSSetShader(vertexShader, nullptr, 0);
@@ -191,6 +177,12 @@ void DrawableGameObject::SetMesh(char* filename, ID3D11Device* _pd3dDevice, bool
 {
 	mesh = OBJLoader::Load(filename, _pd3dDevice, invertTexCoords);
 	NUM_VERTICES = mesh.VertexCount;
+}
+
+void DrawableGameObject::SetAlbedoTexture(ID3D11ShaderResourceView* _resourceView)
+{
+	m_albedoTexture = _resourceView;
+
 }
 
 void DrawableGameObject::Release()

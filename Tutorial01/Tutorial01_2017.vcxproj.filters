@@ -29,6 +29,7 @@
     <ClCompile Include="CameraManager.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="DrawableGameObjectPlane.cpp" />
+    <ClCompile Include="RenderTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -79,6 +80,7 @@
     <ClInclude Include="CameraManager.h" />
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="DrawableGameObjectPlane.h" />
+    <ClInclude Include="RenderTexture.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tutorial01.rc">
