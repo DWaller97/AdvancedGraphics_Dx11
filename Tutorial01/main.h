@@ -25,6 +25,7 @@
 #include "CameraManager.h"
 #include "Camera.h"
 #include "Time.h"
+#include "RenderTexture.h"
 
 using namespace std;
 
