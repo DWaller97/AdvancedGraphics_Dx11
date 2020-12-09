@@ -12,7 +12,7 @@ RenderTexture::~RenderTexture()
     Release();
 }
 
-HRESULT RenderTexture::Initialise(ID3D11Device* _device)
+HRESULT RenderTexture::Initialise(ID3D11Device* _device, IDXGISwapChain* _swapChain)
 {
     HRESULT h;
     D3D11_TEXTURE2D_DESC textureDesc = {};
@@ -32,6 +32,36 @@ HRESULT RenderTexture::Initialise(ID3D11Device* _device)
     if (FAILED(h))
         return h;
 
+    //D3D11_TEXTURE2D_DESC descDepth = {};
+    //descDepth.Width = 1920;
+    //descDepth.Height = 1080;
+    //descDepth.MipLevels = 1;
+    //descDepth.ArraySize = 1;
+    //descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    //descDepth.SampleDesc.Count = 1;
+    //descDepth.SampleDesc.Quality = 0;
+    //descDepth.Usage = D3D11_USAGE_DEFAULT;
+    //descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    //descDepth.CPUAccessFlags = 0;
+    //descDepth.MiscFlags = 0;
+    //h = _device->CreateTexture2D(&descDepth, nullptr, &rtDepthStencilTexture);
+    //if (FAILED(h))
+    //    return h;
+
+    //D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
+    //descDSV.Format = descDepth.Format;
+    //descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    //descDSV.Texture2D.MipSlice = 0;
+    //h = _device->CreateDepthStencilView(rtDepthStencilTexture, &descDSV, &rtDepthStencilView);
+    //if (FAILED(h))
+    //    return h;
+
+    //// Create a render target view
+    //ID3D11Texture2D* pBackBuffer = nullptr;
+    //h = _swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer));
+    //if (FAILED(h))
+    //    return h;
+
 
     D3D11_RENDER_TARGET_VIEW_DESC rtViewDesc;
     rtViewDesc.Format = textureDesc.Format;
@@ -39,6 +69,7 @@ HRESULT RenderTexture::Initialise(ID3D11Device* _device)
     rtViewDesc.Texture2D.MipSlice = 0;
 
     h = _device->CreateRenderTargetView(rtTexture, &rtViewDesc, &rtView);
+    //pBackBuffer->Release();
     if (FAILED(h))
         return h;
 
@@ -62,10 +93,20 @@ void RenderTexture::Release()
         delete rtTexture;
         rtTexture = nullptr;
     }
+    if (rtDepthStencilTexture) {
+        rtDepthStencilTexture->Release();
+        delete rtDepthStencilTexture;
+        rtDepthStencilTexture = nullptr;
+    }
     if (rtShaderResourceView) {
         rtShaderResourceView->Release();
         delete rtShaderResourceView;
         rtShaderResourceView = nullptr;
+    }
+    if (rtDepthStencilView) {
+        rtDepthStencilView->Release();
+        delete rtDepthStencilView;
+        rtDepthStencilView = nullptr;
     }
     if (rtView) {
         rtView->Release();
@@ -74,13 +115,13 @@ void RenderTexture::Release()
     }
 }
 
-void RenderTexture::SetAsRenderTarget(ID3D11DeviceContext* _deviceContext, ID3D11DepthStencilView* _depthStencilView)
+void RenderTexture::SetAsRenderTarget(ID3D11DeviceContext* _deviceContext, ID3D11DepthStencilView* _dstView)
 {
-    _deviceContext->OMSetRenderTargets(1, &rtView, _depthStencilView);
+    _deviceContext->OMSetRenderTargets(1, &rtView, _dstView);
 }
 
-void RenderTexture::ClearView(ID3D11DeviceContext* _deviceContext, ID3D11DepthStencilView* _depthStencilView, XMVECTORF32 _clearColour)
+void RenderTexture::ClearView(ID3D11DeviceContext* _deviceContext, ID3D11DepthStencilView* _dstView, XMVECTORF32 _clearColour)
 {
     _deviceContext->ClearRenderTargetView(rtView, _clearColour);
-    _deviceContext->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH, 1.0F, 0);
+    _deviceContext->ClearDepthStencilView(_dstView, D3D11_CLEAR_DEPTH, 1.0F, 0);
 }

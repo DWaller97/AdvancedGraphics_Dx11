@@ -71,8 +71,6 @@ ID3D11Buffer*           g_pIndexBuffer = nullptr;
 ID3D11Buffer*           g_pConstantBuffer = nullptr;
 ID3D11Buffer*           g_pLightConstantBuffer = nullptr;
 
-ID3D11ShaderResourceView*   g_pTextureRV = nullptr;
-ID3D11ShaderResourceView*   g_pNormalTextureRV = nullptr;
 ID3D11ShaderResourceView*   g_pRTTTargetView = nullptr;
 ID3D11SamplerState*	        g_pSamplerLinear = nullptr;
 ID3D11SamplerState*	        g_pSamplerNormal = nullptr;
@@ -342,13 +340,13 @@ HRESULT InitDevice()
     {
         // DirectX 11.0 systems
         DXGI_SWAP_CHAIN_DESC sd = {};
-        sd.BufferCount = 1;
+        sd.BufferCount = 2;
         sd.BufferDesc.Width = width;
         sd.BufferDesc.Height = height;
         sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         sd.BufferDesc.RefreshRate.Numerator = 60;
         sd.BufferDesc.RefreshRate.Denominator = 1;
-        sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
         sd.OutputWindow = g_hWnd;
         sd.SampleDesc.Count = 1;
         sd.SampleDesc.Quality = 0;
@@ -377,10 +375,9 @@ HRESULT InitDevice()
     pBackBuffer->Release();
     if( FAILED( hr ) )
         return hr;
-
     g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     rt = new RenderTexture();
-    hr = rt->Initialise(g_pd3dDevice);
+    hr = rt->Initialise(g_pd3dDevice, g_pSwapChain);
     // Create depth stencil texture
     D3D11_TEXTURE2D_DESC descDepth = {};
     descDepth.Width = width;
@@ -618,8 +615,8 @@ HRESULT InitObjects() {
     
     vecDrawables.push_back(g_Monkey);
     vecDrawables.push_back(g_Cube);
-    //vecDrawables.push_back(newCube);
-    vecDrawables.push_back(g_plane);
+    vecDrawables.push_back(newCube);
+   vecDrawables.push_back(g_plane);
 
 
 
@@ -721,9 +718,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 }
 
 Light light;
-float planePosX;
-float planePosY;
-float planePosZ;
 void Update() {
 
     float dTime = time->DeltaTime();
@@ -766,24 +760,15 @@ void Update() {
     lightProperties.Lights[0] = light;
     lightProperties.GlobalAmbient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
-    g_plane->SetPosition(XMFLOAT3(planePosX, planePosY, planePosZ));
     for (int i = 0; i < vecDrawables.size(); i++) {
         vecDrawables.at(i)->Update(dTime);
     }
 
 }
-ID3D11ShaderResourceView* test;
-//--------------------------------------------------------------------------------------
-// Render a frame
-//--------------------------------------------------------------------------------------
-void Render()
-{
-    rt->SetAsRenderTarget(g_pImmediateContext, g_pDepthStencilView);
-    rt->ClearView(g_pImmediateContext, g_pDepthStencilView, Colors::Green);
-    //g_plane->SetAlbedoTexture(rt->GetShaderResourceView());
-    //g_plane->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_Camera->GetProjMat(), g_Camera->GetViewMat());
-    g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+
+void RenderImGUIMenu() {
     // Feed inputs to dear imgui, start new frame
+
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     {
@@ -823,7 +808,6 @@ void Render()
         for (int i = 0; i < vecDrawables.size(); i++) {
             DrawableGameObject* currObj = vecDrawables.at(i);
             char c[] = "##";
-            char id;
             sprintf(c, "%d", i);
             char finalX[18] = "##X";
             strcat(finalX, c);
@@ -846,21 +830,42 @@ void Render()
 
     }
     ImGui::Render();
+}
 
-    //// Clear the back buffer
-    g_pImmediateContext->ClearRenderTargetView( g_pRenderTargetView, Colors::MidnightBlue );
 
-    //// Clear the depth buffer to 1.0 (max depth)
-    g_pImmediateContext->ClearDepthStencilView( g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
-    g_pImmediateContext->GSGetShaderResources(0, 0, &test);
+
+ID3D11ShaderResourceView* test;
+bool a = false;
+//--------------------------------------------------------------------------------------
+// Render a frame
+//--------------------------------------------------------------------------------------
+void Render()
+{
+    g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+    g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::MidnightBlue);
+    g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+
+
     for (int i = 0; i < vecDrawables.size(); i++) {
         vecDrawables.at(i)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_Camera->GetProjMat(), g_Camera->GetViewMat());
     }
+
+
+    //vecDrawables.at(2)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_Camera->GetProjMat(), g_Camera->GetViewMat());
+    //g_plane->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_Camera->GetProjMat(), g_Camera->GetViewMat());
+
+    rt->SetAsRenderTarget(g_pImmediateContext, g_pDepthStencilView);
+    rt->ClearView(g_pImmediateContext, g_pDepthStencilView, Colors::Crimson);
+
+    for (int i = 0; i < vecDrawables.size()-1; i++) {
+        vecDrawables.at(i)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_Camera->GetProjMat(), g_Camera->GetViewMat());
+    }
+    g_plane->SetAlbedoTexture(rt->GetShaderResourceView());
+    RenderImGUIMenu();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-    g_plane->SetAlbedoTexture(test);
+    g_pSwapChain->Present( 0, 0);
 
-    g_pSwapChain->Present( 0, 0 );
 }
-
 
 
