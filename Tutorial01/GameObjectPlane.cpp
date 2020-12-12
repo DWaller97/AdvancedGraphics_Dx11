@@ -3,7 +3,8 @@
 GameObjectPlane::GameObjectPlane()
 {
 	SetWorldMatrix(new XMFLOAT4X4());
-	NUM_VERTICES = 6;
+	NUM_VERTICES = 4;
+	NUM_INDICES = 6;
 }
 
 GameObjectPlane::~GameObjectPlane()
@@ -54,6 +55,7 @@ HRESULT GameObjectPlane::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.IndexBuffer);
 	if (FAILED(hr))
 		return hr;
+
 	GameObject::InitMesh(pd3dDevice, pContext);
 }
 
@@ -66,26 +68,5 @@ void GameObjectPlane::Update(float t)
 
 void GameObjectPlane::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
 {
-	ConstantBuffer cb1;
-	cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(m_World));
-	cb1.mView = XMMatrixTranspose(XMLoadFloat4x4(viewMat));
-	cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(projMat));
-	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
-	pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
-
-	// Set vertex buffer
-	UINT stride = sizeof(SimpleVertex);
-	UINT offset = 0;
-	pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
-	pContext->IASetVertexBuffers(0, 1, &mesh.VertexBuffer, &stride, &offset);
-	// Set index buffer
-	pContext->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-	pContext->IASetInputLayout(m_inputLayout);
-	pContext->VSSetShader(vertexShader, nullptr, 0);
-	pContext->PSSetShader(pixelShader, nullptr, 0);
-
-
-	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
-	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
-	pContext->DrawIndexed(6, 0, 0);
+	GameObject::Draw(pContext, lightConstantBuffer, projMat, viewMat);
 }

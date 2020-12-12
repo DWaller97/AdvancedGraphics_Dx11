@@ -12,6 +12,7 @@ public:
     void ClearView(ID3D11DeviceContext* _deviceContext, ID3D11DepthStencilView* _dstView, DirectX::XMVECTORF32 _clearColour);
     ID3D11ShaderResourceView* GetShaderResourceView() { return rtShaderResourceView; }
 private:
+    D3D11_VIEWPORT vp;
     ID3D11RenderTargetView* rtView;
     ID3D11Texture2D* rtTexture;
     ID3D11Texture2D* rtDepthStencilTexture;

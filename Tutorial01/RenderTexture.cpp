@@ -118,6 +118,15 @@ void RenderTexture::Release()
 void RenderTexture::SetAsRenderTarget(ID3D11DeviceContext* _deviceContext, ID3D11DepthStencilView* _dstView)
 {
     _deviceContext->OMSetRenderTargets(1, &rtView, _dstView);
+    // Setup the viewport for rendering.
+    vp.Width = (float)1920;
+    vp.Height = (float)1080;
+    vp.MinDepth = 0.0f;
+    vp.MaxDepth = 1.0f;
+    vp.TopLeftX = 0.0f;
+    vp.TopLeftY = 0.0f;
+
+    _deviceContext->RSSetViewports(1, &vp);
 }
 
 void RenderTexture::ClearView(ID3D11DeviceContext* _deviceContext, ID3D11DepthStencilView* _dstView, XMVECTORF32 _clearColour)

@@ -16,9 +16,10 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     cube2->InitMesh(_device, _deviceContext);
 
     plane = new GameObjectPlane();
+    plane->InitMesh(_device, _deviceContext);
+    //plane->SetMesh((char*)"Resources/plane.obj", _device, true);
     plane->SetShaders(ShaderManager::shaderRTT);
     plane->SetPosition(XMFLOAT3(0, 0, 0));
-    plane->InitMesh(_device, _deviceContext);
 
     obj = new GameObject();
     obj->InitMesh(_device, _deviceContext);
@@ -28,7 +29,7 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
 
     objects.push_back(cube);
     objects.push_back(cube2);
-    objects.push_back(obj);
+    //objects.push_back(plane);
 
 }
 

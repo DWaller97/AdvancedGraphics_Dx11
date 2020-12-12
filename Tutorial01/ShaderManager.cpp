@@ -84,7 +84,6 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 
     hr = _device->CreateInputLayout(layoutRTT, ARRAYSIZE(layoutRTT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &rttInputLayout);
     pVSBlob->Release();
-    pPSBlob = nullptr;
     hr = CompileShaderFromFile(L"RTTShader.fx", "PS", "ps_4_0", &pPSBlob);
     if (FAILED(hr))
     {

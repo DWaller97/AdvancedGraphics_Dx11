@@ -5,7 +5,7 @@ GameObjectCube::GameObjectCube()
 {
 	SetWorldMatrix(new XMFLOAT4X4());
 	NUM_VERTICES = 36;
-
+	NUM_INDICES = 36;
 }
 
 GameObjectCube::~GameObjectCube()
@@ -102,7 +102,6 @@ HRESULT GameObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	CalculateModelVectors(vertices, 36);
 
-
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(SimpleVertex) * 36;
@@ -117,7 +116,7 @@ HRESULT GameObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;  
-	bd.ByteWidth = sizeof(WORD) * 36;        // 36 vertices needed for 12 triangles in a triangle list
+	bd.ByteWidth = sizeof(WORD) * NUM_INDICES;        // 36 vertices needed for 12 triangles in a triangle list
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER; 
 	bd.CPUAccessFlags = 0;
 
@@ -152,4 +151,37 @@ void GameObjectCube::Update(float t)
 void GameObjectCube::SetSpin(bool spin)
 {
 	spinning = spin;
+}
+
+void GameObjectCube::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
+{
+	ConstantBuffer cb1;
+	cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(m_World));
+	cb1.mView = XMMatrixTranspose(XMLoadFloat4x4(viewMat));
+	cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(projMat));
+	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
+	pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
+
+	// Set vertex buffer
+	UINT stride = sizeof(SimpleVertex);
+	UINT offset = 0;
+	pContext->IASetVertexBuffers(0, 1, &mesh.VertexBuffer, &stride, &offset);
+	// Set index buffer
+	pContext->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	pContext->IASetInputLayout(m_inputLayout);
+	// Render the cube
+	pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+	pContext->VSSetShader(vertexShader, nullptr, 0);
+	pContext->PSSetShader(pixelShader, nullptr, 0);
+
+	pContext->PSSetConstantBuffers(1, 1, &m_pMaterialConstantBuffer);
+	pContext->PSSetConstantBuffers(2, 1, &lightConstantBuffer);
+	//pContext->PSSetConstantBuffers(3, 1, &m_pCameraBuffer);
+	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
+	pContext->PSSetShaderResources(1, 1, &m_normalTexture);
+	pContext->PSSetShaderResources(2, 1, &m_parallaxTexture);
+
+	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
+	pContext->DrawIndexed(NUM_INDICES, 0, 0);
 }

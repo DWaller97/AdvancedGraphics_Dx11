@@ -122,16 +122,11 @@ void GameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstant
 	pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	pContext->VSSetShader(vertexShader, nullptr, 0);
 	pContext->PSSetShader(pixelShader, nullptr, 0);
-
-	pContext->PSSetConstantBuffers(1, 1, &m_pMaterialConstantBuffer);
-	pContext->PSSetConstantBuffers(2, 1, &lightConstantBuffer);
 	//pContext->PSSetConstantBuffers(3, 1, &m_pCameraBuffer);
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
-	pContext->PSSetShaderResources(1, 1, &m_normalTexture);
-	pContext->PSSetShaderResources(2, 1, &m_parallaxTexture);
 
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
-	pContext->DrawIndexed(NUM_VERTICES, 0, 0);
+	pContext->DrawIndexed(NUM_INDICES, 0, 0);
 }
 
 void GameObject::SetPosition(XMFLOAT3 position)
@@ -177,6 +172,7 @@ void GameObject::SetMesh(char* filename, ID3D11Device* _pd3dDevice, bool invertT
 {
 	mesh = OBJLoader::Load(filename, _pd3dDevice, invertTexCoords);
 	NUM_VERTICES = mesh.VertexCount;
+	NUM_INDICES = mesh.IndexCount;
 }
 
 void GameObject::SetAlbedoTexture(ID3D11ShaderResourceView* _resourceView)

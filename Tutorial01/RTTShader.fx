@@ -30,17 +30,17 @@ PSIN VS(VSIN IN) {
 	//output.WorldPos = output.Pos;
 	//output.Pos = mul(output.Pos, View);
 	//output.Pos = mul(output.Pos, Projection);
-	output.Pos = float4(output.Pos.x / output.Pos.w, output.Pos.y / output.Pos.w, output.Pos.z / output.Pos.w, output.Pos.w);
-	output.Pos = float4(mul(output.Pos.xyz, 1), output.Pos.w);
-	output.Pos = float4(output.Pos.x, output.Pos.y, output.Pos.zw);
+	//output.Pos = float4(output.Pos.x / output.Pos.w, output.Pos.y / output.Pos.w, output.Pos.z / output.Pos.w, output.Pos.w);
+	//output.Pos = float4(mul(output.Pos.xyz, 1), output.Pos.w);
+	//output.Pos = float4(output.Pos.x, output.Pos.y, output.Pos.zw);
 	output.Tex = IN.Tex;
 	return output;
 }
 
 float4 PS(PSIN IN) : SV_TARGET
 {
-	//float4 tex = txDiffuse.Sample(samLinear, IN.Tex);
+	float4 tex = txDiffuse.Sample(samLinear, IN.Tex);
 	//Invert colours
-	//tex.rgb = 1 - tex.rgb;
-	return float4(1, 1, 1, 1);
+	tex.rgb = 1 - tex.rgb;
+	return tex;
 }

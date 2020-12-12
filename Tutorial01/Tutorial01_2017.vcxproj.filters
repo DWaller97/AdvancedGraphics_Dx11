@@ -55,6 +55,7 @@
     <ClCompile Include="GameObjectCube.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
+    <ClCompile Include="DeferredRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -143,6 +144,7 @@
     <ClInclude Include="GameObjectCube.h">
       <Filter>Objects</Filter>
     </ClInclude>
+    <ClInclude Include="DeferredRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tutorial01.rc">

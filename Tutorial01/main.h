@@ -66,6 +66,7 @@ ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
 ID3D11Buffer* g_pLightConstantBuffer = nullptr;
 
 ID3D11ShaderResourceView* g_pRTTTargetView = nullptr;
+ID3D11ShaderResourceView* g_shaderResourceView = nullptr;
 ID3D11SamplerState* g_pSamplerLinear = nullptr;
 
 const int				g_viewWidth = 1920;

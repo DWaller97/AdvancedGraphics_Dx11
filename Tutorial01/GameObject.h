@@ -78,6 +78,7 @@ protected:
 	ID3D11ShaderResourceView*			m_normalTexture = nullptr;
 	ID3D11ShaderResourceView*			m_parallaxTexture = nullptr;
 	int									NUM_VERTICES = 0;
+	int									NUM_INDICES = 0;
 	float								m_parallaxBias;
 	float								m_parallaxScale;
 	ID3D11VertexShader* vertexShader = nullptr;

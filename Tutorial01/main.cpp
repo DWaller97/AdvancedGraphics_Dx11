@@ -243,10 +243,8 @@ HRESULT InitDevice()
     // Create a render target view
     ID3D11Texture2D* pBackBuffer = nullptr;
     hr = g_pSwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), reinterpret_cast<void**>( &pBackBuffer ) );
-    if( FAILED( hr ) )
+    if (FAILED(hr))
         return hr;
-
-
 
     hr = g_pd3dDevice->CreateRenderTargetView( pBackBuffer, nullptr, &g_pRenderTargetView );
     pBackBuffer->Release();
@@ -469,7 +467,7 @@ void Update() {
     lightProperties.GlobalAmbient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
     g_pOM->Update(dTime);
-
+    g_pPlane->Update(dTime);
 }
 
 
@@ -478,45 +476,28 @@ void Update() {
 //--------------------------------------------------------------------------------------
 void Render()
 {
+
     g_pRT->SetAsRenderTarget(g_pImmediateContext, g_pDepthStencilView);
     g_pRT->ClearView(g_pImmediateContext, g_pDepthStencilView, Colors::Crimson);
-    //g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
-    //g_pPlane->SetAlbedoTexture(g_pRT->GetShaderResourceView());
 
-    //g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
-    //g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::DarkOrange);
-    //g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-
-    //g_pPlane->SetAlbedoTexture(g_pRT->GetShaderResourceView());
-    g_pPlane->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
-
-    //for (int i = 0; i < vecDrawables.size(); i++) {
-    //    vecDrawables.at(i)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
-    //}
-    //g_pRT->SetAsRenderTarget(g_pImmediateContext, g_pDepthStencilView);
-    //g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
-
-
-    //vecDrawables.at(2)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
-
-
-
-
-    //for (int i = 0; i < vecDrawables.size()-1; i++) {
-    //    vecDrawables.at(i)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
-    //}
-
-    //g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
-    //ID3D11ShaderResourceView* nullRSV = { NULL };
-    //g_pImmediateContext->PSSetShaderResources(0, 1, &nullRSV);
 
     
+    g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
+    
+    g_pPlane->SetAlbedoTexture(g_pRT->GetShaderResourceView());
+
+    g_pImgui->Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+
+    g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::DarkOrange);
+    g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+    g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
+    g_pPlane->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
 
     g_pImgui->Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
     g_pSwapChain->Present( 0, 0);
 
 }
-
-
