@@ -1,19 +1,19 @@
-#include "DrawableGameObjectPlane.h"
+#include "GameObjectPlane.h"
 
-DrawableGameObjectPlane::DrawableGameObjectPlane()
+GameObjectPlane::GameObjectPlane()
 {
 	SetWorldMatrix(new XMFLOAT4X4());
 	NUM_VERTICES = 6;
 }
 
-DrawableGameObjectPlane::~DrawableGameObjectPlane()
+GameObjectPlane::~GameObjectPlane()
 {
 	delete m_World;
 	m_World = nullptr;
 	Release();
 }
 
-HRESULT DrawableGameObjectPlane::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
+HRESULT GameObjectPlane::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
 	HRESULT hr;
 
@@ -54,17 +54,17 @@ HRESULT DrawableGameObjectPlane::InitMesh(ID3D11Device* pd3dDevice, ID3D11Device
 	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.IndexBuffer);
 	if (FAILED(hr))
 		return hr;
-	DrawableGameObject::InitMesh(pd3dDevice, pContext);
+	GameObject::InitMesh(pd3dDevice, pContext);
 }
 
-void DrawableGameObjectPlane::Update(float t)
+void GameObjectPlane::Update(float t)
 {
 	XMMATRIX mTranslate = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	XMMATRIX world = mTranslate;
 	XMStoreFloat4x4(m_World, world);
 }
 
-void DrawableGameObjectPlane::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
+void GameObjectPlane::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
 {
 	ConstantBuffer cb1;
 	cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(m_World));
@@ -83,6 +83,8 @@ void DrawableGameObjectPlane::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* 
 	pContext->IASetInputLayout(m_inputLayout);
 	pContext->VSSetShader(vertexShader, nullptr, 0);
 	pContext->PSSetShader(pixelShader, nullptr, 0);
+
+
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
 	pContext->DrawIndexed(6, 0, 0);

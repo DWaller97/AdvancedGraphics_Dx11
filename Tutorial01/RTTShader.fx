@@ -39,8 +39,8 @@ PSIN VS(VSIN IN) {
 
 float4 PS(PSIN IN) : SV_TARGET
 {
-	float4 tex = txDiffuse.Sample(samLinear, IN.Tex);
+	//float4 tex = txDiffuse.Sample(samLinear, IN.Tex);
 	//Invert colours
-	tex.rgb = 1 - tex.rgb;
-	return tex;
+	//tex.rgb = 1 - tex.rgb;
+	return float4(1, 1, 1, 1);
 }

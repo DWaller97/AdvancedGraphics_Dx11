@@ -389,13 +389,17 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraManager.h" />
     <ClInclude Include="DDSTextureLoader.h" />
-    <ClInclude Include="DrawableGameObject.h" />
-    <ClInclude Include="DrawableGameObjectPlane.h" />
-    <ClInclude Include="DrawableObjectCube.h" />
+    <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GameObjectPlane.h" />
+    <ClInclude Include="GameObjectCube.h" />
+    <ClInclude Include="ImGuiRenderer.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="ObjectManager.h" />
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="RenderTexture.h" />
     <CLInclude Include="resource.h" />
+    <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="structures.h" />
     <ClInclude Include="Time.h" />
     <ResourceCompile Include="Tutorial01.rc" />
@@ -410,13 +414,16 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraManager.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
-    <ClCompile Include="DrawableGameObject.cpp" />
-    <ClCompile Include="DrawableGameObjectPlane.cpp" />
-    <ClCompile Include="DrawableObjectCube.cpp" />
+    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GameObjectPlane.cpp" />
+    <ClCompile Include="GameObjectCube.cpp" />
+    <ClCompile Include="ImGuiRenderer.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
-    <ClCompile Include="Source1.cpp" />
+    <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="Time.cpp" />
   </ItemGroup>
   <ItemGroup>

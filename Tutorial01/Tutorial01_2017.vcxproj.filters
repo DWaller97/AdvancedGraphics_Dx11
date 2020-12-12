@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="DrawableGameObject.cpp" />
     <ClCompile Include="..\imgui-master\imgui.cpp">
       <Filter>Dear ImGui</Filter>
     </ClCompile>
@@ -22,14 +20,41 @@
     <ClCompile Include="..\imgui-master\examples\imgui_impl_win32.cpp">
       <Filter>Dear ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Time.cpp" />
-    <ClCompile Include="Source1.cpp" />
-    <ClCompile Include="DrawableObjectCube.cpp" />
     <ClCompile Include="CameraManager.cpp" />
-    <ClCompile Include="OBJLoader.cpp" />
-    <ClCompile Include="DrawableGameObjectPlane.cpp" />
-    <ClCompile Include="RenderTexture.cpp" />
+    <ClCompile Include="Camera.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="DDSTextureLoader.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="OBJLoader.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Time.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTexture.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiRenderer.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderManager.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectManager.cpp" />
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjectPlane.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjectCube.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -41,15 +66,21 @@
     <Filter Include="Dear ImGui">
       <UniqueIdentifier>{e5d61927-9792-4793-97fa-e218dacc676b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Objects">
+      <UniqueIdentifier>{63839c5b-feb0-4155-bd9b-aad98a96006d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{7c9e0a0d-3e4a-4e3c-8b57-c03bf992962e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics">
+      <UniqueIdentifier>{d5712f32-062c-45c8-a4c2-290ee18dfce9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
       <Filter>Resource Files</Filter>
     </CLInclude>
-    <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="DrawableGameObject.h" />
-    <ClInclude Include="structures.h" />
     <ClInclude Include="..\imgui-master\imconfig.h">
       <Filter>Dear ImGui</Filter>
     </ClInclude>
@@ -74,13 +105,44 @@
     <ClInclude Include="..\imgui-master\examples\imgui_impl_win32.h">
       <Filter>Dear ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="Time.h" />
-    <ClInclude Include="DrawableObjectCube.h" />
     <ClInclude Include="CameraManager.h" />
-    <ClInclude Include="OBJLoader.h" />
-    <ClInclude Include="DrawableGameObjectPlane.h" />
-    <ClInclude Include="RenderTexture.h" />
+    <ClInclude Include="Camera.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="DDSTextureLoader.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="OBJLoader.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="structures.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Time.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTexture.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiRenderer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderManager.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectManager.h" />
+    <ClInclude Include="GameObject.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjectPlane.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjectCube.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tutorial01.rc">

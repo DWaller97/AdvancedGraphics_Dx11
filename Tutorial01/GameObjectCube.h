@@ -1,13 +1,13 @@
 #pragma once
-#include "DrawableGameObject.h"
-class DrawableObjectCube :
-    public DrawableGameObject
+#include "GameObject.h"
+class GameObjectCube :
+    public GameObject
 {
 private:
     bool spinning = true;
 public:
-    DrawableObjectCube();
-    ~DrawableObjectCube();
+    GameObjectCube();
+    ~GameObjectCube();
     HRESULT InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext) override;
     void Update(float t) override;
     void SetSpin(bool spin);

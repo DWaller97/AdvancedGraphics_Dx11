@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <d3d11_1.h>
 #include "structures.h"
-#include "DrawableGameObject.h"
+#include "GameObject.h"
 #include <directxmath.h>
 #include <fstream>		//For loading in an external file
 #include <vector>		//For storing the XMFLOAT3/2 variables

@@ -16,86 +16,9 @@
 
 #include "main.h"
 
-
-
-//DirectX::XMFLOAT4 g_EyePosition(0.0f, 0, -3, 1.0f);
-//DirectX::XMFLOAT4 g_AtPosition(0.0f, 1.0f, 0.0f, 0.0f);
-//DirectX::XMFLOAT4 g_UpPosition(0.0f, 1.0f, 0.0f, 0.0f);
-
-//--------------------------------------------------------------------------------------
-// Forward declarations
-//--------------------------------------------------------------------------------------
-HRESULT		InitWindow(HINSTANCE hInstance, int nCmdShow);
-HRESULT		InitDevice();
-HRESULT     InitImGui();
-HRESULT		InitMesh();
-HRESULT		InitWorld();
-HRESULT     InitObjects();
-void		CleanupDevice();
-void        CleanupImGui();
-void        Cleanup();
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-void        Update();
-void		Render();
-IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-
-//--------------------------------------------------------------------------------------
-// Global Variables
-//--------------------------------------------------------------------------------------
-HINSTANCE               g_hInst = nullptr;
-HWND                    g_hWnd = nullptr;
-D3D_DRIVER_TYPE         g_driverType = D3D_DRIVER_TYPE_NULL;
-D3D_FEATURE_LEVEL       g_featureLevel = D3D_FEATURE_LEVEL_11_0;
-ID3D11Device*           g_pd3dDevice = nullptr;
-ID3D11Device1*          g_pd3dDevice1 = nullptr;
-ID3D11DeviceContext*    g_pImmediateContext = nullptr;
-ID3D11DeviceContext*   g_pImmediateContext1 = nullptr;
-IDXGISwapChain*         g_pSwapChain = nullptr;
-IDXGISwapChain1*        g_pSwapChain1 = nullptr;
-ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
-ID3D11Texture2D*        g_pDepthStencil = nullptr;
-ID3D11Texture2D*        g_pRenderTexture = nullptr;
-ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
-ID3D11VertexShader*     g_pVertexShader = nullptr;
-ID3D11VertexShader*     g_pVertexShaderRTT = nullptr;
-
-ID3D11PixelShader*      g_pPixelShader = nullptr;
-ID3D11PixelShader*      g_pPixelShaderRTT = nullptr;
-
-ID3D11InputLayout*      g_pVertexLayout = nullptr;
-ID3D11InputLayout*      g_pVertexLayoutRTT = nullptr;
-
-ID3D11Buffer*           g_pVertexBuffer = nullptr;
-ID3D11Buffer*           g_pIndexBuffer = nullptr;
-ID3D11Buffer*           g_pConstantBuffer = nullptr;
-ID3D11Buffer*           g_pLightConstantBuffer = nullptr;
-
-ID3D11ShaderResourceView*   g_pRTTTargetView = nullptr;
-ID3D11SamplerState*	        g_pSamplerLinear = nullptr;
-ID3D11SamplerState*	        g_pSamplerNormal = nullptr;
-
-
-const int				g_viewWidth = 1920;
-const int				g_viewHeight = 1080;
-
-RenderTexture* rt;
-
-DrawableObjectCube*		g_Cube = nullptr;
-DrawableGameObject*     g_Monkey = nullptr;
-DrawableGameObjectPlane* g_plane = nullptr;
-Camera*                 g_Camera = nullptr;
-Time*                   time = nullptr;
-
-//Lighting Variables
-float lightColour[4] = { 1, 1, 1, 1 };
-XMFLOAT4 lightPosition = XMFLOAT4(0, 0, 0, 0);
-XMFLOAT4 lightRotation = XMFLOAT4(0, 0, 1, 1);
-
-
 //--------------------------------------------------------------------------------------
 // Entry point to the program. Initializes everything and goes into a message processing 
-// loop. Idle time is used to render the scene.
+// loop. Idle g_pTime is used to render the scene.
 //--------------------------------------------------------------------------------------
 int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow ){
     UNREFERENCED_PARAMETER( hPrevInstance );
@@ -109,28 +32,19 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
         CleanupDevice();
         return 0;
     }
+    InitImGui();
+
+    g_pTime = new Time();
+    g_pOM = new ObjectManager();
+    g_pOM->CreateObjects(g_pd3dDevice, g_pImmediateContext);
+    g_pPlane = g_pOM->GetScreenPlane();
     
-    if (FAILED(InitImGui())){
-        CleanupImGui();
-        return 0;
-    }
-
-    ImGuiIO& io = ImGui::GetIO();
-
-    time = new Time();
-
-    InitObjects();
-
-    // Main message loop
     MSG msg = {0};
     while( WM_QUIT != msg.message )
     {
 
-        //g_pSwapChain->Present(1, 0);
         UpdateWindow(g_hWnd);
-
-        io = ImGui::GetIO();
-
+        
         if( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
         {
             TranslateMessage( &msg );
@@ -141,7 +55,6 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     }
 
     CleanupDevice();
-    CleanupImGui();
     Cleanup();
     return ( int )msg.wParam;
 }
@@ -196,43 +109,7 @@ HRESULT InitWindow( HINSTANCE hInstance, int nCmdShow )
 }
 
 
-//--------------------------------------------------------------------------------------
-// Helper for compiling shaders with D3DCompile
-//
-// With VS 11, we could load up prebuilt .cso files instead...
-//--------------------------------------------------------------------------------------
-HRESULT CompileShaderFromFile( const WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut )
-{
-    HRESULT hr = S_OK;
 
-    DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-#ifdef _DEBUG
-    // Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
-    // Setting this flag improves the shader debugging experience, but still allows 
-    // the shaders to be optimized and to run exactly the way they will run in 
-    // the release configuration of this program.
-    dwShaderFlags |= D3DCOMPILE_DEBUG;
-
-    // Disable optimizations to further improve shader debugging
-    dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-    ID3DBlob* pErrorBlob = nullptr;
-    hr = D3DCompileFromFile( szFileName, nullptr, nullptr, szEntryPoint, szShaderModel, 
-        dwShaderFlags, 0, ppBlobOut, &pErrorBlob );
-    if( FAILED(hr) )
-    {
-        if( pErrorBlob )
-        {
-            OutputDebugStringA( reinterpret_cast<const char*>( pErrorBlob->GetBufferPointer() ) );
-            pErrorBlob->Release();
-        }
-        return hr;
-    }
-    if( pErrorBlob ) pErrorBlob->Release();
-
-    return S_OK;
-}
 
 
 //--------------------------------------------------------------------------------------
@@ -376,8 +253,8 @@ HRESULT InitDevice()
     if( FAILED( hr ) )
         return hr;
     g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    rt = new RenderTexture();
-    hr = rt->Initialise(g_pd3dDevice, g_pSwapChain);
+    g_pRT = new RenderTexture();
+    hr = g_pRT->Initialise(g_pd3dDevice, g_pSwapChain);
     // Create depth stencil texture
     D3D11_TEXTURE2D_DESC descDepth = {};
     descDepth.Width = width;
@@ -434,20 +311,15 @@ HRESULT InitDevice()
 
 HRESULT InitImGui()
 {
-    // Application init: create a dear imgui context, setup some options, load fonts
-    ImGui::CreateContext();
-    // TODO: Set optional io.ConfigFlags values, e.g. 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard' to enable keyboard controls.
-    // TODO: Fill optional fields of the io structure later.
-    // TODO: Load TTF/OTF fonts if you don't want to use the default font.
-
-    // Initialize helper Platform and Renderer bindings (here we are using imgui_impl_win32.cpp and imgui_impl_dx11.cpp)
-    if (!ImGui_ImplWin32_Init(g_hWnd) || !ImGui_ImplDX11_Init(g_pd3dDevice, g_pImmediateContext))
-        return E_FAIL;
+    HRESULT hr;
+    hr = ImGuiRenderer::Init(g_hWnd, g_pd3dDevice, g_pImmediateContext);
+    if (FAILED(hr))
+        return hr;
+    g_pImgui = ImGuiRenderer::GetInstance();
     return S_OK;
 }
 
-DrawableGameObject::ShaderData shaderFX;
-DrawableGameObject::ShaderData shaderRTT;
+
 
 
 // ***************************************************************************************
@@ -456,123 +328,16 @@ DrawableGameObject::ShaderData shaderRTT;
 
 HRESULT		InitMesh()
 { 
-
-#pragma region Default
-	// Compile the vertex shader
-	ID3DBlob* pVSBlob = nullptr;
-	HRESULT hr = CompileShaderFromFile(L"shader.fx", "VS", "vs_4_0", &pVSBlob);
-	if (FAILED(hr))
-	{
-		MessageBox(nullptr,
-			L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-		return hr;
-	}
-
-	// Create the vertex shader
-	hr = g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &g_pVertexShader);
-	if (FAILED(hr))
-	{
-		pVSBlob->Release();
-		return hr;
-	}
-
-	// Define the input layout
-	D3D11_INPUT_ELEMENT_DESC layout[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        { "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-
-	};
-	UINT numElements = ARRAYSIZE(layout);
-
-	// Create the input layout
-	hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
-		pVSBlob->GetBufferSize(), &g_pVertexLayout);
-	pVSBlob->Release();
-	if (FAILED(hr))
-		return hr;
-
-	// Compile the pixel shader
-	ID3DBlob* pPSBlob = nullptr;
-	hr = CompileShaderFromFile(L"shader.fx", "PS", "ps_4_0", &pPSBlob);
-	if (FAILED(hr))
-	{
-		MessageBox(nullptr,
-			L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-		return hr;
-	}
-
-	// Create the pixel shader
-	hr = g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShader);
-	pPSBlob->Release();
-    shaderFX._inputLayout = g_pVertexLayout;
-    shaderFX._pixelShader = g_pPixelShader;
-    shaderFX._vertexShader = g_pVertexShader;
-
-	if (FAILED(hr))
-		return hr;
-#pragma endregion Default
-#pragma region RTT
-    pVSBlob = nullptr;
-    hr = CompileShaderFromFile(L"RTTShader.fx", "VS", "vs_4_0", &pVSBlob);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr,
-            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-        return hr;
-    }
-    g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &g_pVertexShaderRTT);
-    D3D11_INPUT_ELEMENT_DESC layoutRTT[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
-    // Create the input layout
-    hr = g_pd3dDevice->CreateInputLayout(layoutRTT, ARRAYSIZE(layoutRTT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayoutRTT);
-    pVSBlob->Release();
-    pPSBlob = nullptr;
-    hr = CompileShaderFromFile(L"RTTShader.fx", "PS", "ps_4_0", &pPSBlob);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr,
-            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-        return hr;
-    }
-    g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShaderRTT);
-    pPSBlob->Release();
-
-    shaderRTT._inputLayout = g_pVertexLayoutRTT;
-    shaderRTT._vertexShader = g_pVertexShaderRTT;
-    shaderRTT._pixelShader = g_pPixelShaderRTT;
-
-
-
-    if (FAILED(hr))
-        return hr;
-
-
-#pragma endregion RTT
+    HRESULT hr = ShaderManager::InitShaders(g_pd3dDevice);
     D3D11_BUFFER_DESC bd = {};
 
-	
-
-	// Create the light constant buffer
 	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(LightPropertiesConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
 	hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pLightConstantBuffer);
-	if (FAILED(hr))
-		return hr;
-
-
 	return hr;
 }
-DrawableObjectCube* newCube = nullptr;
 // ***************************************************************************************
 // InitWorld
 // ***************************************************************************************
@@ -582,100 +347,56 @@ HRESULT		InitWorld()
     DirectX::XMFLOAT4 at = DirectX::XMFLOAT4(0, -0.5f, 0, 1);
     DirectX::XMFLOAT4 up = DirectX::XMFLOAT4(0, 1, 0, 1);
 
-    g_Camera = CameraManager::CreateCamera(eye, at, up, g_viewWidth, g_viewHeight);
-    g_Camera->SetFrustum(DirectX::XM_PIDIV2, g_viewWidth / (float)g_viewHeight, 0.001f, 100);
+    g_pCamera = CameraManager::CreateCamera(eye, at, up, g_viewWidth, g_viewHeight);
+    g_pCamera->SetFrustum(DirectX::XM_PIDIV2, g_viewWidth / (float)g_viewHeight, 0.001f, 100);
+    
+    g_pLight = new Light();
+    g_pLight->enabled = static_cast<int>(true);
+    g_pLight->lightType = Light::LightType::PointLight;
+    g_pLight->spotAngle = XMConvertToRadians(15.0f);
+    g_pLight->constantAttenuation = 1.0f;
+    g_pLight->linearAttenuation = 1;
+    g_pLight->quadraticAttenuation = 1;
 
 	return S_OK;
 }
-
-HRESULT InitObjects() {
-
-    g_Cube = new DrawableObjectCube();
-    g_Cube->InitMesh(g_pd3dDevice, g_pImmediateContext);
-    g_Cube->SetShaders(shaderFX);
-    g_Cube->SetPosition(XMFLOAT3(0, 0, 0));
-    newCube = new DrawableObjectCube();
-    newCube->SetShaders(shaderFX);
-    newCube->SetPosition(XMFLOAT3(5, 0, 0));
-    newCube->InitMesh(g_pd3dDevice, g_pImmediateContext);
-    
-    g_plane = new DrawableGameObjectPlane();
-    g_plane->SetShaders(shaderRTT);
-    g_plane->SetPosition(XMFLOAT3(0, 0, 0));
-    g_plane->InitMesh(g_pd3dDevice, g_pImmediateContext);
-
-    g_Monkey = new DrawableGameObject();
-    g_Monkey->InitMesh(g_pd3dDevice, g_pImmediateContext);
-    g_Monkey->SetMesh((char*)"Resources/cube.obj", g_pd3dDevice, true);
-    g_Monkey->SetShaders(shaderFX);
-    g_Monkey->SetPosition(XMFLOAT3(0, 1, 5));
-    
-
-
-    
-    vecDrawables.push_back(g_Monkey);
-    vecDrawables.push_back(g_Cube);
-    vecDrawables.push_back(newCube);
-   vecDrawables.push_back(g_plane);
-
-
-
-    return S_OK;
-}
-
-
 //--------------------------------------------------------------------------------------
 // Clean up the objects we've created
 //--------------------------------------------------------------------------------------
 void CleanupDevice()
 {
     if( g_pImmediateContext )   g_pImmediateContext->ClearState();
-    if( g_pConstantBuffer )     g_pConstantBuffer->Release();
-    if( g_pVertexBuffer )       g_pVertexBuffer->Release();
-    if( g_pIndexBuffer )        g_pIndexBuffer->Release();
-    if( g_pVertexLayout )       g_pVertexLayout->Release();
-    if( g_pVertexLayoutRTT )    g_pVertexLayoutRTT->Release();
-    if( g_pVertexShader )       g_pVertexShader->Release();
-    if( g_pVertexShaderRTT)     g_pVertexShaderRTT->Release();
-    if( g_pPixelShader )        g_pPixelShader->Release();
-    if( g_pPixelShaderRTT)      g_pPixelShaderRTT->Release();
     if( g_pDepthStencil )       g_pDepthStencil->Release();
     if( g_pDepthStencilView )   g_pDepthStencilView->Release();
     if( g_pRenderTargetView )   g_pRenderTargetView->Release();
     if( g_pSwapChain1 )         g_pSwapChain1->Release();
     if( g_pSwapChain )          g_pSwapChain->Release();
-    if( g_pImmediateContext1 )  g_pImmediateContext1->Release();
-    if( g_pd3dDevice1 )         g_pd3dDevice1->Release();
     if( g_pd3dDevice )          g_pd3dDevice->Release();
     if (g_pRenderTexture)       g_pRenderTexture->Release();
     if (g_pRTTTargetView)       g_pRTTTargetView->Release();
+    if(g_pImgui) g_pImgui->Cleanup();
 
 }
 
-void CleanupImGui() {
-    ImGui_ImplDX11_Shutdown();
-    ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
-}
 
 void Cleanup() {
-    delete g_Camera;
-    g_Camera = nullptr;
+    delete g_pLight;
+    g_pLight = nullptr;
 
-    delete rt;
-    rt = nullptr;
+    delete g_pCamera;
+    g_pCamera = nullptr;
 
-    delete time;
-    time = nullptr;
+    delete g_pRT;
+    g_pRT = nullptr;
+
+    delete g_pTime;
+    g_pTime = nullptr;
     
-    delete g_Monkey;
-    g_Monkey = nullptr;
+    delete g_pOM;
+    g_pOM = nullptr;
 
-    delete g_Cube;
-    g_Cube = nullptr;
-
-    delete g_plane;
-    g_plane = nullptr;
+    delete g_pPlane;
+    g_pPlane = nullptr;
 
 }
 
@@ -717,152 +438,82 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     return 0;
 }
 
-Light light;
 void Update() {
 
-    float dTime = time->DeltaTime();
+    float dTime = g_pTime->DeltaTime();
 
 
     if (GetAsyncKeyState('W')) // W
-        g_Camera->MovePosition(0, 0, dTime);
+        g_pCamera->MovePosition(0, 0, dTime);
     if (GetAsyncKeyState('A')) // A
-        g_Camera->MovePosition(-dTime, 0, 0);
+        g_pCamera->MovePosition(-dTime, 0, 0);
     if (GetAsyncKeyState('S')) // S
-        g_Camera->MovePosition(0, 0, -dTime);
+        g_pCamera->MovePosition(0, 0, -dTime);
     if (GetAsyncKeyState('D')) // D
-        g_Camera->MovePosition(dTime, 0, 0);
+        g_pCamera->MovePosition(dTime, 0, 0);
     if (GetAsyncKeyState('Q')) // Q
-        g_Camera->Pitch(dTime);
+        g_pCamera->Pitch(dTime);
     if (GetAsyncKeyState('E')) // E
-        g_Camera->Pitch(-dTime);
+        g_pCamera->Pitch(-dTime);
     if (GetAsyncKeyState(VK_SPACE)) // Space
-        g_Camera->MovePosition(0, dTime, 0);
+        g_pCamera->MovePosition(0, dTime, 0);
     if (GetAsyncKeyState(VK_SHIFT)) // L Shift
-        g_Camera->MovePosition(0, -dTime, 0);
+        g_pCamera->MovePosition(0, -dTime, 0);
 
-    light.Enabled = static_cast<int>(true);
-    light.LightType = PointLight;
-    light.Color = XMFLOAT4(lightColour);
-    light.SpotAngle = XMConvertToRadians(15.0f);
-    light.ConstantAttenuation = 1.0f;
-    light.LinearAttenuation = 1;
-    light.QuadraticAttenuation = 1;
-    light.Direction = lightRotation;
-    g_Camera->Update();
 
-    light.Position = lightPosition;
-    XMVECTOR LightDirection = XMLoadFloat4(&light.Direction);
-    LightDirection = XMVector4Normalize(LightDirection);
-    XMStoreFloat4(&light.Direction, LightDirection);
-
+    g_pCamera->Update();
+    g_pImgui->Update(g_pLight);
     LightPropertiesConstantBuffer lightProperties;
-    XMStoreFloat4(&lightProperties.EyePosition, g_Camera->GetLookVec());
-    lightProperties.Lights[0] = light;
+    XMStoreFloat4(&lightProperties.EyePosition, g_pCamera->GetLookVec());
+    lightProperties.Lights[0] = *g_pLight;
     lightProperties.GlobalAmbient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
-    for (int i = 0; i < vecDrawables.size(); i++) {
-        vecDrawables.at(i)->Update(dTime);
-    }
+    g_pOM->Update(dTime);
 
 }
 
-void RenderImGUIMenu() {
-    // Feed inputs to dear imgui, start new frame
 
-    ImGui_ImplDX11_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    {
-        ImGui::NewFrame();
-        ImGui::Begin("Light");
-        ImGui::Text("Colour");
-        ImGui::Separator();
-        ImGui::Indent();
-        ImGui::ColorEdit3("Light Colour", lightColour);
-        ImGui::NewLine();
-        ImGui::Unindent();
-        ImGui::Text("Positions");
-        ImGui::Separator();
-        ImGui::Indent();
-        ImGui::SliderFloat("Position X", &lightPosition.x, -3, 3.0f);
-        ImGui::SliderFloat("Position Y", &lightPosition.y, -3.0f, 3.0f);
-        ImGui::SliderFloat("Position Z", &lightPosition.z, -3.0f, 3.0f);
-        ImGui::Unindent();
-        ImGui::Text("Rotations");
-        ImGui::Separator();
-        ImGui::Indent();
-        ImGui::SliderFloat("Rotation X", &lightRotation.x, -1, 1.0f);
-        ImGui::SliderFloat("Rotation Y", &lightRotation.y, -1.0f, 1.0f);
-        ImGui::SliderFloat("Rotation Z", &lightRotation.z, -1.0f, 1.0f);
-        ImGui::End();
-    }
-    {
-        ImGui::Begin("Camera");
-        ImGui::Text("Eye Position: %f %f %f", g_Camera->GetLook().x, g_Camera->GetLook().y, g_Camera->GetLook().z);
-        ImGui::Text("At Position: %f %f %f", g_Camera->GetPosition().x, g_Camera->GetPosition().y, g_Camera->GetPosition().z);
-        ImGui::Text("Up Position: %f %f %f", g_Camera->GetUp().x, g_Camera->GetUp().y, g_Camera->GetUp().z);
-        ImGui::Text("View Direction: %f %f %f", g_Camera->GetLook().x, g_Camera->GetLook().y, g_Camera->GetLook().z);
-        ImGui::End();
-    }
-    {
-        ImGui::Begin("Objects");
-        for (int i = 0; i < vecDrawables.size(); i++) {
-            DrawableGameObject* currObj = vecDrawables.at(i);
-            char c[] = "##";
-            sprintf(c, "%d", i);
-            char finalX[18] = "##X";
-            strcat(finalX, c);
-            char finalY[18] = "##Y";
-            strcat(finalY, c);
-            char finalZ[18] = "##Z";
-            strcat(finalZ, c);
-            ImGui::Separator();
-            ImGui::Text("Object %d", i);
-            ImGui::Indent();
-            ImGui::Text("Position X");
-            ImGui::SliderFloat(finalX, &currObj->m_position.x, -15, 15);
-            ImGui::Text("Position Y");
-            ImGui::SliderFloat(finalY, &currObj->m_position.y, -15, 15);
-            ImGui::Text("Position Z");
-            ImGui::SliderFloat(finalZ, &currObj->m_position.z, -15, 15);
-            ImGui::Unindent();
-        }
-        ImGui::End();
-
-    }
-    ImGui::Render();
-}
-
-
-
-ID3D11ShaderResourceView* test;
-bool a = false;
 //--------------------------------------------------------------------------------------
 // Render a frame
 //--------------------------------------------------------------------------------------
 void Render()
 {
-    g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
-    g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::MidnightBlue);
-    g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+    g_pRT->SetAsRenderTarget(g_pImmediateContext, g_pDepthStencilView);
+    g_pRT->ClearView(g_pImmediateContext, g_pDepthStencilView, Colors::Crimson);
+    //g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
+    //g_pPlane->SetAlbedoTexture(g_pRT->GetShaderResourceView());
+
+    //g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+    //g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::DarkOrange);
+    //g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+
+    //g_pPlane->SetAlbedoTexture(g_pRT->GetShaderResourceView());
+    g_pPlane->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
+
+    //for (int i = 0; i < vecDrawables.size(); i++) {
+    //    vecDrawables.at(i)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
+    //}
+    //g_pRT->SetAsRenderTarget(g_pImmediateContext, g_pDepthStencilView);
+    //g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
+
+
+    //vecDrawables.at(2)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
 
 
 
-    for (int i = 0; i < vecDrawables.size(); i++) {
-        vecDrawables.at(i)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_Camera->GetProjMat(), g_Camera->GetViewMat());
-    }
 
+    //for (int i = 0; i < vecDrawables.size()-1; i++) {
+    //    vecDrawables.at(i)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
+    //}
 
-    //vecDrawables.at(2)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_Camera->GetProjMat(), g_Camera->GetViewMat());
-    //g_plane->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_Camera->GetProjMat(), g_Camera->GetViewMat());
+    //g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
+    //ID3D11ShaderResourceView* nullRSV = { NULL };
+    //g_pImmediateContext->PSSetShaderResources(0, 1, &nullRSV);
 
-    rt->SetAsRenderTarget(g_pImmediateContext, g_pDepthStencilView);
-    rt->ClearView(g_pImmediateContext, g_pDepthStencilView, Colors::Crimson);
+    
 
-    for (int i = 0; i < vecDrawables.size()-1; i++) {
-        vecDrawables.at(i)->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_Camera->GetProjMat(), g_Camera->GetViewMat());
-    }
-    g_plane->SetAlbedoTexture(rt->GetShaderResourceView());
-    RenderImGUIMenu();
+    g_pImgui->Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
     g_pSwapChain->Present( 0, 0);
 

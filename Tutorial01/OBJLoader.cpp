@@ -288,7 +288,7 @@ MeshData OBJLoader::Load(char* filename, ID3D11Device* _pd3dDevice, bool invertT
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		bd.CPUAccessFlags = 0;
 
-		DrawableGameObject::CalculateModelVectors(finalVerts, numVertices);
+		GameObject::CalculateModelVectors(finalVerts, numVertices);
 
 
 		D3D11_SUBRESOURCE_DATA InitData;

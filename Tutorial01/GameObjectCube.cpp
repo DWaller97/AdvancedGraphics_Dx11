@@ -1,21 +1,21 @@
-#include "DrawableObjectCube.h"
+#include "GameObjectCube.h"
 
 
-DrawableObjectCube::DrawableObjectCube()
+GameObjectCube::GameObjectCube()
 {
 	SetWorldMatrix(new XMFLOAT4X4());
 	NUM_VERTICES = 36;
 
 }
 
-DrawableObjectCube::~DrawableObjectCube()
+GameObjectCube::~GameObjectCube()
 {
 	delete m_World;
 	m_World = nullptr;
 	Release();
 }
 
-HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)  {
+HRESULT GameObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)  {
 	// Create vertex buffer
 
 
@@ -126,11 +126,11 @@ HRESULT DrawableObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.IndexBuffer);
 	if (FAILED(hr)) 
 		return hr;
-	DrawableGameObject::InitMesh(pd3dDevice, pContext);
+	GameObject::InitMesh(pd3dDevice, pContext);
 
 } 
 
-void DrawableObjectCube::Update(float t)
+void GameObjectCube::Update(float t)
 {
 	m_parallaxBias = 1.0f;
 	m_parallaxScale = 1.0f;
@@ -149,7 +149,7 @@ void DrawableObjectCube::Update(float t)
 
 }
 
-void DrawableObjectCube::SetSpin(bool spin)
+void GameObjectCube::SetSpin(bool spin)
 {
 	spinning = spin;
 }

@@ -1,18 +1,18 @@
-#include "DrawableGameObject.h"
+#include "GameObject.h"
 
 using namespace std;
 using namespace DirectX;
 
-DrawableGameObject::DrawableGameObject()
+GameObject::GameObject()
 {
 	SetWorldMatrix(new XMFLOAT4X4());
 }
 
-DrawableGameObject::~DrawableGameObject()
+GameObject::~GameObject()
 {
 }
 
-HRESULT DrawableGameObject::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
+HRESULT GameObject::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
 	HRESULT hr;
 
@@ -94,14 +94,14 @@ HRESULT DrawableGameObject::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 	//	return hr;
 }
 
-void DrawableGameObject::Update(float t)
+void GameObject::Update(float t)
 {
 	XMMATRIX mTranslate = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	XMMATRIX world = mTranslate;
 	XMStoreFloat4x4(m_World, world);
 }
 
-void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
+void GameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
 {
 	ConstantBuffer cb1;
 	cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(m_World));
@@ -134,12 +134,12 @@ void DrawableGameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* light
 	pContext->DrawIndexed(NUM_VERTICES, 0, 0);
 }
 
-void DrawableGameObject::SetPosition(XMFLOAT3 position)
+void GameObject::SetPosition(XMFLOAT3 position)
 {
 	m_position = position;
 }
 
-void DrawableGameObject::SetShaders(ShaderData shaderData)
+void GameObject::SetShaders(ShaderData shaderData)
 {
 	pixelShader = shaderData._pixelShader;
 	vertexShader = shaderData._vertexShader;
@@ -147,45 +147,44 @@ void DrawableGameObject::SetShaders(ShaderData shaderData)
 
 }
 
-void DrawableGameObject::SetShader(ID3D11PixelShader* _pixelShader)
+void GameObject::SetShader(ID3D11PixelShader* _pixelShader)
 {
 	pixelShader = _pixelShader;
 }
 
-void DrawableGameObject::SetShader(ID3D11VertexShader* _vertexShader)
+void GameObject::SetShader(ID3D11VertexShader* _vertexShader)
 {
 	vertexShader = _vertexShader;
 }
 
-void DrawableGameObject::SetShaders(ID3D11VertexShader* _vertexShader, ID3D11PixelShader* _pixelShader)
+void GameObject::SetShaders(ID3D11VertexShader* _vertexShader, ID3D11PixelShader* _pixelShader)
 {
 	vertexShader = _vertexShader;
 	pixelShader = _pixelShader;
 }
 
-void DrawableGameObject::SetParallaxScale(float _scale)
+void GameObject::SetParallaxScale(float _scale)
 {
 	m_parallaxScale = _scale;
 }
 
-void DrawableGameObject::SetParallaxBias(float _bias)
+void GameObject::SetParallaxBias(float _bias)
 {
 	m_parallaxBias = _bias;
 }
 
-void DrawableGameObject::SetMesh(char* filename, ID3D11Device* _pd3dDevice, bool invertTexCoords)
+void GameObject::SetMesh(char* filename, ID3D11Device* _pd3dDevice, bool invertTexCoords)
 {
 	mesh = OBJLoader::Load(filename, _pd3dDevice, invertTexCoords);
 	NUM_VERTICES = mesh.VertexCount;
 }
 
-void DrawableGameObject::SetAlbedoTexture(ID3D11ShaderResourceView* _resourceView)
+void GameObject::SetAlbedoTexture(ID3D11ShaderResourceView* _resourceView)
 {
 	m_albedoTexture = _resourceView;
-
 }
 
-void DrawableGameObject::Release()
+void GameObject::Release()
 {
 	if (mesh.VertexBuffer)
 		mesh.VertexBuffer->Release();
@@ -200,14 +199,14 @@ void DrawableGameObject::Release()
 		m_pSamplerLinear->Release();
 }
 
-void DrawableGameObject::SetWorldMatrix(XMFLOAT4X4* world)
+void GameObject::SetWorldMatrix(XMFLOAT4X4* world)
 {
 	m_World = world;
 }
 
 
 
-void DrawableGameObject::CalculateTangentBinormal2(SimpleVertex v0, SimpleVertex v1, SimpleVertex v2, XMFLOAT3& normal, XMFLOAT3& tangent, XMFLOAT3& binormal)
+void GameObject::CalculateTangentBinormal2(SimpleVertex v0, SimpleVertex v1, SimpleVertex v2, XMFLOAT3& normal, XMFLOAT3& tangent, XMFLOAT3& binormal)
 {
 	// http://softimage.wiki.softimage.com/xsidocs/tex_tangents_binormals_AboutTangentsandBinormals.html
 	XMFLOAT3 edge1(v1.pos.x - v0.pos.x, v1.pos.y - v0.pos.y, v1.pos.z - v0.pos.z);
@@ -252,7 +251,7 @@ void DrawableGameObject::CalculateTangentBinormal2(SimpleVertex v0, SimpleVertex
 // so the index file would look like 0,1,2,3,4 and so on
 // it won't work with shared vertices as the tangent / binormal for a vertex is related to a specific face
 // REFERENCE this has largely been modified from "Mathematics for 3D Game Programmming and Computer Graphics" by Eric Lengyel
-void DrawableGameObject::CalculateModelVectors(SimpleVertex* _vertices, int _vertexCount)
+void GameObject::CalculateModelVectors(SimpleVertex* _vertices, int _vertexCount)
 {
 	int faceCount, i, index;
 	SimpleVertex vertex1, vertex2, vertex3;

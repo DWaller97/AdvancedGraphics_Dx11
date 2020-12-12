@@ -11,6 +11,7 @@
 #include "Time.h"
 #include "CameraManager.h"
 #include "OBJLoader.h"
+#include "ShaderManager.h"
 
 
 
@@ -18,19 +19,12 @@ using namespace DirectX;
 
 
 
-class DrawableGameObject
+class GameObject
 {
 public:
 
-
-	struct ShaderData {
-		ID3D11PixelShader* _pixelShader;
-		ID3D11VertexShader* _vertexShader;
-		ID3D11InputLayout* _inputLayout;
-	};
-
-	DrawableGameObject();
-	~DrawableGameObject();
+	GameObject();
+	~GameObject();
 
 	XMFLOAT3							m_position = XMFLOAT3(0, 0, 0);
 
