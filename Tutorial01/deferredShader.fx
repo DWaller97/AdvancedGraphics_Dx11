@@ -7,13 +7,6 @@ cbuffer ConstantBuffer : register(b0)
 	float4 vOutputColor;
 }
 
-cbuffer SettingsBuffer : register(b1) {
-	bool InvertColours;
-	bool padding;
-	bool padding1;
-	bool padding2;
-}
-
 struct VSIN {
 	float4 Pos : POSITION;
 	float3 Norm : NORMAL;
@@ -27,10 +20,6 @@ struct PSIN {
 };
 
 
-
-SamplerState samLinear : register(s0);
-Texture2D txDiffuse : register(t0);
-
 PSIN VS(VSIN IN) {
 	PSIN output = (PSIN)0;
 	output.Pos = mul(IN.Pos, World);
@@ -40,8 +29,5 @@ PSIN VS(VSIN IN) {
 
 float4 PS(PSIN IN) : SV_TARGET
 {
-	float4 tex = txDiffuse.Sample(samLinear, IN.Tex);
-	if(InvertColours)
-		tex.rgb = 1 - tex.rgb;
-	return tex;
+	return float4(0, 0, 0, 1);
 }

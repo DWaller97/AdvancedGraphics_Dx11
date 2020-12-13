@@ -1,6 +1,7 @@
 #include "ObjectManager.h"
 
 std::vector<GameObject*> ObjectManager::objects;
+GameObjectPlane* ObjectManager::plane;
 
 void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _deviceContext)
 {

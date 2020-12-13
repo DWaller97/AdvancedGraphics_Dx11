@@ -104,6 +104,12 @@ void ImGuiRenderer::Render()
         }
         ImGui::End();
 
+        ImGui::Begin("Fullscreen Quad");
+        {
+            ImGui::Checkbox("Invert Screen Colours", &ObjectManager::GetScreenPlane()->pp_invertColours);
+        }
+        ImGui::End();
+
     }
     ImGui::Render();
 }

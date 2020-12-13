@@ -1,5 +1,8 @@
 #include "GameObjectPlane.h"
 
+bool GameObjectPlane::pp_invertColours = 1;
+
+
 GameObjectPlane::GameObjectPlane()
 {
 	SetWorldMatrix(new XMFLOAT4X4());
@@ -56,17 +59,84 @@ HRESULT GameObjectPlane::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 	if (FAILED(hr))
 		return hr;
 
-	GameObject::InitMesh(pd3dDevice, pContext);
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(ConstantBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_pConstantBuffer);
+	if (FAILED(hr))
+		return hr;
+
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(SettingsBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+
+	SettingsBuffer buff;
+	buff.InvertColours = pp_invertColours;
+
+	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &ppBuff);
+	if (FAILED(hr))
+		return hr;
+
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
+
+
+
+
 }
 
 void GameObjectPlane::Update(float t)
 {
+
 	XMMATRIX mTranslate = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	XMMATRIX world = mTranslate;
 	XMStoreFloat4x4(m_World, world);
+
 }
 
 void GameObjectPlane::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
 {
-	GameObject::Draw(pContext, lightConstantBuffer, projMat, viewMat);
+	SettingsBuffer buff;
+	buff.InvertColours = pp_invertColours;
+
+
+	ConstantBuffer cb1;
+	cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(m_World));
+	cb1.mView = XMMatrixTranspose(XMLoadFloat4x4(viewMat));
+	cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(projMat));
+	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
+	
+	pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
+	pContext->UpdateSubresource(ppBuff, 0, nullptr, &buff, 0, 0);
+
+	UINT stride = sizeof(SimpleVertex);
+	UINT offset = 0;
+	pContext->IASetVertexBuffers(0, 1, &mesh.VertexBuffer, &stride, &offset);
+	pContext->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	pContext->IASetInputLayout(m_inputLayout);
+
+	pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+	pContext->PSSetConstantBuffers(1, 1, &ppBuff);
+	pContext->VSSetShader(vertexShader, nullptr, 0);
+	pContext->PSSetShader(pixelShader, nullptr, 0);
+	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
+
+	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
+	pContext->DrawIndexed(NUM_INDICES, 0, 0);
+
+
 }
+

@@ -55,7 +55,9 @@
     <ClCompile Include="GameObjectCube.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
-    <ClCompile Include="DeferredRenderer.cpp" />
+    <ClCompile Include="DeferredRenderer.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -144,7 +146,9 @@
     <ClInclude Include="GameObjectCube.h">
       <Filter>Objects</Filter>
     </ClInclude>
-    <ClInclude Include="DeferredRenderer.h" />
+    <ClInclude Include="DeferredRenderer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tutorial01.rc">
@@ -206,6 +210,9 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="RTTShader.fx">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="deferredShader.fx">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

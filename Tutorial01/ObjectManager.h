@@ -9,7 +9,7 @@ class ObjectManager
 {
 private:
     GameObjectCube* cube, *cube2;
-    GameObjectPlane* plane;
+    static GameObjectPlane* plane;
     GameObject* obj;
     static std::vector<GameObject*> objects;
 public:
@@ -17,6 +17,6 @@ public:
     void Update(float _deltaTime);
     void Render(ID3D11DeviceContext* _deviceContext, ID3D11Buffer* _lightBuffer, XMFLOAT4X4* _projMat, XMFLOAT4X4* _viewMat);
     static std::vector<GameObject*> GetObjects() { return objects; }
-    GameObjectPlane* GetScreenPlane() { return plane; }
+    static GameObjectPlane* GetScreenPlane() { return plane; }
 };
 

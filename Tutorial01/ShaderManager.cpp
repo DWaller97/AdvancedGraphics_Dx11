@@ -2,6 +2,7 @@
 
 ShaderData ShaderManager::shaderStandard;
 ShaderData ShaderManager::shaderRTT;
+ShaderData ShaderManager::shaderD;
 
 ID3D11VertexShader* ShaderManager::standardVertexShader;
 ID3D11PixelShader* ShaderManager::standardPixelShader;
@@ -10,6 +11,10 @@ ID3D11InputLayout* ShaderManager::standardInputLayout;
 ID3D11VertexShader* ShaderManager::rttVertexShader;
 ID3D11PixelShader* ShaderManager::rttPixelShader;
 ID3D11InputLayout* ShaderManager::rttInputLayout;
+
+ID3D11VertexShader* ShaderManager::dVertexShader;
+ID3D11PixelShader* ShaderManager::dPixelShader;
+ID3D11InputLayout* ShaderManager::dInputLayout;
 
 HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 {
@@ -99,6 +104,54 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
     shaderRTT._pixelShader = rttPixelShader;
 
 #pragma endregion RTT
+#pragma region Deferred
+    pVSBlob = nullptr;
+    hr = CompileShaderFromFile(L"deferredShader.fx", "VS", "vs_4_0", &pVSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+    hr = _device->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &dVertexShader);
+    if (FAILED(hr))
+    {
+        pVSBlob->Release();
+        return hr;
+    }
+
+    D3D11_INPUT_ELEMENT_DESC layoutD[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    numElements = ARRAYSIZE(layoutD);
+
+    hr = _device->CreateInputLayout(layoutD, numElements, pVSBlob->GetBufferPointer(),
+        pVSBlob->GetBufferSize(), &dInputLayout);
+    pVSBlob->Release();
+    if (FAILED(hr))
+        return hr;
+
+    pPSBlob = nullptr;
+    hr = CompileShaderFromFile(L"deferredShader.fx", "PS", "ps_4_0", &pPSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+
+    hr = _device->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &dPixelShader);
+    pPSBlob->Release();
+    shaderD._inputLayout = dInputLayout;
+    shaderD._pixelShader = dPixelShader;
+    shaderD._vertexShader = dVertexShader;
+
+    if (FAILED(hr))
+        return hr;
+#pragma endregion Deferred
 }
 
 //--------------------------------------------------------------------------------------

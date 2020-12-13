@@ -18,9 +18,14 @@ private:
     static ID3D11VertexShader* rttVertexShader;
     static ID3D11PixelShader* rttPixelShader;
     static ID3D11InputLayout* rttInputLayout;
+
+    static ID3D11VertexShader* dVertexShader;
+    static ID3D11PixelShader* dPixelShader;
+    static ID3D11InputLayout* dInputLayout;
 public:
     static ShaderData shaderStandard;
     static ShaderData shaderRTT;
+    static ShaderData shaderD;
 
     static HRESULT InitShaders(ID3D11Device* _device);
     static HRESULT CompileShaderFromFile(const WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
