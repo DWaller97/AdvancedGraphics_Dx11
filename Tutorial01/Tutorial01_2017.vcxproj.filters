@@ -189,6 +189,15 @@
     <Image Include="Resources\normals.dds">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\pallet_planks.dds">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\pallet_planks_NRM.dds">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\pallet_planks_OCC.dds">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader.fx">
@@ -212,7 +221,13 @@
     <FxCompile Include="RTTShader.fx">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="deferredShader.fx">
+    <FxCompile Include="dAlbedo.fx">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="dNormal.fx">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="dPost.fx">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

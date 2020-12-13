@@ -57,17 +57,17 @@ HRESULT GameObject::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pCon
 	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
 
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\color.dds", nullptr, &m_albedoTexture);
-	if (FAILED(hr))
-		return hr;
+	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\color.dds", nullptr, &m_albedoTexture);
+	//if (FAILED(hr))
+	//	return hr;
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\normals.dds", nullptr, &m_normalTexture);
-	if (FAILED(hr))
-		return hr;
+	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\normals.dds", nullptr, &m_normalTexture);
+	//if (FAILED(hr))
+	//	return hr;
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\displacement.dds", nullptr, &m_parallaxTexture);
-	if (FAILED(hr))
-		return hr;
+	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\displacement.dds", nullptr, &m_parallaxTexture);
+	//if (FAILED(hr))
+	//	return hr;
 
 	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Crate_COLOR.dds", nullptr, &m_albedoTexture);
 	//if (FAILED(hr))
@@ -124,7 +124,8 @@ void GameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstant
 	pContext->PSSetShader(pixelShader, nullptr, 0);
 	//pContext->PSSetConstantBuffers(3, 1, &m_pCameraBuffer);
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
-
+	pContext->PSSetShaderResources(1, 1, &m_parallaxTexture);
+	pContext->PSSetShaderResources(2, 1, &m_normalTexture);
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
 	pContext->DrawIndexed(NUM_INDICES, 0, 0);
 }
@@ -178,6 +179,32 @@ void GameObject::SetMesh(char* filename, ID3D11Device* _pd3dDevice, bool invertT
 void GameObject::SetAlbedoTexture(ID3D11ShaderResourceView* _resourceView)
 {
 	m_albedoTexture = _resourceView;
+}
+
+void GameObject::SetAlbedoTexture(const wchar_t* _filePath, ID3D11Device* _device)
+{
+	CreateDDSTextureFromFile(_device, _filePath, nullptr, &m_albedoTexture);
+
+}
+
+void GameObject::SetNormalTexture(ID3D11ShaderResourceView* _resourceView)
+{
+	m_normalTexture = _resourceView;
+}
+
+void GameObject::SetNormalTexture(const wchar_t* _filePath, ID3D11Device* _device)
+{
+	CreateDDSTextureFromFile(_device, _filePath, nullptr, &m_normalTexture);
+}
+
+void GameObject::SetOcclusionTexture(ID3D11ShaderResourceView* _resourceView)
+{
+	m_parallaxTexture = _resourceView;
+}
+
+void GameObject::SetOcclusionTexture(const wchar_t* _filePath, ID3D11Device* _device)
+{
+	CreateDDSTextureFromFile(_device, _filePath, nullptr, &m_parallaxTexture);
 }
 
 void GameObject::Release()

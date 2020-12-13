@@ -1,4 +1,6 @@
 
+
+
 cbuffer ConstantBuffer : register(b0)
 {
 	matrix World;
@@ -19,15 +21,22 @@ struct PSIN {
 	float2 Tex : TEXCOORD;
 };
 
+Texture2D txNormal : register(t2);
+
+SamplerState samLinear : register(s0);
 
 PSIN VS(VSIN IN) {
 	PSIN output = (PSIN)0;
 	output.Pos = mul(IN.Pos, World);
+	output.WorldPos = output.Pos;
+	output.Pos = mul(output.Pos, View);
+	output.Pos = mul(output.Pos, Projection);
 	output.Tex = IN.Tex;
 	return output;
 }
 
 float4 PS(PSIN IN) : SV_TARGET
 {
-	return float4(0, 0, 0, 1);
+	float4 tex = txNormal.Sample(samLinear, IN.Tex);
+	return tex;
 }

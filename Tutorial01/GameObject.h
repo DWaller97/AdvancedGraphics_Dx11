@@ -57,6 +57,11 @@ public:
 	void								SetParallaxBias(float _bias);
 	void								SetMesh(char* filename, ID3D11Device* _pd3dDevice, bool invertTexCoords);
 	void								SetAlbedoTexture(ID3D11ShaderResourceView* _resourceView);
+	void								SetAlbedoTexture(const wchar_t* _filePath, ID3D11Device* _device);
+	void								SetNormalTexture(ID3D11ShaderResourceView* _resourceView);
+	void								SetNormalTexture(const wchar_t* _filePath, ID3D11Device* _device);
+	void								SetOcclusionTexture(ID3D11ShaderResourceView* _resourceView);
+	void								SetOcclusionTexture(const wchar_t* _filePath, ID3D11Device* _device);
 	void								virtual Release();
 protected:
 	

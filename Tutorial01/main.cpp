@@ -38,7 +38,8 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_pOM = new ObjectManager();
     g_pOM->CreateObjects(g_pd3dDevice, g_pImmediateContext);
     g_pPlane = g_pOM->GetScreenPlane();
-    
+    g_pDR = new DeferredRenderer();
+    g_pDR->Initialise(g_pd3dDevice);
     MSG msg = {0};
     while( WM_QUIT != msg.message )
     {
@@ -372,7 +373,8 @@ void CleanupDevice()
     if( g_pd3dDevice )          g_pd3dDevice->Release();
     if (g_pRenderTexture)       g_pRenderTexture->Release();
     if (g_pRTTTargetView)       g_pRTTTargetView->Release();
-    if(g_pImgui) g_pImgui->Cleanup();
+    if (g_pImgui) g_pImgui->Cleanup();
+    if (g_pDR) g_pDR->Release();
 
 }
 
@@ -386,6 +388,9 @@ void Cleanup() {
 
     delete g_pRT;
     g_pRT = nullptr;
+
+    delete g_pDR;
+    g_pDR = nullptr;
 
     delete g_pTime;
     g_pTime = nullptr;
@@ -476,26 +481,37 @@ void Update() {
 //--------------------------------------------------------------------------------------
 void Render()
 {
+
+
+
+    //
+    //g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
+    //
+
+    //g_pImgui->Render();
+    //ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    g_pDR->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat(), g_pDepthStencilView);
+
     g_pRT->SetAsRenderTarget(g_pImmediateContext, g_pDepthStencilView);
     g_pRT->ClearView(g_pImmediateContext, g_pDepthStencilView, Colors::Crimson);
+    g_pPlane->SetShaders(ShaderManager::shaderDPost);
+    g_pPlane->SetAlbedoTexture(g_pDR->GetAlbedo());
+    g_pPlane->SetNormalTexture(g_pDR->GetNormals());
+    g_pPlane->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
 
-
-    
     g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
-    
-
-    g_pImgui->Render();
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
     g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
 
     g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::Aquamarine);
     g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
+    g_pPlane->SetShaders(ShaderManager::shaderRTT);
     g_pPlane->SetAlbedoTexture(g_pRT->GetShaderResourceView());
-
-    g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
     g_pPlane->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
+
+
+
+
 
     g_pImgui->Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

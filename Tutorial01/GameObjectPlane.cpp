@@ -1,6 +1,6 @@
 #include "GameObjectPlane.h"
 
-bool GameObjectPlane::pp_invertColours = 1;
+bool GameObjectPlane::pp_invertColours = 0;
 
 
 GameObjectPlane::GameObjectPlane()
@@ -91,10 +91,6 @@ HRESULT GameObjectPlane::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
-
-
-
-
 }
 
 void GameObjectPlane::Update(float t)
@@ -130,9 +126,13 @@ void GameObjectPlane::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightCon
 
 	pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	pContext->PSSetConstantBuffers(1, 1, &ppBuff);
+	pContext->PSSetConstantBuffers(2, 1, &m_pMaterialConstantBuffer);
+	pContext->PSSetConstantBuffers(3, 1, &lightConstantBuffer);
 	pContext->VSSetShader(vertexShader, nullptr, 0);
 	pContext->PSSetShader(pixelShader, nullptr, 0);
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
+	pContext->PSSetShaderResources(1, 1, &m_normalTexture);
+	pContext->PSSetShaderResources(2, 1, &m_parallaxTexture);
 
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
 	pContext->DrawIndexed(NUM_INDICES, 0, 0);

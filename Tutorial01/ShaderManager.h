@@ -11,6 +11,7 @@ struct ShaderData {
 class ShaderManager
 {
 private:
+    //Arrays
     static ID3D11VertexShader* standardVertexShader;
     static ID3D11PixelShader* standardPixelShader;
     static ID3D11InputLayout* standardInputLayout;
@@ -19,13 +20,23 @@ private:
     static ID3D11PixelShader* rttPixelShader;
     static ID3D11InputLayout* rttInputLayout;
 
-    static ID3D11VertexShader* dVertexShader;
-    static ID3D11PixelShader* dPixelShader;
-    static ID3D11InputLayout* dInputLayout;
+    static ID3D11VertexShader* dAlbedoVertexShader;
+    static ID3D11PixelShader* dAlbedoPixelShader;
+    static ID3D11InputLayout* dAlbedoInputLayout;
+
+    static ID3D11VertexShader* dNormalVertexShader;
+    static ID3D11PixelShader* dNormalPixelShader;
+    static ID3D11InputLayout* dNormalInputLayout;
+
+    static ID3D11VertexShader* dPostVertexShader;
+    static ID3D11PixelShader* dPostPixelShader;
+    static ID3D11InputLayout* dPostInputLayout;
 public:
     static ShaderData shaderStandard;
     static ShaderData shaderRTT;
-    static ShaderData shaderD;
+    static ShaderData shaderDAlbedo;
+    static ShaderData shaderDNormal;
+    static ShaderData shaderDPost;
 
     static HRESULT InitShaders(ID3D11Device* _device);
     static HRESULT CompileShaderFromFile(const WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);

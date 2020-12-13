@@ -26,6 +26,7 @@
 #include "Camera.h"
 #include "Time.h"
 #include "RenderTexture.h"
+#include "DeferredRenderer.h"
 using namespace std;
 //--------------------------------------------------------------------------------------
 // Forward declarations
@@ -73,6 +74,7 @@ const int				g_viewWidth = 1920;
 const int				g_viewHeight = 1080;
 
 RenderTexture* g_pRT;
+DeferredRenderer* g_pDR;
 ObjectManager* g_pOM;
 GameObjectPlane* g_pPlane = nullptr;
 Camera* g_pCamera = nullptr;
