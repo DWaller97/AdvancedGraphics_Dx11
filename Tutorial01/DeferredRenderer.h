@@ -12,7 +12,10 @@ public:
     void Release();
     static ID3D11ShaderResourceView* GetAlbedo() { return srvAlbedo; };
     static ID3D11ShaderResourceView* GetNormals() { return srvNormals; };
+    static bool GetActive() { return deferredActive; };
+    static void SetActive(bool _b);
 private:
+    static bool deferredActive;
     static ID3D11ShaderResourceView* srvAlbedo;
     static ID3D11ShaderResourceView* srvPosition;
     static ID3D11ShaderResourceView* srvNormals;

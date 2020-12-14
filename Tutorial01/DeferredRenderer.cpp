@@ -4,6 +4,9 @@ ID3D11ShaderResourceView* DeferredRenderer::srvAlbedo;
 ID3D11ShaderResourceView* DeferredRenderer::srvPosition;
 ID3D11ShaderResourceView* DeferredRenderer::srvNormals;
 
+bool DeferredRenderer::deferredActive = true;
+
+
 HRESULT DeferredRenderer::Initialise(ID3D11Device* _device)
 {
     HRESULT h;
@@ -92,4 +95,9 @@ void DeferredRenderer::Release()
     if (pTexAlbedo) pTexAlbedo->Release();
     if (pTexNormals) pTexNormals->Release();
     if (pTexPosition) pTexPosition->Release();
+}
+
+void DeferredRenderer::SetActive(bool _b)
+{
+    deferredActive = _b;
 }

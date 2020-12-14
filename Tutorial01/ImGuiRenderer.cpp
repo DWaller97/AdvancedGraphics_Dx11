@@ -41,6 +41,8 @@ void ImGuiRenderer::Update(Light* _light)
     _light->position = lightPosition;
     _light->rotation = lightRotation;
 
+    DeferredRenderer::SetActive(deferred);
+
 }
 
 void ImGuiRenderer::Render()
@@ -104,8 +106,9 @@ void ImGuiRenderer::Render()
         }
         ImGui::End();
 
-        ImGui::Begin("Fullscreen Quad");
+        ImGui::Begin("Rendering");
         {
+            ImGui::Checkbox("Deferred", &deferred);
             ImGui::Checkbox("Invert Screen Colours", &ObjectManager::GetScreenPlane()->pp_invertColours);
         }
         ImGui::End();

@@ -7,6 +7,7 @@
 #include "GameObject.h"
 #include "ObjectManager.h"
 #include "CameraManager.h"
+#include "DeferredRenderer.h"
 #include <iostream>
 using namespace DirectX;
 class ImGuiRenderer
@@ -21,6 +22,7 @@ private:
     XMFLOAT4 camAt = XMFLOAT4(0, 0, 0, 0);
     ImGuiIO io;
     static bool initialised;
+    bool deferred;
 public:
     static HRESULT Init(HWND _hwnd, ID3D11Device* _device, ID3D11DeviceContext* _deviceContext);
     static ImGuiRenderer* GetInstance();
