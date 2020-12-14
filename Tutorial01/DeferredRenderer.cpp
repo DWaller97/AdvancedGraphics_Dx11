@@ -66,9 +66,9 @@ void DeferredRenderer::Render(ID3D11DeviceContext* _deviceContext, ID3D11Buffer*
 {
     std::vector<GameObject*> objects = ObjectManager::GetDeferredObjects();
 
-    ShaderData shaders[] = { ShaderManager::shaderDAlbedo, ShaderManager::shaderDNormal };
+    ShaderData shaders[] = { ShaderManager::shaderDAlbedo, ShaderManager::shaderDNormal, ShaderManager::shaderDPosition };
     ID3D11RenderTargetView* views[] = { rtvAlbedo, rtvNormals, rtvPosition };
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
         _deviceContext->OMSetRenderTargets(1, &views[i], _dsv);    
         _deviceContext->ClearRenderTargetView(views[i], Colors::Black);
         _deviceContext->ClearDepthStencilView(_dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);

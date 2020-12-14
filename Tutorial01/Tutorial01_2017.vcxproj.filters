@@ -230,5 +230,8 @@
     <FxCompile Include="dPost.fx">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="dPosition.fx">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

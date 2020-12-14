@@ -124,8 +124,8 @@ void GameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstant
 	pContext->PSSetShader(pixelShader, nullptr, 0);
 	//pContext->PSSetConstantBuffers(3, 1, &m_pCameraBuffer);
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
-	pContext->PSSetShaderResources(1, 1, &m_parallaxTexture);
-	pContext->PSSetShaderResources(2, 1, &m_normalTexture);
+	pContext->PSSetShaderResources(1, 1, &m_normalTexture);
+	pContext->PSSetShaderResources(2, 1, &m_parallaxTexture);
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
 	pContext->DrawIndexed(NUM_INDICES, 0, 0);
 }

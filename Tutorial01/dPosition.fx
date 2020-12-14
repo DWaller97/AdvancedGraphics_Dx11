@@ -1,6 +1,3 @@
-
-
-
 cbuffer ConstantBuffer : register(b0)
 {
 	matrix World;
@@ -8,6 +5,7 @@ cbuffer ConstantBuffer : register(b0)
 	matrix Projection;
 	float4 vOutputColor;
 }
+
 
 struct VSIN {
 	float4 Pos : POSITION;
@@ -21,10 +19,6 @@ struct PSIN {
 	float2 Tex : TEXCOORD;
 };
 
-Texture2D txNormal : register(t1);
-
-SamplerState samLinear : register(s0);
-
 PSIN VS(VSIN IN) {
 	PSIN output = (PSIN)0;
 	output.Pos = mul(IN.Pos, World);
@@ -37,6 +31,5 @@ PSIN VS(VSIN IN) {
 
 float4 PS(PSIN IN) : SV_TARGET
 {
-	float4 tex = txNormal.Sample(samLinear, IN.Tex);
-	return tex;
+	return IN.WorldPos;
 }

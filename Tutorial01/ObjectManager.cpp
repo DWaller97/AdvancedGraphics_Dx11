@@ -37,6 +37,14 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
         deferredObjects.push_back(o);
     }
 
+    for (int i = 0; i < 10; i++) {
+        GameObjectCube* o = new GameObjectCube();
+        o->InitMesh(_device, _deviceContext);
+        o->SetShaders(ShaderManager::shaderDAlbedo);
+        o->SetPosition(XMFLOAT3(-10 + i + (i * 2), 0, 0));
+        deferredObjects.push_back(o);
+    }
+
 
     objects.push_back(cube);
     objects.push_back(cube2);

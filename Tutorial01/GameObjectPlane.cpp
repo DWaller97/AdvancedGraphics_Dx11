@@ -61,6 +61,15 @@ HRESULT GameObjectPlane::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(MaterialPropertiesConstantBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_pMaterialConstantBuffer);
+	if (FAILED(hr))
+		return hr;
+
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(ConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
@@ -116,6 +125,14 @@ void GameObjectPlane::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightCon
 	
 	pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
 	pContext->UpdateSubresource(ppBuff, 0, nullptr, &buff, 0, 0);
+
+
+	MaterialPropertiesConstantBuffer redPlasticMaterial;
+	redPlasticMaterial.Material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	redPlasticMaterial.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
+	redPlasticMaterial.Material.SpecularPower = 32.0f;
+	redPlasticMaterial.Material.UseTexture = true;
+	pContext->UpdateSubresource(m_pMaterialConstantBuffer, 0, nullptr, &redPlasticMaterial, 0, 0);
 
 	UINT stride = sizeof(SimpleVertex);
 	UINT offset = 0;

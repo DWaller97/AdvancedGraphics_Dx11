@@ -20,7 +20,7 @@ struct PSIN {
 };
 
 Texture2D txDiffuse : register(t0);
-Texture2D txOcclusion : register(t1);
+Texture2D txOcclusion : register(t2);
 
 SamplerState samLinear : register(s0);
 
