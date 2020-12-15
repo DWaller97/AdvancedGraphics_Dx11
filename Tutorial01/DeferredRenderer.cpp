@@ -67,6 +67,16 @@ HRESULT DeferredRenderer::Initialise(ID3D11Device* _device)
 
 void DeferredRenderer::Render(ID3D11DeviceContext* _deviceContext, ID3D11Buffer* _lightBuffer, XMFLOAT4X4* _projMat, XMFLOAT4X4* _viewMat, ID3D11DepthStencilView* _dsv)
 {
+/**********************************************************
+    MARKING SCHEME: Advanced Graphics Techniques
+    DESCRIPTION: Deferred Rendering. Loop through each object,
+    set the render target to be either albedo, normals, or
+    position shader which then outputs the pixels as values
+    of those variables. After looping through each object for
+    each shader, change the render target to the screen-filled
+    quad and then calculate the lighting calculations using
+    the three textures.
+**********************************************************/
     std::vector<GameObject*> objects = ObjectManager::GetDeferredObjects();
 
     ShaderData shaders[] = { ShaderManager::shaderDAlbedo, ShaderManager::shaderDNormal, ShaderManager::shaderDPosition };

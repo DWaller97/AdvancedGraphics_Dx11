@@ -5,7 +5,7 @@
 
 // the lighting equations in this code have been taken from https://www.3dgep.com/texturing-lighting-directx-11/
 // with some modifications by David White
-// added to by Dan Waller.
+// Normal mapping and parallax mapping added by Dan Waller
 
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
@@ -119,7 +119,7 @@ struct PS_INPUT
 
 float4 DoDiffuse(Light light, float3 L, float3 N)
 {
-	float NdotL = max(0, dot(N, L));
+	float NdotL = max(0, dot(N, L)); 
 	return light.Color * NdotL;
 }
 
@@ -196,6 +196,9 @@ LightingResult ComputeLighting(float4 vertexPos, float3 N, float3 lightVec, floa
 	return totalResult;
 }
 
+
+
+
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
@@ -225,7 +228,12 @@ PS_INPUT VS(VS_INPUT input)
 	return output;
 }
 
-
+/**********************************************************
+	MARKING SCHEME: Standard (Steep) Parallax Mapping
+	DESCRIPTION: Changes the texture coordinates based on
+	the view direction of the camera by offsetting the
+	coordinates based on a depth value from the parallax map
+**********************************************************/
 float2 SteepParallaxMapping(float2 _texCoords, float3 _viewDir, float3 _norm) {
 	int minSamples = 5;
 	int maxSamples = 20;
@@ -248,6 +256,13 @@ float2 SteepParallaxMapping(float2 _texCoords, float3 _viewDir, float3 _norm) {
 	return currCoords;
 }
 
+/**********************************************************
+	MARKING SCHEME: Parallax Occlusion Mapping
+	DESCRIPTION: Uses ray tracing to manipulate the texture
+	coordinates based on the view direction of the camera and
+	the surface's normal, checking the depth of a pixel compared
+	to a previous pixel until it's made it to the deepest point.
+**********************************************************/
 float2 ParallaxOcclusionMapping(float2 _texCoords, float3 _viewDir, float3 _norm) {
 	int minSamples = 5;
 	int maxSamples = 20;
@@ -282,7 +297,13 @@ float2 ParallaxOcclusionMapping(float2 _texCoords, float3 _viewDir, float3 _norm
 
 	return prevCoords * weight + currCoords * (1.0 - weight);
 }
-
+/**********************************************************
+	MARKING SCHEME: Self Shadowing
+	DESCRIPTION: Uses ray tracing to determine if a pixel is 
+	behind a pixel with a higher depth, determines if the light
+	is pointed directly at the pixel or not to save wasting time.
+	Works similar to the parallax mapping but in reverse.
+**********************************************************/
 float SelfShadow(float2 _texCoords, in float3 _lightVec, float3 _norm) {
 	float shadowMultiplier = 1;
 	float minLayers = 15;
@@ -337,8 +358,12 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float4 texParallax = { 1, 1, 1, 1 };
 	float2 texCoords = IN.Tex;
 
+/**********************************************************
+	MARKING SCHEME: Transformation to Tangent Space
+	DESCRIPTION: Uses the TBN matrix I made in the vertex shader.
+**********************************************************/
 	float3 EyeVecTan = normalize(mul(EyePosition, IN.TBN) - IN.PosTan);
-	float3 LightTan = normalize(mul(Lights[0].Position, IN.TBN) - IN.PosTan);//normalize(IN.LightPosTan - IN.PosTan);
+	float3 LightTan = normalize(mul(Lights[0].Position, IN.TBN) - IN.PosTan);
 
 	texCoords = ParallaxOcclusionMapping(IN.Tex, EyeVecTan, IN.NormTan);
 	float shadowFactor = 1;
@@ -348,8 +373,15 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 		discard;
 
 
-
+/**********************************************************
+	MARKING SCHEME: Normal Map Sampling
+	DESCRIPTION: Samples from the normal map
+**********************************************************/
 	texNormal = txNormal.Sample(samLinear, texCoords);
+/**********************************************************
+	MARKING SCHEME: Normal Decompression
+	DESCRIPTION: Change the normals' range from 0-1 to -1-1
+**********************************************************/
 	texNormal = texNormal * 2.0f - 1.0f;
 
 		if (Material.UseTexture)

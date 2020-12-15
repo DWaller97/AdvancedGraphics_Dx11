@@ -41,6 +41,10 @@ PSIN VS(VSIN IN) {
 float4 PS(PSIN IN) : SV_TARGET
 {
 	float4 tex = txDiffuse.Sample(samLinear, IN.Tex);
+/**********************************************************
+	MARKING SCHEME: Simple Screen-Space Effect
+	DESCRIPTION: Inverts the colours of the screen
+**********************************************************/
 	if(InvertColours)
 		tex.rgb = 1 - tex.rgb;
 	return tex;

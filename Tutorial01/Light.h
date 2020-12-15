@@ -18,7 +18,7 @@ public:
 		constantAttenuation(1.0f),
 		linearAttenuation(0.0f),
 		quadraticAttenuation(0.0f),
-		lightType(DirectionalLight),
+		lightType(PointLight),
 		enabled(0)
 	{};
 

@@ -23,20 +23,6 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     plane->SetShaders(ShaderManager::shaderRTT);
     plane->SetPosition(XMFLOAT3(0, 0, 0));
 
-
-
-    for (int i = 0; i < 10; i++) {
-        GameObject* o = new GameObject();
-        o->InitMesh(_device, _deviceContext);
-        o->SetMesh((char*)"Resources/pallet.obj", _device, true);
-        o->SetAlbedoTexture(L"Resources/pallet.dds", _device);
-        o->SetOcclusionTexture(L"Resources/palletOCC.dds", _device);
-        o->SetNormalTexture(L"Resources/palletNRM.dds", _device);
-        o->SetShaders(ShaderManager::shaderDAlbedo);
-        o->SetPosition(XMFLOAT3(2.5f, i / 4.0f, 0));
-        deferredObjects.push_back(o);
-    }
-
     for (int i = 0; i < 10; i++) {
         GameObjectCube* o = new GameObjectCube();
         o->InitMesh(_device, _deviceContext);

@@ -189,33 +189,9 @@
     <Image Include="Resources\normals.dds">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Resources\pallet_planks.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resources\pallet_planks_NRM.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resources\pallet_planks_OCC.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader.fx">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="normal.fx">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="StandardPS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="StandardVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="VS2.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PS2.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="RTTShader.fx">

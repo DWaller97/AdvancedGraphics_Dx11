@@ -36,6 +36,8 @@ PSIN VS(VSIN IN) {
 
 float4 PS(PSIN IN) : SV_TARGET
 {
+	//Use the w component to store the occlusion map to save
+	//from making yet another shader.
 	float4 tex = txDiffuse.Sample(samLinear, IN.Tex);
 	tex.w = txOcclusion.Sample(samLinear, IN.Tex).x;
 	return tex;

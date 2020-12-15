@@ -454,10 +454,12 @@ void Update() {
         g_pCamera->MovePosition(0, 0, -dTime);
     if (GetAsyncKeyState('D')) // D
         g_pCamera->MovePosition(dTime, 0, 0);
-    if (GetAsyncKeyState('Q')) // Q
-        g_pCamera->Pitch(dTime);
-    if (GetAsyncKeyState('E')) // E
-        g_pCamera->Pitch(-dTime);
+    
+    //Doesn't work
+    //if (GetAsyncKeyState('Q')) // Q
+    //    g_pCamera->Pitch(dTime);
+    //if (GetAsyncKeyState('E')) // E
+    //    g_pCamera->Pitch(-dTime);
     if (GetAsyncKeyState(VK_SPACE)) // Space
         g_pCamera->MovePosition(0, dTime, 0);
     if (GetAsyncKeyState(VK_SHIFT)) // L Shift
@@ -483,13 +485,7 @@ void Render()
 {
 
 
-
-    //
-    //g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
-    //
-
-    //g_pImgui->Render();
-    //ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    //See DeferredRenderer.cpp for the bulk of the work
     if (DeferredRenderer::GetActive()) {
         g_pDR->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat(), g_pDepthStencilView);
 
@@ -512,6 +508,14 @@ void Render()
         g_pPlane->Draw(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
     }
     else {
+/**********************************************************
+    MARKING SCHEME:Render to Texture and Full-Screen Quad
+    DESCRIPTION: Renders all of the objects to my seperate
+    render target, then switches target to the back buffer
+    before rendering again, then setting the texture of my
+    plane to the previous render target's resource view
+    before the shader displays it on the screen
+**********************************************************/
         g_pRT->SetAsRenderTarget(g_pImmediateContext, g_pDepthStencilView);
         g_pRT->ClearView(g_pImmediateContext, g_pDepthStencilView, Colors::Crimson);
         g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());
