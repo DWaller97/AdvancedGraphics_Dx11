@@ -3,12 +3,14 @@
 #include "GameObject.h"
 #include "GameObjectPlane.h"
 #include "GameObjectCube.h"
+#include "GameObjectBezierSpline.h"
 #include <vector>
 #include <d3d11.h>
 class ObjectManager
 {
 private:
     GameObjectCube* cube, *cube2;
+    GameObjectBezierSpline* line;
     static GameObjectPlane* plane;
     GameObject* obj;
     static std::vector<GameObject*> objects;

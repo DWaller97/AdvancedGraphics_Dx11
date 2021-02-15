@@ -16,8 +16,8 @@ HRESULT RenderTexture::Initialise(ID3D11Device* _device, IDXGISwapChain* _swapCh
 {
     HRESULT h;
     D3D11_TEXTURE2D_DESC textureDesc = {};
-    textureDesc.Width = 1920;
-    textureDesc.Height = 1080;
+    textureDesc.Width = 1280;
+    textureDesc.Height = 720;
     textureDesc.MipLevels = 1;
     textureDesc.ArraySize = 1;
     textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -33,8 +33,8 @@ HRESULT RenderTexture::Initialise(ID3D11Device* _device, IDXGISwapChain* _swapCh
         return h;
 
     //D3D11_TEXTURE2D_DESC descDepth = {};
-    //descDepth.Width = 1920;
-    //descDepth.Height = 1080;
+    //descDepth.Width = 1280;
+    //descDepth.Height = 720;
     //descDepth.MipLevels = 1;
     //descDepth.ArraySize = 1;
     //descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -90,7 +90,6 @@ void RenderTexture::Release()
 {
     if (rtTexture) {
         rtTexture->Release();
-        delete rtTexture;
         rtTexture = nullptr;
     }
     if (rtDepthStencilTexture) {
@@ -100,7 +99,6 @@ void RenderTexture::Release()
     }
     if (rtShaderResourceView) {
         rtShaderResourceView->Release();
-        delete rtShaderResourceView;
         rtShaderResourceView = nullptr;
     }
     if (rtDepthStencilView) {
@@ -110,7 +108,6 @@ void RenderTexture::Release()
     }
     if (rtView) {
         rtView->Release();
-        delete rtView;
         rtView = nullptr;
     }
 }

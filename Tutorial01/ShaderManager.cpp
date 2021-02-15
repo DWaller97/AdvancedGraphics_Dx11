@@ -6,6 +6,7 @@ ShaderData ShaderManager::shaderDAlbedo;
 ShaderData ShaderManager::shaderDNormal;
 ShaderData ShaderManager::shaderDPosition;
 ShaderData ShaderManager::shaderDPost;
+ShaderData ShaderManager::shaderLine;
 
 ID3D11VertexShader* ShaderManager::standardVertexShader;
 ID3D11PixelShader* ShaderManager::standardPixelShader;
@@ -31,6 +32,9 @@ ID3D11VertexShader* ShaderManager::dPositionVertexShader;
 ID3D11PixelShader* ShaderManager::dPositionPixelShader;
 ID3D11InputLayout* ShaderManager::dPositionInputLayout;
 
+ID3D11VertexShader* ShaderManager::lineVertexShader;
+ID3D11PixelShader* ShaderManager::linePixelShader;
+ID3D11InputLayout* ShaderManager::lineInputLayout;
 
 HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 {
@@ -312,6 +316,52 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
     if (FAILED(hr))
         return hr;
 #pragma endregion DeferredPost
+#pragma region Line
+    pVSBlob = nullptr;
+    hr = CompileShaderFromFile(L"line.fx", "VS", "vs_4_0", &pVSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+    hr = _device->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &lineVertexShader);
+    if (FAILED(hr))
+    {
+        pVSBlob->Release();
+        return hr;
+    }
+
+    D3D11_INPUT_ELEMENT_DESC layoutLine[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    };
+    numElements = ARRAYSIZE(layoutLine);
+
+    hr = _device->CreateInputLayout(layoutLine, numElements, pVSBlob->GetBufferPointer(),
+        pVSBlob->GetBufferSize(), &lineInputLayout);
+    pVSBlob->Release();
+    if (FAILED(hr))
+        return hr;
+
+    pPSBlob = nullptr;
+    hr = CompileShaderFromFile(L"line.fx", "PS", "ps_4_0", &pPSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+
+    hr = _device->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &linePixelShader);
+    pPSBlob->Release();
+    shaderLine._inputLayout = lineInputLayout;
+    shaderLine._pixelShader = linePixelShader;
+    shaderLine._vertexShader = lineVertexShader;
+
+    if (FAILED(hr))
+        return hr;
+#pragma endregion Line
 }
 
 //--------------------------------------------------------------------------------------

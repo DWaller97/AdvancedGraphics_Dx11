@@ -45,6 +45,8 @@ HRESULT GameObject::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pCon
 	redPlasticMaterial.Material.UseTexture = true;
 	pContext->UpdateSubresource(m_pMaterialConstantBuffer, 0, nullptr, &redPlasticMaterial, 0, 0);
 
+
+
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
 	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -57,41 +59,7 @@ HRESULT GameObject::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pCon
 	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
 
 
-	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\color.dds", nullptr, &m_albedoTexture);
-	//if (FAILED(hr))
-	//	return hr;
 
-	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\normals.dds", nullptr, &m_normalTexture);
-	//if (FAILED(hr))
-	//	return hr;
-
-	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\displacement.dds", nullptr, &m_parallaxTexture);
-	//if (FAILED(hr))
-	//	return hr;
-
-	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Crate_COLOR.dds", nullptr, &m_albedoTexture);
-	//if (FAILED(hr))
-	//	return hr;
-
-	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Crate_NRM.dds", nullptr, &m_normalTexture);
-	//if (FAILED(hr))
-	//	return hr;
-
-	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Crate_DISP.dds", nullptr, &m_parallaxTexture);
-	//if (FAILED(hr))
-	//	return hr;
-
-	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\stone.dds", nullptr, &m_albedoTexture);
-	//if (FAILED(hr))
-	//	return hr;
-
-	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\conenormal.dds", nullptr, &m_normalTexture);
-	//if (FAILED(hr))
-	//	return hr;
-
-	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\conedisp.dds", nullptr, &m_parallaxTexture);
-	//if (FAILED(hr))
-	//	return hr;
 }
 
 void GameObject::Update(float t)

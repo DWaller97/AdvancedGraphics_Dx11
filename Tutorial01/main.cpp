@@ -416,20 +416,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 
     switch( message )
     {
-    case WM_SIZE:
-        if (g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED)
-        {
-            if (g_pRenderTargetView) {
-                g_pRenderTargetView->Release();
-                g_pRenderTargetView = NULL;
-            }
-            g_pSwapChain->ResizeBuffers(0, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam), DXGI_FORMAT_UNKNOWN, 0);
-            ID3D11Texture2D* pBackBuffer;
-            g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
-            g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_pRenderTargetView);
-            pBackBuffer->Release();
-        }
-        return 0; 
+
     case WM_DESTROY:   
         PostQuitMessage( 0 );
         break;

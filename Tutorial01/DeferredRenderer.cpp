@@ -11,8 +11,8 @@ HRESULT DeferredRenderer::Initialise(ID3D11Device* _device)
 {
     HRESULT h;
     D3D11_TEXTURE2D_DESC textureDesc = {};
-    textureDesc.Width = 1920;
-    textureDesc.Height = 1080;
+    textureDesc.Width = 1280;
+    textureDesc.Height = 720;
     textureDesc.MipLevels = 1;
     textureDesc.ArraySize = 1;
     textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;

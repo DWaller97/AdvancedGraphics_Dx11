@@ -70,7 +70,7 @@ ID3D11ShaderResourceView* g_pRTTTargetView = nullptr;
 ID3D11ShaderResourceView* g_shaderResourceView = nullptr;
 ID3D11SamplerState* g_pSamplerLinear = nullptr;
 
-const int				g_viewWidth = 1920;
+const int				g_viewWidth = 1920 ;
 const int				g_viewHeight = 1080;
 
 RenderTexture* g_pRT;

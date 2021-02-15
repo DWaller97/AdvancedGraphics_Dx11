@@ -58,6 +58,7 @@
     <ClCompile Include="DeferredRenderer.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="GameObjectBezierSpline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -149,6 +150,7 @@
     <ClInclude Include="DeferredRenderer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="GameObjectBezierSpline.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tutorial01.rc">
@@ -207,6 +209,9 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="dPosition.fx">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="line.fx">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

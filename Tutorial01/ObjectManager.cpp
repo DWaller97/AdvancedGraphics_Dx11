@@ -23,6 +23,11 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     plane->SetShaders(ShaderManager::shaderRTT);
     plane->SetPosition(XMFLOAT3(0, 0, 0));
 
+    line = new GameObjectBezierSpline();
+    line->InitMesh(_device, _deviceContext);
+    line->SetShaders(ShaderManager::shaderLine);
+    line->SetPosition(XMFLOAT3(0, 0, 0));
+
     for (int i = 0; i < 10; i++) {
         GameObjectCube* o = new GameObjectCube();
         o->InitMesh(_device, _deviceContext);
@@ -34,6 +39,7 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
 
     objects.push_back(cube);
     objects.push_back(cube2);
+    objects.push_back(line);
 
 }
 
