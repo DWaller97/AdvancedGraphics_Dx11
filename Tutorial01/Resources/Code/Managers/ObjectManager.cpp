@@ -19,8 +19,7 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
 
     plane = new GameObjectPlane();
     plane->InitMesh(_device, _deviceContext);
-    //plane->SetMesh((char*)"Resources/plane.obj", _device, true);
-    plane->SetShaders(ShaderManager::shaderRTT);
+    plane->SetShaders(ShaderManager::shaderStandard);
     plane->SetPosition(XMFLOAT3(0, 0, 0));
 
     line = new GameObjectBezierSpline();

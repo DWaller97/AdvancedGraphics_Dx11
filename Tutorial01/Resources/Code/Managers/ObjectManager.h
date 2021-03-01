@@ -1,11 +1,12 @@
 #pragma once
-
-#include "GameObject.h"
-#include "GameObjectPlane.h"
-#include "GameObjectCube.h"
-#include "GameObjectBezierSpline.h"
 #include <vector>
 #include <d3d11.h>
+
+#include "../GameObjects/GameObject.h"
+#include "../GameObjects/GameObjectPlane.h"
+#include "../GameObjects/GameObjectCube.h"
+#include "../GameObjects/GameObjectBezierSpline.h"
+
 class ObjectManager
 {
 private:

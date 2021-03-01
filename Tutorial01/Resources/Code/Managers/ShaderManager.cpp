@@ -40,7 +40,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 {
 #pragma region Default
     ID3DBlob* pVSBlob = nullptr;
-    HRESULT hr = CompileShaderFromFile(L"shader.fx", "VS", "vs_4_0", &pVSBlob);
+    HRESULT hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\shader.fx", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -72,7 +72,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
         return hr;
 
     ID3DBlob* pPSBlob = nullptr;
-    hr = CompileShaderFromFile(L"shader.fx", "PS", "ps_4_0", &pPSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\shader.fx", "PS", "ps_4_0", &pPSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -91,7 +91,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 #pragma endregion Default
 #pragma region RTT
     pVSBlob = nullptr;
-    hr = CompileShaderFromFile(L"RTTShader.fx", "VS", "vs_4_0", &pVSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\RTTShader.fx", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -109,7 +109,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 
     hr = _device->CreateInputLayout(layoutRTT, ARRAYSIZE(layoutRTT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &rttInputLayout);
     pVSBlob->Release();
-    hr = CompileShaderFromFile(L"RTTShader.fx", "PS", "ps_4_0", &pPSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\RTTShader.fx", "PS", "ps_4_0", &pPSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -126,7 +126,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 #pragma endregion RTT
 #pragma region DeferredAlbedo
     pVSBlob = nullptr;
-    hr = CompileShaderFromFile(L"dAlbedo.fx", "VS", "vs_4_0", &pVSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\dAlbedo.fx", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -155,7 +155,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
         return hr;
 
     pPSBlob = nullptr;
-    hr = CompileShaderFromFile(L"dAlbedo.fx", "PS", "ps_4_0", &pPSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\dAlbedo.fx", "PS", "ps_4_0", &pPSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -174,7 +174,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 #pragma endregion DeferredAlbedo
 #pragma region DeferredNormal
     pVSBlob = nullptr;
-    hr = CompileShaderFromFile(L"dNormal.fx", "VS", "vs_4_0", &pVSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\dNormal.fx", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -203,7 +203,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
         return hr;
 
     pPSBlob = nullptr;
-    hr = CompileShaderFromFile(L"dNormal.fx", "PS", "ps_4_0", &pPSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\dNormal.fx", "PS", "ps_4_0", &pPSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -222,7 +222,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 #pragma endregion DeferredNormal
 #pragma region DeferredPosition
     pVSBlob = nullptr;
-    hr = CompileShaderFromFile(L"dPosition.fx", "VS", "vs_4_0", &pVSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\dPosition.fx", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -251,7 +251,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
         return hr;
 
     pPSBlob = nullptr;
-    hr = CompileShaderFromFile(L"dPosition.fx", "PS", "ps_4_0", &pPSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\dPosition.fx", "PS", "ps_4_0", &pPSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -270,7 +270,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 #pragma endregion DeferredPosition
 #pragma region DeferredPost
     pVSBlob = nullptr;
-    hr = CompileShaderFromFile(L"dPost.fx", "VS", "vs_4_0", &pVSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\dPost.fx", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -299,7 +299,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
         return hr;
 
     pPSBlob = nullptr;
-    hr = CompileShaderFromFile(L"dPost.fx", "PS", "ps_4_0", &pPSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\dPost.fx", "PS", "ps_4_0", &pPSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -318,7 +318,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 #pragma endregion DeferredPost
 #pragma region Line
     pVSBlob = nullptr;
-    hr = CompileShaderFromFile(L"line.fx", "VS", "vs_4_0", &pVSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\line.fx", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -334,7 +334,9 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 
     D3D11_INPUT_ELEMENT_DESC layoutLine[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 }
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+
     };
     numElements = ARRAYSIZE(layoutLine);
 
@@ -345,7 +347,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
         return hr;
 
     pPSBlob = nullptr;
-    hr = CompileShaderFromFile(L"line.fx", "PS", "ps_4_0", &pPSBlob);
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\line.fx", "PS", "ps_4_0", &pPSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,

@@ -1,13 +1,18 @@
 #pragma once
-#include <examples\imgui_impl_dx11.h>
-#include <examples\imgui_impl_win32.h>
 #include <vector>
-#include "imgui.h"
-#include "Light.h"
-#include "GameObject.h"
-#include "ObjectManager.h"
-#include "CameraManager.h"
-#include "DeferredRenderer.h"
+
+#include "../External/imgui/imgui.h"
+#include "../External/imgui/imgui_impl_dx11.h"
+#include "../External/imgui/imgui_impl_win32.h"
+#include "../Light.h"
+
+#include "../GameObjects/GameObject.h"
+
+#include "../Graphics/DeferredRenderer.h"
+
+#include "../Managers/ObjectManager.h"
+#include "../Managers/CameraManager.h"
+
 #include <iostream>
 using namespace DirectX;
 class ImGuiRenderer

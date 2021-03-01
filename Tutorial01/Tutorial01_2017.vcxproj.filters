@@ -1,218 +1,58 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="..\imgui-master\imgui.cpp">
-      <Filter>Dear ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\imgui-master\imgui_demo.cpp">
-      <Filter>Dear ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\imgui-master\imgui_draw.cpp">
-      <Filter>Dear ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\imgui-master\imgui_widgets.cpp">
-      <Filter>Dear ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\imgui-master\examples\imgui_impl_dx11.cpp">
-      <Filter>Dear ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\imgui-master\examples\imgui_impl_win32.cpp">
-      <Filter>Dear ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraManager.cpp" />
-    <ClCompile Include="Camera.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="DDSTextureLoader.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="OBJLoader.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Time.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Light.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderTexture.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGuiRenderer.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderManager.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectManager.cpp" />
-    <ClCompile Include="GameObject.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="GameObjectPlane.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="GameObjectCube.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="DeferredRenderer.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="GameObjectBezierSpline.cpp" />
+    <ClCompile Include="Resources\Code\GameObjects\GameObject.cpp" />
+    <ClCompile Include="Resources\Code\GameObjects\GameObjectBezierSpline.cpp" />
+    <ClCompile Include="Resources\Code\GameObjects\GameObjectCube.cpp" />
+    <ClCompile Include="Resources\Code\GameObjects\GameObjectPlane.cpp" />
+    <ClCompile Include="Resources\Code\Graphics\DeferredRenderer.cpp" />
+    <ClCompile Include="Resources\Code\Graphics\ImGuiRenderer.cpp" />
+    <ClCompile Include="Resources\Code\Graphics\RenderTexture.cpp" />
+    <ClCompile Include="Resources\Code\Managers\CameraManager.cpp" />
+    <ClCompile Include="Resources\Code\Managers\ObjectManager.cpp" />
+    <ClCompile Include="Resources\Code\Managers\ShaderManager.cpp" />
+    <ClCompile Include="Resources\Code\Camera.cpp" />
+    <ClCompile Include="Resources\Code\Light.cpp" />
+    <ClCompile Include="Resources\Code\main.cpp" />
+    <ClCompile Include="Resources\Code\Utilities\DDSTextureLoader.cpp" />
+    <ClCompile Include="Resources\Code\Utilities\OBJLoader.cpp" />
+    <ClCompile Include="Resources\Code\Utilities\Time.cpp" />
+    <ClCompile Include="Resources\Code\External\imgui\imgui.cpp" />
+    <ClCompile Include="Resources\Code\External\imgui\imgui_demo.cpp" />
+    <ClCompile Include="Resources\Code\External\imgui\imgui_draw.cpp" />
+    <ClCompile Include="Resources\Code\External\imgui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="Resources\Code\External\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="Resources\Code\External\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{7223e20c-1371-49bb-97d0-8117b6b97369}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{5c65bb77-486a-4c4e-a1b8-db822f520520}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Dear ImGui">
-      <UniqueIdentifier>{e5d61927-9792-4793-97fa-e218dacc676b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Objects">
-      <UniqueIdentifier>{63839c5b-feb0-4155-bd9b-aad98a96006d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Utilities">
-      <UniqueIdentifier>{7c9e0a0d-3e4a-4e3c-8b57-c03bf992962e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Graphics">
-      <UniqueIdentifier>{d5712f32-062c-45c8-a4c2-290ee18dfce9}</UniqueIdentifier>
-    </Filter>
+    <ClInclude Include="Resources\Code\GameObjects\GameObject.h" />
+    <ClInclude Include="Resources\Code\GameObjects\GameObjectBezierSpline.h" />
+    <ClInclude Include="Resources\Code\GameObjects\GameObjectCube.h" />
+    <ClInclude Include="Resources\Code\GameObjects\GameObjectPlane.h" />
+    <ClInclude Include="Resources\Code\Graphics\DeferredRenderer.h" />
+    <ClInclude Include="Resources\Code\Graphics\ImGuiRenderer.h" />
+    <ClInclude Include="Resources\Code\Graphics\RenderTexture.h" />
+    <ClInclude Include="Resources\Code\Managers\CameraManager.h" />
+    <ClInclude Include="Resources\Code\Managers\ObjectManager.h" />
+    <ClInclude Include="Resources\Code\Managers\ShaderManager.h" />
+    <ClInclude Include="Resources\Code\Camera.h" />
+    <ClInclude Include="Resources\Code\Light.h" />
+    <ClInclude Include="Resources\Code\main.h" />
+    <ClInclude Include="Resources\Code\Utilities\DDSTextureLoader.h" />
+    <ClInclude Include="Resources\Code\Utilities\OBJLoader.h" />
+    <ClInclude Include="Resources\Code\Utilities\Resource.h" />
+    <ClInclude Include="Resources\Code\Utilities\structures.h" />
+    <ClInclude Include="Resources\Code\Utilities\Time.h" />
+    <ClInclude Include="Resources\Code\External\imgui\imconfig.h" />
+    <ClInclude Include="Resources\Code\External\imgui\imgui.h" />
+    <ClInclude Include="Resources\Code\External\imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="Resources\Code\External\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="Resources\Code\External\imgui\imgui_internal.h" />
+    <ClInclude Include="Resources\Code\External\imgui\imstb_truetype.h" />
+    <ClInclude Include="Resources\Code\External\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Resources\Code\External\imgui\imstb_textedit.h" />
   </ItemGroup>
   <ItemGroup>
-    <CLInclude Include="resource.h">
-      <Filter>Resource Files</Filter>
-    </CLInclude>
-    <ClInclude Include="main.h" />
-    <ClInclude Include="..\imgui-master\imconfig.h">
-      <Filter>Dear ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui-master\imgui.h">
-      <Filter>Dear ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui-master\imgui_internal.h">
-      <Filter>Dear ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui-master\imstb_rectpack.h">
-      <Filter>Dear ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui-master\imstb_textedit.h">
-      <Filter>Dear ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui-master\imstb_truetype.h">
-      <Filter>Dear ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui-master\examples\imgui_impl_dx11.h">
-      <Filter>Dear ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\imgui-master\examples\imgui_impl_win32.h">
-      <Filter>Dear ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraManager.h" />
-    <ClInclude Include="Camera.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="DDSTextureLoader.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="OBJLoader.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="structures.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Time.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Light.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderTexture.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGuiRenderer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderManager.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectManager.h" />
-    <ClInclude Include="GameObject.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObjectPlane.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObjectCube.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="DeferredRenderer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObjectBezierSpline.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Tutorial01.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Resources\stone.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resources\conenormal.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resources\Crate_COLOR.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resources\Crate_DISP.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resources\Crate_NRM.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resources\Crate_OCC.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resources\Crate_SPEC.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resources\conedisp.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resources\color.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resources\displacement.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resources\normals.dds">
-      <Filter>Resource Files</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="shader.fx">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="RTTShader.fx">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="dAlbedo.fx">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="dNormal.fx">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="dPost.fx">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="dPosition.fx">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="line.fx">
-      <Filter>Shaders</Filter>
-    </FxCompile>
+    <Text Include="Resources\Code\External\imgui\LICENSE.txt" />
   </ItemGroup>
 </Project>

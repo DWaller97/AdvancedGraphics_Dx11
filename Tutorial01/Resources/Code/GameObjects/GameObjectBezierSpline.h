@@ -3,6 +3,7 @@
 class GameObjectBezierSpline :
     public GameObject
 {
+private:
 public:
     GameObjectBezierSpline();
     ~GameObjectBezierSpline();

@@ -1,5 +1,5 @@
 #pragma once
-#include "Camera.h"
+#include "../Camera.h"
 #include <queue>
 static class CameraManager {
 private:

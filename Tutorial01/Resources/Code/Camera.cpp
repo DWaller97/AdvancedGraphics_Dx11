@@ -1,6 +1,6 @@
 #include "Camera.h"
 #include <d3d11.h>
-#include "structures.h"
+#include "Utilities/structures.h"
 
 using namespace DirectX;
 

@@ -21,8 +21,9 @@
 #include <directxmath.h>
 #include <directxcolors.h>
 #include <DirectXCollision.h>
-#include "resource.h"
 #include <iostream>
+
+#include "Utilities/resource.h"
 
 using namespace std;
 using namespace DirectX;

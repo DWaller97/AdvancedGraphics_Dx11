@@ -1,7 +1,7 @@
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
-#include "ObjectManager.h"
+#include "../Managers/ObjectManager.h"
 #include <vector>
 
 class DeferredRenderer

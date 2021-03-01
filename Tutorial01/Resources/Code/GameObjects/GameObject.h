@@ -4,14 +4,16 @@
 #include <d3dcompiler.h>
 #include <directxcolors.h>
 #include <DirectXCollision.h>
-#include "DDSTextureLoader.h"
-#include "resource.h"
 #include <iostream>
-#include "structures.h"
-#include "Time.h"
-#include "CameraManager.h"
-#include "OBJLoader.h"
-#include "ShaderManager.h"
+
+#include "../Utilities/DDSTextureLoader.h"
+#include "../Utilities/resource.h"
+#include "../Utilities/structures.h"
+#include "../Utilities/Time.h"
+#include "../Utilities/OBJLoader.h"
+
+#include "../Managers/CameraManager.h"
+#include "../Managers/ShaderManager.h"
 
 
 

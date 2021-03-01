@@ -2,8 +2,8 @@
 GameObjectBezierSpline::GameObjectBezierSpline()
 {
 	SetWorldMatrix(new XMFLOAT4X4());
-	NUM_VERTICES = 3;
-	NUM_INDICES = 3;
+	NUM_VERTICES = 4;
+	NUM_INDICES = 0;
 }
 
 GameObjectBezierSpline::~GameObjectBezierSpline()
@@ -15,40 +15,40 @@ GameObjectBezierSpline::~GameObjectBezierSpline()
 
 HRESULT GameObjectBezierSpline::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
-	SimpleVertex vertices[] =
+	SimpleVertex linePoints[] =
 	{
-		{ XMFLOAT3(0, 0, 0), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, 0, 0), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 0), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
-	};
 
-	WORD indices[] =
-	{
-		0, 1, 2
+		{ XMFLOAT3(0, -1.0f, 0), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 0, 0), XMFLOAT3(0.0f, 1.0f, 1.0f) , XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(2.0f, 0, 0), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(3.0f, 1.0f, 0), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) },
 	};
+	SimpleVertex* linePoints2 = new SimpleVertex[4 * NUM_VERTICES];
+	int k = 0;
+	for (int i = 0; i < NUM_VERTICES; i++) {
+		float posX = linePoints[i].pos.x;
+		float posY = linePoints[i].pos.y;
+		for (float j = 0.0f; j < 1; j += 0.25f, k++) {
+			SimpleVertex* v = new SimpleVertex();
+			v->pos.x = (1 - j) * (1 - j) * posX + 2 * (1 - j) * j * posX + (j * j) * posX;
+			v->pos.y = (1 - j) * (1 - j) * posY + 2 * (1 - j) * j * posY + (j * j) * posY;
+			linePoints2[k] = *v;
+		}
+	}
+
+
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(SimpleVertex) * 3;
+	bd.ByteWidth = sizeof(SimpleVertex) * NUM_VERTICES;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
 	D3D11_SUBRESOURCE_DATA InitData = {};
-	InitData.pSysMem = vertices;
+	InitData.pSysMem = linePoints2;
 	HRESULT hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.VertexBuffer);
 	if (FAILED(hr))
 		return hr;
 
-	ZeroMemory(&bd, sizeof(bd));
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(WORD) * 3;
-	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	bd.CPUAccessFlags = 0;
-
-	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = indices;
-	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.IndexBuffer);
-	if (FAILED(hr))
-		return hr;
 
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
@@ -81,15 +81,13 @@ void GameObjectBezierSpline::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* l
 	UINT stride = sizeof(SimpleVertex);
 	UINT offset = 0;
 	pContext->IASetVertexBuffers(0, 1, &mesh.VertexBuffer, &stride, &offset);
-	// Set index buffer
-	pContext->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 	pContext->IASetInputLayout(m_inputLayout);
 	// Render the cube
 	pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	pContext->VSSetShader(vertexShader, nullptr, 0);
 	pContext->PSSetShader(pixelShader, nullptr, 0);
-	pContext->DrawIndexed(3, 0, 0);
+	pContext->DrawIndexed(NUM_VERTICES, 0, 0);
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 }
