@@ -40,6 +40,10 @@ private:
     static ID3D11PixelShader* linePixelShader;
     static ID3D11InputLayout* lineInputLayout;
 
+    static ID3D11VertexShader* terrainVertexShader;
+    static ID3D11PixelShader* terrainPixelShader;
+    static ID3D11InputLayout* terrainInputLayout;
+
 public:
     static ShaderData shaderStandard;
     static ShaderData shaderRTT;
@@ -48,6 +52,7 @@ public:
     static ShaderData shaderDPosition;
     static ShaderData shaderDPost;
     static ShaderData shaderLine;
+    static ShaderData shaderTerrain;
 
     static HRESULT InitShaders(ID3D11Device* _device);
     static HRESULT CompileShaderFromFile(const WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);

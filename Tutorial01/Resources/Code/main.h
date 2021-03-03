@@ -78,7 +78,7 @@ const int				g_viewHeight = 1080;
 RenderTexture* g_pRT;
 DeferredRenderer* g_pDR;
 ObjectManager* g_pOM;
-GameObjectPlane* g_pPlane = nullptr;
+GameObjectPlane* g_pRenderPlane = nullptr;
 Camera* g_pCamera = nullptr;
 Time* g_pTime = nullptr;
 

@@ -2,7 +2,7 @@
 
 std::vector<GameObject*> ObjectManager::objects;
 std::vector<GameObject*> ObjectManager::deferredObjects;
-GameObjectPlane* ObjectManager::plane;
+GameObjectPlane* ObjectManager::m_renderPlane;
 
 void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _deviceContext)
 {
@@ -17,10 +17,17 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     cube2->SetPosition(XMFLOAT3(5, 0, 0));
     cube2->InitMesh(_device, _deviceContext);
 
-    plane = new GameObjectPlane();
-    plane->InitMesh(_device, _deviceContext);
-    plane->SetShaders(ShaderManager::shaderStandard);
-    plane->SetPosition(XMFLOAT3(0, 0, 0));
+    m_renderPlane = new GameObjectPlane();
+    m_renderPlane->InitMesh(_device, _deviceContext);
+    m_renderPlane->SetShaders(ShaderManager::shaderRTT);
+    m_renderPlane->SetPosition(XMFLOAT3(0, 0, 0));
+
+    m_terrain = new GameObjectTerrain();
+    m_terrain->SetSize(513, 513);
+    //m_terrain->LoadHeightMap((char*)"Resources\\Textures\\terrain.raw");
+    m_terrain->InitMesh(_device, _deviceContext);
+    m_terrain->SetShaders(ShaderManager::shaderTerrain);
+    m_terrain->SetPosition(XMFLOAT3(0, 0, 0));
 
     line = new GameObjectBezierSpline();
     line->InitMesh(_device, _deviceContext);
@@ -35,6 +42,7 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
         deferredObjects.push_back(o);
     }
 
+    objects.push_back(m_terrain);
 
     objects.push_back(cube);
     objects.push_back(cube2);

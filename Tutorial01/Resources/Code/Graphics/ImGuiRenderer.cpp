@@ -109,7 +109,7 @@ void ImGuiRenderer::Render()
         ImGui::Begin("Rendering");
         {
             ImGui::Checkbox("Deferred", &deferred);
-            ImGui::Checkbox("Invert Screen Colours", &ObjectManager::GetScreenPlane()->pp_invertColours);
+            ImGui::Checkbox("Invert Screen Colours", &ObjectManager::GetRenderPlane()->pp_invertColours);
         }
         ImGui::End();
 

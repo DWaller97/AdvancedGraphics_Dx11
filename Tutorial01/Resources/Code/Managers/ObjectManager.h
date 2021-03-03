@@ -6,13 +6,15 @@
 #include "../GameObjects/GameObjectPlane.h"
 #include "../GameObjects/GameObjectCube.h"
 #include "../GameObjects/GameObjectBezierSpline.h"
+#include "../GameObjects/GameObjectTerrain.h"
 
 class ObjectManager
 {
 private:
     GameObjectCube* cube, *cube2;
     GameObjectBezierSpline* line;
-    static GameObjectPlane* plane;
+    GameObjectTerrain* m_terrain;
+    static GameObjectPlane* m_renderPlane;
     GameObject* obj;
     static std::vector<GameObject*> objects;
     static std::vector<GameObject*> deferredObjects;
@@ -22,6 +24,6 @@ public:
     void Render(ID3D11DeviceContext* _deviceContext, ID3D11Buffer* _lightBuffer, XMFLOAT4X4* _projMat, XMFLOAT4X4* _viewMat);
     static std::vector<GameObject*> GetObjects() { return objects; }
     static std::vector<GameObject*> GetDeferredObjects() { return deferredObjects; }
-    static GameObjectPlane* GetScreenPlane() { return plane; }
+    static GameObjectPlane* GetRenderPlane() { return m_renderPlane; }
 };
 
