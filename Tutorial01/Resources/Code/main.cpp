@@ -497,7 +497,7 @@ void Render()
     else {
 /**********************************************************
     MARKING SCHEME:Render to Texture and Full-Screen Quad
-    DESCRIPTION: Renders all of the objects to my seperate
+    DESCRIPTION: Renders all of the objects to my separate
     render target, then switches target to the back buffer
     before rendering again, then setting the texture of my
     plane to the previous render target's resource view

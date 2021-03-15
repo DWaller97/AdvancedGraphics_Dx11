@@ -22,8 +22,8 @@ private:
 
     float* m_heightMap;
     
-    SimpleVertex* m_vertices;
-    WORD* m_indices;
+    BasicVertex* m_vertices;
+    UINT* m_indices;
 
 
     ID3D11ShaderResourceView* m_heightTexture;

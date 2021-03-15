@@ -31,7 +31,7 @@ ImGuiRenderer* ImGuiRenderer::GetInstance()
 
 void ImGuiRenderer::Update(Light* _light)
 {
-    io = ImGui::GetIO();
+    //io = ImGui::GetIO();
     Camera* cam = CameraManager::GetCurrCamera();
     camEye = cam->GetLook();
     camAt = cam->GetPosition();

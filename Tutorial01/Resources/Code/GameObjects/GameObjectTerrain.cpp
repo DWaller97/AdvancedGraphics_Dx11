@@ -3,7 +3,7 @@
 GameObjectTerrain::GameObjectTerrain()
 {
     SetWorldMatrix(new XMFLOAT4X4());
-    NUM_VERTICES = 6;
+	NUM_VERTICES = 6;
     NUM_INDICES = 6;
 }
 
@@ -23,37 +23,58 @@ GameObjectTerrain::~GameObjectTerrain()
 HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
     HRESULT hr;
-	NUM_VERTICES = (m_terrainWidth * m_terrainLength * 6);
-	NUM_INDICES = (m_terrainWidth * m_terrainLength * 6);
-	m_vertices = new SimpleVertex[NUM_VERTICES];
-	m_indices = new WORD[NUM_INDICES];
+	m_terrainWidth = 1;
+	m_terrainLength = 1;
+	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
+	NUM_INDICES *= (m_terrainWidth * m_terrainLength);
+	m_vertices = new BasicVertex[6];
+	m_indices = new UINT[6];
+	int i = 0, j = 0;
+	// top
+	m_vertices[0] = { XMFLOAT3(-1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }; // 3 // 0
+	m_vertices[1] = { XMFLOAT3(1.0f, 0.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }; // 1 // 1
+	m_vertices[2] = { XMFLOAT3(-1.0f, 0.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }; // 0 // 2
 
-	for (int i = 0, vertCount = 0, indexCount = 0; i < m_terrainWidth; i++) {
-		for (int j = 0; j < m_terrainLength; j++) {
-			m_vertices[vertCount] = SimpleVertex
-			{ XMFLOAT3(1.0f + (i * 1), 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) };
-			m_vertices[vertCount + 1] = SimpleVertex
-			{ XMFLOAT3(-1.0f + (i * 1), 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) };
-			m_vertices[vertCount + 2] = SimpleVertex
-			{ XMFLOAT3(1.0f + (i * 1), 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) };
+	m_vertices[3] = { XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }; // 2 // 3
+	m_vertices[4] = { XMFLOAT3(1.0f, 0.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }; // 1 // 4
+	m_vertices[5] = { XMFLOAT3(-1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }; // 3 // 5
 
-			m_vertices[vertCount + 3] = SimpleVertex
-			{ XMFLOAT3(-1.0f + (i * 1), 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) };
-			m_vertices[vertCount + 4] = SimpleVertex
-			{ XMFLOAT3(-1.0f + (i * 1), 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) };
-			m_vertices[vertCount + 5] = SimpleVertex
-			{ XMFLOAT3(1.0f + (i * 1), 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) };
+	 
+	m_indices[0] = 0;
+	m_indices[1] = 1;
+	m_indices[2] = 2;
 
-			m_indices[indexCount] = vertCount + 1;
-			m_indices[indexCount + 1] = vertCount;
-			m_indices[indexCount + 2] = vertCount + 2;
+	m_indices[3] = 3;
+	m_indices[4] = 4;
+	m_indices[5] = 5;
 
-			m_indices[indexCount + 3] = vertCount + 4;
-			m_indices[indexCount + 4] = vertCount + 3;
-			m_indices[indexCount + 5] = vertCount + 5;
-			vertCount += 6, indexCount += 6;
-		}
-	}
+	//for (int i = 0, vertCount = 0, indexCount = 0; i < m_terrainWidth; i++) {
+	//	for (int j = 0; j < m_terrainLength; j++) {
+	//		m_vertices[vertCount] = SimpleVertex
+	//		{ XMFLOAT3(1.0f + (i * 1), 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) };
+	//		m_vertices[vertCount + 1] = SimpleVertex
+	//		{ XMFLOAT3(-1.0f + (i * 1), 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) };
+	//		m_vertices[vertCount + 2] = SimpleVertex
+	//		{ XMFLOAT3(1.0f + (i * 1), 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) };
+
+	//		m_vertices[vertCount + 3] = SimpleVertex
+	//		{ XMFLOAT3(-1.0f + (i * 1), 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) };
+	//		m_vertices[vertCount + 4] = SimpleVertex
+	//		{ XMFLOAT3(-1.0f + (i * 1), 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) };
+	//		m_vertices[vertCount + 5] = SimpleVertex
+	//		{ XMFLOAT3(1.0f + (i * 1), 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) };
+
+	//		m_indices[indexCount] = vertCount + 1;
+	//		m_indices[indexCount + 1] = vertCount;
+	//		m_indices[indexCount + 2] = vertCount + 2;
+
+	//		m_indices[indexCount + 3] = vertCount + 4;
+	//		m_indices[indexCount + 4] = vertCount + 3;
+	//		m_indices[indexCount + 5] = vertCount + 5;
+	//		vertCount += 6, indexCount += 6;
+	//	}
+	//	indexCount++;
+	//}
 
 	//{
 	//	{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 6 // 6
@@ -73,7 +94,7 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(SimpleVertex) * NUM_VERTICES;
+	bd.ByteWidth = sizeof(BasicVertex) * NUM_VERTICES;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
@@ -85,7 +106,7 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(WORD) * NUM_INDICES;
+	bd.ByteWidth = sizeof(UINT) * NUM_INDICES;
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
@@ -161,14 +182,13 @@ void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightC
 
 
 	// Set vertex buffer
-	UINT stride = sizeof(SimpleVertex);
+	UINT stride = sizeof(BasicVertex);
 	UINT offset = 0;
 	pContext->IASetVertexBuffers(0, 1, &mesh.VertexBuffer, &stride, &offset);
 	// Set index buffer
-	pContext->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	pContext->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 	pContext->IASetInputLayout(m_inputLayout);
-	// Render the cube
 	pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	pContext->PSSetConstantBuffers(1, 1, &m_pMaterialConstantBuffer);
 	pContext->VSSetShader(vertexShader, nullptr, 0);
@@ -176,11 +196,11 @@ void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightC
 
 	//pContext->PSSetConstantBuffers(3, 1, &m_pCameraBuffer);
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
-	pContext->PSSetShaderResources(1, 1, &m_heightTexture);
+	//pContext->VSSetShaderResources(1, 1, &m_heightTexture);
 
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
+	//pContext->VSSetSamplers(1, 1, &m_pSamplerLinear);
 	pContext->DrawIndexed(NUM_INDICES, 0, 0);
-
 }
 
 void GameObjectTerrain::SetSize(int _width, int _length)
@@ -192,7 +212,7 @@ void GameObjectTerrain::SetSize(int _width, int _length)
 void GameObjectTerrain::LoadHeightMap(char* _fileName)
 {
 	// A height for each vertex 
-	std::vector<unsigned char> in(513 * 513);
+	std::vector<unsigned char> in(m_terrainWidth * m_terrainLength);
 
 	// Open the file.
 	std::ifstream inFile;
@@ -208,7 +228,7 @@ void GameObjectTerrain::LoadHeightMap(char* _fileName)
 
 	// Copy the array data into a float array and scale it. mHeightmap.resize(heightmapHeight * heightmapWidth, 0);
 
-	for (UINT i = 0; i < 513 * 513; ++i)
+	for (UINT i = 0; i < m_terrainWidth * m_terrainLength; ++i)
 	{
 		m_heightMap[i] = (in[i] / 255.0f) * m_heightScale;
 	}
