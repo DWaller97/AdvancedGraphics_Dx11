@@ -26,7 +26,8 @@ private:
     UINT* m_indices;
 
 
-    ID3D11ShaderResourceView* m_heightTexture;
+    ID3D11Texture2D *m_heightTexture;
+    ID3D11ShaderResourceView *m_heightTextureSRV;
 
 
 };

@@ -77,7 +77,7 @@ protected:
 
 	ID3D11ShaderResourceView*			m_pTextureResourceView = nullptr;
 	ID3D11SamplerState *				m_pSamplerLinear = nullptr;
-	ID3D11SamplerState*					m_pSamplerNormal = nullptr;
+	ID3D11SamplerState*					m_pSamplerHeight = nullptr;
 	MaterialPropertiesConstantBuffer	m_material;
 	ID3D11InputLayout*					m_inputLayout = nullptr;
 

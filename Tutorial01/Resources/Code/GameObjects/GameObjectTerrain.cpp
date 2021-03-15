@@ -23,23 +23,20 @@ GameObjectTerrain::~GameObjectTerrain()
 HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
     HRESULT hr;
-	m_terrainWidth = 2049;
-	m_terrainLength = 2049;
 	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
 	NUM_INDICES *= (m_terrainWidth * m_terrainLength);
 	m_vertices = new BasicVertex[NUM_VERTICES];
 	m_indices = new UINT[NUM_INDICES];
-	
 	for (int i = 0, vert = 0, ind = 0; i < m_terrainWidth; i++ ) {
 		for (int j = 0; j < m_terrainLength; j++, vert += 6, ind += 6) {
 			// top
-			m_vertices[vert] = { XMFLOAT3(-1.0f + i, 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }; // 3 // 0
-			m_vertices[vert + 1] = { XMFLOAT3(1.0f + i, 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }; // 1 // 1
-			m_vertices[vert + 2] = { XMFLOAT3(-1.0f + i, 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }; // 0 // 2
+			m_vertices[vert] = { XMFLOAT3(-1.0f + i, 0 , 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }; // 3 // 0
+			m_vertices[vert + 1] = { XMFLOAT3(1.0f + i, 0, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }; // 1 // 1
+			m_vertices[vert + 2] = { XMFLOAT3(-1.0f + i, 0, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }; // 0 // 2
 
-			m_vertices[vert + 3] = { XMFLOAT3(1.0f + i, 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }; // 2 // 3
-			m_vertices[vert + 4] = { XMFLOAT3(1.0f + i, 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }; // 1 // 4
-			m_vertices[vert + 5] = { XMFLOAT3(-1.0f + i, 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }; // 3 // 5
+			m_vertices[vert + 3] = { XMFLOAT3(1.0f + i, 0, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }; // 2 // 3
+			m_vertices[vert + 4] = { XMFLOAT3(1.0f + i, 0, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }; // 1 // 4
+			m_vertices[vert + 5] = { XMFLOAT3(-1.0f + i, 0, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }; // 3 // 5
 
 
 			m_indices[ind] = ind;
@@ -53,57 +50,30 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 		}
 
 	}
-	//for (int i = 0, vertCount = 0, indexCount = 0; i < m_terrainWidth; i++) {
-	//	for (int j = 0; j < m_terrainLength; j++) {
-	//		m_vertices[vertCount] = SimpleVertex
-	//		{ XMFLOAT3(1.0f + (i * 1), 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) };
-	//		m_vertices[vertCount + 1] = SimpleVertex
-	//		{ XMFLOAT3(-1.0f + (i * 1), 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) };
-	//		m_vertices[vertCount + 2] = SimpleVertex
-	//		{ XMFLOAT3(1.0f + (i * 1), 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) };
+	D3D11_TEXTURE2D_DESC desc;
+	desc.Width = m_terrainWidth;
+	desc.Height = m_terrainLength;
+	desc.MipLevels = desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R16_FLOAT;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DYNAMIC;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	desc.MiscFlags = 0;
+	D3D11_SUBRESOURCE_DATA InitData = {};
+	InitData.pSysMem = m_heightMap;
+	pd3dDevice->CreateTexture2D(&desc, &InitData, &m_heightTexture);
 
-	//		m_vertices[vertCount + 3] = SimpleVertex
-	//		{ XMFLOAT3(-1.0f + (i * 1), 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) };
-	//		m_vertices[vertCount + 4] = SimpleVertex
-	//		{ XMFLOAT3(-1.0f + (i * 1), 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) };
-	//		m_vertices[vertCount + 5] = SimpleVertex
-	//		{ XMFLOAT3(1.0f + (i * 1), 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) };
+	pd3dDevice->CreateShaderResourceView(m_heightTexture, NULL, &m_heightTextureSRV);
 
-	//		m_indices[indexCount] = vertCount + 1;
-	//		m_indices[indexCount + 1] = vertCount;
-	//		m_indices[indexCount + 2] = vertCount + 2;
-
-	//		m_indices[indexCount + 3] = vertCount + 4;
-	//		m_indices[indexCount + 4] = vertCount + 3;
-	//		m_indices[indexCount + 5] = vertCount + 5;
-	//		vertCount += 6, indexCount += 6;
-	//	}
-	//	indexCount++;
-	//}
-
-	//{
-	//	{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 6 // 6
-	//	{ XMFLOAT3(-1.0f, 0.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 4 // 7
-	//	{ XMFLOAT3(1.0f, 0.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 5 // 8
-
-	//	{ XMFLOAT3(-1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 7 // 9
-	//	{ XMFLOAT3(-1.0f, 0.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 4 // 10 
-	//	{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 6 // 11
-	//};
-
-	//WORD m_indices[] = {
-	//	// Front Face
-	//	1, 0, 2,
-	//	4, 3, 5
-	//};
 
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(BasicVertex) * NUM_VERTICES;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
-
-	D3D11_SUBRESOURCE_DATA InitData = {};
+	ZeroMemory(&InitData, sizeof(InitData));
+	
 	InitData.pSysMem = m_vertices;
 	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.VertexBuffer);
 	if (FAILED(hr))
@@ -149,12 +119,9 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
+	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerHeight);
 
 	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\darkdirt.dds", nullptr, &m_albedoTexture);
-	if (FAILED(hr))
-		return hr;
-
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\stone.dds", nullptr, &m_heightTexture);
 	if (FAILED(hr))
 		return hr;
 
@@ -177,7 +144,7 @@ void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightC
 	cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(projMat));
 	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
 	pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
-
+	
 	MaterialPropertiesConstantBuffer redPlasticMaterial;
 	redPlasticMaterial.Material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	redPlasticMaterial.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
@@ -201,10 +168,10 @@ void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightC
 
 	//pContext->PSSetConstantBuffers(3, 1, &m_pCameraBuffer);
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
-	//pContext->VSSetShaderResources(1, 1, &m_heightTexture);
+	pContext->VSSetShaderResources(1, 1, &m_heightTextureSRV);
 
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
-	//pContext->VSSetSamplers(1, 1, &m_pSamplerLinear);
+	pContext->VSSetSamplers(1, 1, &m_pSamplerHeight);
 	pContext->DrawIndexed(NUM_INDICES, 0, 0);
 }
 
@@ -228,13 +195,18 @@ void GameObjectTerrain::LoadHeightMap(char* _fileName)
 		// Read the RAW bytes.
 		inFile.read((char*)&in[0], (std::streamsize)in.size());
 		// Done with file.
-			inFile.close();
+		inFile.close();
 	}
+
+	m_heightMap = new float[m_terrainWidth * m_terrainLength];
 
 	// Copy the array data into a float array and scale it. mHeightmap.resize(heightmapHeight * heightmapWidth, 0);
 
 	for (UINT i = 0; i < m_terrainWidth * m_terrainLength; ++i)
 	{
-		m_heightMap[i] = (in[i] / 255.0f) * m_heightScale;
+		m_heightMap[i] = (in[i] / 255.0f) * 10;
 	}
+	
+
+	//printf("Height map: %f\n Size:%f", m_heightMap[m_terrainWidth * m_terrainLength - 1], m_terrainWidth * m_terrainLength);
 }
