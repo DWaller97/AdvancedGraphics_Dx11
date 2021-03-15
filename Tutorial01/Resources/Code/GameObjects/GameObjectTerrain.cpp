@@ -23,31 +23,36 @@ GameObjectTerrain::~GameObjectTerrain()
 HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
     HRESULT hr;
-	m_terrainWidth = 1;
-	m_terrainLength = 1;
+	m_terrainWidth = 2049;
+	m_terrainLength = 2049;
 	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
 	NUM_INDICES *= (m_terrainWidth * m_terrainLength);
-	m_vertices = new BasicVertex[6];
-	m_indices = new UINT[6];
-	int i = 0, j = 0;
-	// top
-	m_vertices[0] = { XMFLOAT3(-1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }; // 3 // 0
-	m_vertices[1] = { XMFLOAT3(1.0f, 0.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }; // 1 // 1
-	m_vertices[2] = { XMFLOAT3(-1.0f, 0.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }; // 0 // 2
+	m_vertices = new BasicVertex[NUM_VERTICES];
+	m_indices = new UINT[NUM_INDICES];
+	
+	for (int i = 0, vert = 0, ind = 0; i < m_terrainWidth; i++ ) {
+		for (int j = 0; j < m_terrainLength; j++, vert += 6, ind += 6) {
+			// top
+			m_vertices[vert] = { XMFLOAT3(-1.0f + i, 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }; // 3 // 0
+			m_vertices[vert + 1] = { XMFLOAT3(1.0f + i, 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }; // 1 // 1
+			m_vertices[vert + 2] = { XMFLOAT3(-1.0f + i, 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }; // 0 // 2
 
-	m_vertices[3] = { XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }; // 2 // 3
-	m_vertices[4] = { XMFLOAT3(1.0f, 0.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }; // 1 // 4
-	m_vertices[5] = { XMFLOAT3(-1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }; // 3 // 5
+			m_vertices[vert + 3] = { XMFLOAT3(1.0f + i, 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }; // 2 // 3
+			m_vertices[vert + 4] = { XMFLOAT3(1.0f + i, 0.0f, -1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }; // 1 // 4
+			m_vertices[vert + 5] = { XMFLOAT3(-1.0f + i, 0.0f, 1.0f + j), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }; // 3 // 5
 
-	 
-	m_indices[0] = 0;
-	m_indices[1] = 1;
-	m_indices[2] = 2;
 
-	m_indices[3] = 3;
-	m_indices[4] = 4;
-	m_indices[5] = 5;
+			m_indices[ind] = ind;
+			m_indices[ind + 1] = ind + 1;
+			m_indices[ind + 2] = ind + 2;
 
+			m_indices[ind + 3] = ind + 3;
+			m_indices[ind + 4] = ind + 4;
+			m_indices[ind + 5] = ind + 5;
+
+		}
+
+	}
 	//for (int i = 0, vertCount = 0, indexCount = 0; i < m_terrainWidth; i++) {
 	//	for (int j = 0; j < m_terrainLength; j++) {
 	//		m_vertices[vertCount] = SimpleVertex
