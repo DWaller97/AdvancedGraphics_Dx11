@@ -49,7 +49,6 @@ Texture2D txHeight : register(t1);
 
 PSIN VS(VSIN IN) {
 	PSIN output = (PSIN)0;
-	output.Pos.y = txHeight.SampleLevel (samLinearHeight, IN.Tex, 0, 0).r * 100;
 	output.Pos = mul(IN.Pos, World);
 	output.WorldPos = output.Pos;
 	output.Pos = mul(output.Pos, View);

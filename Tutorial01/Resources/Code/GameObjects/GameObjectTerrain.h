@@ -20,7 +20,7 @@ private:
     int m_terrainLength = 1;
     int m_heightScale = 1;
 
-    float* m_heightMap;
+    double* m_heightMap;
     
     BasicVertex* m_vertices;
     UINT* m_indices;
