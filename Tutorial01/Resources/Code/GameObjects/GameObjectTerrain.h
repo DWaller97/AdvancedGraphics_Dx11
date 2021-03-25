@@ -4,7 +4,7 @@ class GameObjectTerrain :
     public GameObject
 {
 public:
-    GameObjectTerrain();
+    GameObjectTerrain(/*char* _fileName*/);
     ~GameObjectTerrain();
     
     HRESULT						virtual InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext) override;
@@ -25,9 +25,6 @@ private:
     BasicVertex* m_vertices;
     UINT* m_indices;
 
-
-    ID3D11Texture2D *m_heightTexture;
-    ID3D11ShaderResourceView *m_heightTextureSRV;
 
 
 };

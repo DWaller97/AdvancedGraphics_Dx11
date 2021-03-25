@@ -3,7 +3,7 @@
 GameObjectTerrain::GameObjectTerrain()
 {
     SetWorldMatrix(new XMFLOAT4X4());
-	NUM_VERTICES = 6;
+	NUM_VERTICES = 1;
     NUM_INDICES = 6;
 }
 
@@ -27,29 +27,66 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 	NUM_INDICES *= (m_terrainWidth * m_terrainLength);
 	m_vertices = new BasicVertex[NUM_VERTICES];
 	m_indices = new UINT[NUM_INDICES];
-	for (int i = 0, vert = 0, ind = 0; i < m_terrainWidth; i++ ) {
-		for (int j = 0; j < m_terrainLength; j++, vert += 6, ind += 6) {
-			// top
-			m_vertices[vert] = { XMFLOAT3(-1.0f + (i * 2), m_heightMap[(i * j) + j] , 1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }; // 3 // 0
-			m_vertices[vert + 1] = { XMFLOAT3(1.0f + (i * 2), m_heightMap[(i * j) + j + 1], -1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }; // 1 // 1
-			m_vertices[vert + 2] = { XMFLOAT3(-1.0f + (i * 2), m_heightMap[(i * j) + j + 2], -1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }; // 0 // 2
 
-			m_vertices[vert + 3] = { XMFLOAT3(1.0f + (i * 2), m_heightMap[(i * j) + j + 3], 1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }; // 2 // 3
-			m_vertices[vert + 4] = { XMFLOAT3(1.0f + (i * 2), m_heightMap[(i * j) + j + 4], -1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }; // 1 // 4
-			m_vertices[vert + 5] = { XMFLOAT3(-1.0f + (i * 2), m_heightMap[(i * j) + j + 5], 1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }; // 3 // 5
-
-
-			m_indices[ind] = ind;
-			m_indices[ind + 1] = ind + 1;
-			m_indices[ind + 2] = ind + 2;
-
-			m_indices[ind + 3] = ind + 3;
-			m_indices[ind + 4] = ind + 4;
-			m_indices[ind + 5] = ind + 5;
-
+	for (int i = 0; i < m_terrainLength; i++) {
+		for (int j = 0; j < m_terrainWidth; j++) {
+			float u = (float)i / m_terrainLength;
+			float v = (float)j / m_terrainWidth;
+			m_vertices[(i * m_terrainLength) + j] = { XMFLOAT3((i), m_heightMap[(i * m_terrainLength) + j], (j)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(u, v) };
 		}
-
 	}
+
+	for (int i = 0, indices = 0; i < m_terrainLength - 1; i++) {
+		for (int j = 0; j < m_terrainWidth - 1; j++, indices+=6) {
+			m_indices[indices] = (i * m_terrainLength) + j;
+			m_indices[indices + 1] = (i * m_terrainLength) + j + 1;
+			m_indices[indices + 2] = ((i + 1) * m_terrainLength) + j;
+
+			m_indices[indices + 3] = ((i + 1) * m_terrainLength) + j;
+			m_indices[indices + 4] = (i * m_terrainLength) + j + 1;
+			m_indices[indices + 5] = ((i + 1) * m_terrainLength) + j + 1;
+		}
+	}
+
+	//for (int i = 0, vert = 0, ind = 0; i < m_terrainWidth / 2; i++ ) {
+	//	for (int j = 0; j < m_terrainLength / 2; j++, vert += 4, ind += 6) {
+
+	//		m_vertices[vert] = { XMFLOAT3((i), 0, (j )), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) };
+	//		m_vertices[vert + 1] = { XMFLOAT3((i ) + 1, 0, (j )), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) };
+	//		m_vertices[vert + 2] = { XMFLOAT3((i ), 0, (j) + 1), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) };
+	//		m_vertices[vert + 3] = { XMFLOAT3((i ) + 1, 0, (j ) + 1), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) };
+	//		m_indices[ind] = vert + 1;
+	//		m_indices[ind + 1] = vert + 0;
+	//		m_indices[ind + 2] = vert + 2;
+	//		m_indices[ind + 3] = vert + 1;
+	//		m_indices[ind + 4] = vert + 2;
+	//		m_indices[ind + 5] = vert + 3;
+
+
+	//		//
+	//		//m_vertices[vert] =		{ XMFLOAT3(-1.0f + (i * 2), height1, 1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) };	// 3 // 0
+	//		//m_vertices[vert + 1] = { XMFLOAT3(1.0f + (i * 2), height1, -1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) };   // 1 // 1
+	//		//m_vertices[vert + 2] = { XMFLOAT3(-1.0f + (i * 2), height1, -1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) };  // 0 // 2
+
+	//		//m_vertices[vert + 3] = { XMFLOAT3(1.0f + (i * 2), height1, 1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) };    // 2 // 3
+	//		//m_vertices[vert + 4] = { XMFLOAT3(1.0f + (i * 2), height1, -1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) };   // 1 // 4
+	//		//m_vertices[vert + 5] = { XMFLOAT3(-1.0f + (i * 2), height1, 1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) };   // 3 // 5
+
+	//		//m_indices[ind] = ind;
+	//		//m_indices[ind + 1] = ind + 1;
+	//		//m_indices[ind + 2] = ind + 2;
+
+	//		//m_indices[ind + 3] = ind + 3;
+	//		//m_indices[ind + 4] = ind + 4;
+	//		//m_indices[ind + 5] = ind + 5;
+
+	//	}
+
+	//}
+
+	//for (int i = 0; i < m_terrainWidth; i++) {
+	//	m_vertices[i].pos.y = m_heightMap[i];
+	//}
 	D3D11_TEXTURE2D_DESC desc;
 	desc.Width = m_terrainWidth;
 	desc.Height = m_terrainLength;
@@ -61,15 +98,8 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = 0;
+
 	D3D11_SUBRESOURCE_DATA InitData = {};
-	InitData.pSysMem = m_heightMap;
-	InitData.SysMemPitch = sizeof(double) * m_terrainWidth;
-	hr = pd3dDevice->CreateTexture2D(&desc, &InitData, &m_heightTexture);
-	if (FAILED(hr))
-		return hr;
-	hr = pd3dDevice->CreateShaderResourceView(m_heightTexture, NULL, &m_heightTextureSRV);
-	if (FAILED(hr))
-		return hr;
 
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
@@ -142,6 +172,9 @@ void GameObjectTerrain::Update(float t)
 
 void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
 {
+	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
+
 	ConstantBuffer cb1;
 	cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(m_World));
 	cb1.mView = XMMatrixTranspose(XMLoadFloat4x4(viewMat));
@@ -170,13 +203,13 @@ void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightC
 	pContext->VSSetShader(vertexShader, nullptr, 0);
 	pContext->PSSetShader(pixelShader, nullptr, 0);
 
-	//pContext->PSSetConstantBuffers(3, 1, &m_pCameraBuffer);
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
-	pContext->VSSetShaderResources(1, 1, &m_heightTextureSRV);
 
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
 	pContext->VSSetSamplers(1, 1, &m_pSamplerHeight);
 	pContext->DrawIndexed(NUM_INDICES, 0, 0);
+	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 }
 
 void GameObjectTerrain::SetSize(int _width, int _length)

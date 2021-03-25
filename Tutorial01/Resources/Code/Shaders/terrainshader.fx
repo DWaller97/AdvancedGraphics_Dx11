@@ -43,9 +43,7 @@ struct PSIN {
 
 
 SamplerState samLinear : register(s0);
-SamplerState samLinearHeight : register(s1);
 Texture2D txDiffuse : register(t0);
-Texture2D txHeight : register(t1);
 
 PSIN VS(VSIN IN) {
 	PSIN output = (PSIN)0;

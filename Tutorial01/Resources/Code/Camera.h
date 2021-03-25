@@ -49,7 +49,7 @@ private:
 	DirectX::XMFLOAT4 at, right, up, eye, forward;
 	DirectX::XMFLOAT4X4 view, proj, world;
 	float fovY, aspect, nearZ, farZ;
-	float strafeSpeed = 0.2f, moveSpeed = 0.2f, pitchSpeed = 0.2f, rotateYSpeed = 0.2f;
+	float strafeSpeed = 0.2f, moveSpeed = 20.0f, pitchSpeed = 0.2f, rotateYSpeed = 0.2f;
 	DirectX::XMFLOAT3 rotation;
 };
 
