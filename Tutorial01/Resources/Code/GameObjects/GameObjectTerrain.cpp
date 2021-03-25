@@ -1,10 +1,13 @@
 #include "GameObjectTerrain.h"
 
-GameObjectTerrain::GameObjectTerrain()
+GameObjectTerrain::GameObjectTerrain(char* _fileName)
 {
     SetWorldMatrix(new XMFLOAT4X4());
 	NUM_VERTICES = 1;
     NUM_INDICES = 6;
+	SetPosition(XMFLOAT3(-5, 0, -5));
+	LoadFromXML(_fileName);
+
 }
 
 GameObjectTerrain::~GameObjectTerrain()
@@ -32,7 +35,7 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 		for (int j = 0; j < m_terrainWidth; j++) {
 			float u = (float)i / m_terrainLength;
 			float v = (float)j / m_terrainWidth;
-			m_vertices[(i * m_terrainLength) + j] = { XMFLOAT3((i), m_heightMap[(i * m_terrainLength) + j], (j)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(u, v) };
+			m_vertices[(i * m_terrainLength) + j] = { XMFLOAT3((i), m_heightMap[(i * m_terrainLength) + j] * m_heightScale, (j)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(u, v) };
 		}
 	}
 
@@ -48,45 +51,6 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 		}
 	}
 
-	//for (int i = 0, vert = 0, ind = 0; i < m_terrainWidth / 2; i++ ) {
-	//	for (int j = 0; j < m_terrainLength / 2; j++, vert += 4, ind += 6) {
-
-	//		m_vertices[vert] = { XMFLOAT3((i), 0, (j )), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) };
-	//		m_vertices[vert + 1] = { XMFLOAT3((i ) + 1, 0, (j )), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) };
-	//		m_vertices[vert + 2] = { XMFLOAT3((i ), 0, (j) + 1), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) };
-	//		m_vertices[vert + 3] = { XMFLOAT3((i ) + 1, 0, (j ) + 1), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) };
-	//		m_indices[ind] = vert + 1;
-	//		m_indices[ind + 1] = vert + 0;
-	//		m_indices[ind + 2] = vert + 2;
-	//		m_indices[ind + 3] = vert + 1;
-	//		m_indices[ind + 4] = vert + 2;
-	//		m_indices[ind + 5] = vert + 3;
-
-
-	//		//
-	//		//m_vertices[vert] =		{ XMFLOAT3(-1.0f + (i * 2), height1, 1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) };	// 3 // 0
-	//		//m_vertices[vert + 1] = { XMFLOAT3(1.0f + (i * 2), height1, -1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) };   // 1 // 1
-	//		//m_vertices[vert + 2] = { XMFLOAT3(-1.0f + (i * 2), height1, -1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) };  // 0 // 2
-
-	//		//m_vertices[vert + 3] = { XMFLOAT3(1.0f + (i * 2), height1, 1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) };    // 2 // 3
-	//		//m_vertices[vert + 4] = { XMFLOAT3(1.0f + (i * 2), height1, -1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) };   // 1 // 4
-	//		//m_vertices[vert + 5] = { XMFLOAT3(-1.0f + (i * 2), height1, 1.0f + (j * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) };   // 3 // 5
-
-	//		//m_indices[ind] = ind;
-	//		//m_indices[ind + 1] = ind + 1;
-	//		//m_indices[ind + 2] = ind + 2;
-
-	//		//m_indices[ind + 3] = ind + 3;
-	//		//m_indices[ind + 4] = ind + 4;
-	//		//m_indices[ind + 5] = ind + 5;
-
-	//	}
-
-	//}
-
-	//for (int i = 0; i < m_terrainWidth; i++) {
-	//	m_vertices[i].pos.y = m_heightMap[i];
-	//}
 	D3D11_TEXTURE2D_DESC desc;
 	desc.Width = m_terrainWidth;
 	desc.Height = m_terrainLength;
@@ -246,4 +210,24 @@ void GameObjectTerrain::LoadHeightMap(char* _fileName)
 	
 
 	//printf("Height map: %f\n Size:%f", m_heightMap[m_terrainWidth * m_terrainLength - 1], m_terrainWidth * m_terrainLength);
+}
+
+void GameObjectTerrain::LoadFromXML(char* _fileName)
+{
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file(_fileName);
+	if (result.status != pugi::xml_parse_status::status_ok)
+	{
+		printf("Terrain file failed to open, error: %s", result.description());
+	}
+	pugi::xml_node node = doc.first_child();
+	pugi::xml_attribute attr = node.first_attribute();
+	m_terrainLength = attr.as_uint();
+	attr = attr.next_attribute();
+	m_terrainWidth = attr.as_uint();
+	attr = attr.next_attribute();
+	LoadHeightMap((char*)attr.as_string());
+	attr = attr.next_attribute();
+	m_heightScale = attr.as_uint();
+
 }

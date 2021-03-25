@@ -1,12 +1,12 @@
 #pragma once
 #include "GameObject.h"
+#include "../External/pugiXML/pugixml.hpp"
 class GameObjectTerrain :
     public GameObject
 {
 public:
-    GameObjectTerrain(/*char* _fileName*/);
+    GameObjectTerrain(char* _fileName);
     ~GameObjectTerrain();
-    
     HRESULT						virtual InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext) override;
     
     void								virtual Update(float t) override;
@@ -16,6 +16,9 @@ public:
     void LoadHeightMap(char* _fileName);
 
 private:
+    void LoadFromXML(char* _fileName);
+
+
     int m_terrainWidth = 1;
     int m_terrainLength = 1;
     int m_heightScale = 1;

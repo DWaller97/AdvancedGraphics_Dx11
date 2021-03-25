@@ -27,6 +27,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Resources\Code\External\pugiXML\pugixml.cpp" />
     <ClCompile Include="Resources\Code\GameObjects\GameObjectTerrain.cpp" />
     <ClCompile Include="Resources\Code\Camera.cpp" />
     <ClCompile Include="Resources\Code\External\imgui\imgui.cpp" />
@@ -52,6 +53,8 @@
     <ClCompile Include="Resources\Code\Utilities\Time.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Resources\Code\External\pugiXML\pugiconfig.hpp" />
+    <ClInclude Include="Resources\Code\External\pugiXML\pugixml.hpp" />
     <ClInclude Include="Resources\Code\GameObjects\GameObjectTerrain.h" />
     <ClInclude Include="Resources\Code\Camera.h" />
     <ClInclude Include="Resources\Code\External\imgui\imconfig.h" />
