@@ -6,6 +6,7 @@ class GameObjectTerrain :
 {
 public:
     GameObjectTerrain(char* _fileName);
+    GameObjectTerrain();
     ~GameObjectTerrain();
     HRESULT						virtual InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext) override;
     
@@ -14,10 +15,11 @@ public:
 
     void SetSize(int _width, int _length);
     void LoadHeightMap(char* _fileName);
-
+    void DiamondSquare(UINT _size, int _c1 = 0, int _c2 = 0, int _c3 = 0, int _c4 = 0);
 private:
     void LoadFromXML(char* _fileName);
-
+    void SquareStep(int _center, int _radius);
+    void DiamondStep(int _center, int _radius);
 
     int m_terrainWidth = 1;
     int m_terrainLength = 1;

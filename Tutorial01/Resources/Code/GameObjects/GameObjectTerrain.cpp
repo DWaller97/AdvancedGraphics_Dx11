@@ -10,14 +10,26 @@ GameObjectTerrain::GameObjectTerrain(char* _fileName)
 
 }
 
+GameObjectTerrain::GameObjectTerrain()
+{
+	m_heightMap = nullptr;
+	m_indices = nullptr;
+	m_vertices = nullptr;
+	SetWorldMatrix(new XMFLOAT4X4());
+	SetPosition(XMFLOAT3(-5, 0, -5));
+}
+
 GameObjectTerrain::~GameObjectTerrain()
 {
     delete m_World;
     m_World = nullptr;
+	if (m_heightMap)
+		delete[] m_heightMap;
 	if (m_vertices)
-		delete m_vertices;
+		delete[] m_vertices;
 	if (m_indices)
-		delete m_indices;
+		delete[] m_indices;
+	m_heightMap = nullptr;
 	m_vertices = nullptr;
 	m_indices = nullptr;
     Release();
@@ -212,6 +224,25 @@ void GameObjectTerrain::LoadHeightMap(char* _fileName)
 	//printf("Height map: %f\n Size:%f", m_heightMap[m_terrainWidth * m_terrainLength - 1], m_terrainWidth * m_terrainLength);
 }
 
+void GameObjectTerrain::DiamondSquare(UINT _size, int _c1, int _c2, int _c3, int _c4)
+{
+	//2^n + 1
+	int size = _size + 1;
+	m_terrainLength = size;
+	m_terrainWidth = size;
+	m_heightMap = new double[size * size];
+	m_heightMap[0] = _c1;
+	m_heightMap[size] = _c2;
+	m_heightMap[(size * size) - size] = _c3;
+	m_heightMap[size * size] = _c4;
+	int radius = size / 2;
+	int half = (size - 1) * (size - 1);
+	while (half > 1) {
+		half /= 2;
+		SquareStep(half, radius);
+	}
+}
+
 void GameObjectTerrain::LoadFromXML(char* _fileName)
 {
 	pugi::xml_document doc;
@@ -230,4 +261,25 @@ void GameObjectTerrain::LoadFromXML(char* _fileName)
 	attr = attr.next_attribute();
 	m_heightScale = attr.as_uint();
 
+}
+
+void GameObjectTerrain::SquareStep(int _center, int _radius)
+{
+	int test = _center - ((m_terrainLength * _radius)) + (_radius * 2);
+	int tr = m_heightMap[_center - ((m_terrainLength * _radius)) + (_radius * 2) - 1];
+	int tl = m_heightMap[_center - (m_terrainLength * _radius)];
+	int bl = m_heightMap[_center + (_radius * m_terrainWidth) - _radius];
+	int br = m_heightMap[_center + (_radius * m_terrainWidth)];
+	float average = (tr + tl + bl + br) / 4;
+	m_heightMap[_center] = average;
+}
+
+void GameObjectTerrain::DiamondStep(int _center, int _radius)
+{
+	int r = m_heightMap[_center + _radius];
+	int l = m_heightMap[_center - _radius];
+	int u = m_heightMap[_center - (_radius * m_terrainWidth)];
+	int d = m_heightMap[_center + (_radius * m_terrainWidth)];
+	float average = (r + l + u + d) * 0.5f;
+	m_heightMap[_center] = average;
 }
