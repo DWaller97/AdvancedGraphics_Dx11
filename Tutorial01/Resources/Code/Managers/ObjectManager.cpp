@@ -7,15 +7,15 @@ GameObjectPlane* ObjectManager::m_renderPlane;
 void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _deviceContext)
 {
 
-    cube = new GameObjectCube();
-    cube->InitMesh(_device, _deviceContext);
-    cube->SetShaders(ShaderManager::shaderStandard);
-    cube->SetPosition(XMFLOAT3(0, 0, 0));
+    //cube = new GameObjectCube();
+    //cube->InitMesh(_device, _deviceContext);
+    //cube->SetShaders(ShaderManager::shaderStandard);
+    //cube->SetPosition(XMFLOAT3(0, 0, 0));
 
-    cube2 = new GameObjectCube();
-    cube2->SetShaders(ShaderManager::shaderStandard);
-    cube2->SetPosition(XMFLOAT3(5, 0, 0));
-    cube2->InitMesh(_device, _deviceContext);
+    //cube2 = new GameObjectCube();
+    //cube2->SetShaders(ShaderManager::shaderStandard);
+    //cube2->SetPosition(XMFLOAT3(5, 0, 0));
+    //cube2->InitMesh(_device, _deviceContext);
 
     m_renderPlane = new GameObjectPlane();
     m_renderPlane->InitMesh(_device, _deviceContext);
@@ -38,8 +38,8 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
 
     objects.push_back(m_terrain);
 
-    objects.push_back(cube);
-    objects.push_back(cube2);
+    //objects.push_back(cube);
+    //objects.push_back(cube2);
 
 }
 

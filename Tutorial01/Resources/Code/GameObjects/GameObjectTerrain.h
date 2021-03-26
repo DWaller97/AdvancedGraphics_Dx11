@@ -1,6 +1,8 @@
 #pragma once
 #include "GameObject.h"
 #include "../External/pugiXML/pugixml.hpp"
+#include <memory>
+using namespace std;
 class GameObjectTerrain :
     public GameObject
 {
@@ -20,14 +22,16 @@ private:
     void LoadFromXML(char* _fileName);
     void SquareStep(int _center, int _radius);
     void DiamondStep(int _center, int _radius);
+    bool IsInBounds(int _1DPos, int _1DMax, int _1DMin = 0);
     int ConvertTo1D(int x, int y);
+
     int m_terrainWidth = 1;
     int m_terrainLength = 1;
     int m_heightScale = 1;
 
-    UINT* m_heightMap = nullptr;
-    BasicVertex* m_vertices = nullptr;
-    UINT* m_indices = nullptr;
+    unique_ptr <UINT[]> m_heightMap = nullptr;
+    unique_ptr<BasicVertex[]> m_vertices = nullptr;
+    unique_ptr <UINT[]> m_indices = nullptr;
 
 
 

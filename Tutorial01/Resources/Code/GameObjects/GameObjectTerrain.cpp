@@ -22,44 +22,33 @@ GameObjectTerrain::~GameObjectTerrain()
 {
     delete m_World;
     m_World = nullptr;
-	if (m_heightMap)
-		delete[] m_heightMap;
-	if (m_vertices)
-		delete[] m_vertices;
-	if (m_indices)
-		delete[] m_indices;
-	m_heightMap = nullptr;
-	m_vertices = nullptr;
-	m_indices = nullptr;
     Release();
 }
 
 HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
     HRESULT hr;
-	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
-	NUM_INDICES *= (m_terrainWidth * m_terrainLength);
-	//int* test = new int[NUM_VERTICES];
-	m_vertices = new BasicVertex[NUM_VERTICES];
-	m_indices = new UINT[NUM_INDICES];
+
+	m_indices = make_unique<UINT[]>(NUM_INDICES);
+	m_vertices = make_unique<BasicVertex[]>(NUM_VERTICES);
 
 	for (int i = 0; i < m_terrainLength; i++) {
 		for (int j = 0; j < m_terrainWidth; j++) {
 			float u = (float)i / m_terrainLength;
 			float v = (float)j / m_terrainWidth;
-			m_vertices[(i * m_terrainLength) + j] = { XMFLOAT3((i), m_heightMap[(i * m_terrainLength) + j] * m_heightScale, (j)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(u, v) };
+			m_vertices.get()[(i * m_terrainLength) + j] = { XMFLOAT3((i), m_heightMap.get()[(i * m_terrainLength) + j] * m_heightScale, (j)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(u, v) };
 		}
 	}
 
 	for (int i = 0, indices = 0; i < m_terrainLength - 1; i++) {
-		for (int j = 0; j < m_terrainWidth - 1; j++, indices+=6) {
-			m_indices[indices] = (i * m_terrainLength) + j;
-			m_indices[indices + 1] = (i * m_terrainLength) + j + 1;
-			m_indices[indices + 2] = ((i + 1) * m_terrainLength) + j;
+		for (int j = 0; j < m_terrainWidth - 1; j++, indices += 6) {
+			m_indices.get()[indices] = (i * m_terrainLength) + j;
+			m_indices.get()[indices + 1] = (i * m_terrainLength) + j + 1;
+			m_indices.get()[indices + 2] = ((i + 1) * m_terrainLength) + j;
 
-			m_indices[indices + 3] = ((i + 1) * m_terrainLength) + j;
-			m_indices[indices + 4] = (i * m_terrainLength) + j + 1;
-			m_indices[indices + 5] = ((i + 1) * m_terrainLength) + j + 1;
+			m_indices.get()[indices + 3] = ((i + 1) * m_terrainLength) + j;
+			m_indices.get()[indices + 4] = (i * m_terrainLength) + j + 1;
+			m_indices.get()[indices + 5] = ((i + 1) * m_terrainLength) + j + 1;
 		}
 	}
 
@@ -84,7 +73,7 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 	bd.CPUAccessFlags = 0;
 	ZeroMemory(&InitData, sizeof(InitData));
 	
-	InitData.pSysMem = m_vertices;
+	InitData.pSysMem = m_vertices.get();
 	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.VertexBuffer);
 	if (FAILED(hr))
 		return hr;
@@ -96,7 +85,7 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 	bd.CPUAccessFlags = 0;
 
 	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = m_indices;
+	InitData.pSysMem = m_indices.get();
 	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.IndexBuffer);
 	if (FAILED(hr))
 		return hr;
@@ -210,55 +199,52 @@ void GameObjectTerrain::LoadHeightMap(char* _fileName)
 		// Done with file.
 		inFile.close();
 	}
-
-	m_heightMap = new UINT[m_terrainWidth * m_terrainLength];
+	m_heightMap = make_unique<UINT[]>(m_terrainWidth * m_terrainLength);
 
 	// Copy the array data into a float array and scale it. mHeightmap.resize(heightmapHeight * heightmapWidth, 0);
 
-	for (UINT i = 0; i < m_terrainWidth * m_terrainLength; ++i)
+	for (int i = 0; i < m_terrainWidth * m_terrainLength; ++i)
 	{
-		m_heightMap[i] = (in[i] / 255.0f) * 10;
+		m_heightMap.get()[i] = (in[i] / 255.0f) * 10;
 	}
 	
 
-	//printf("Height map: %f\n Size:%f", m_heightMap[m_terrainWidth * m_terrainLength - 1], m_terrainWidth * m_terrainLength);
+	//printf("Height map: %f\n Size:%f", m_heightMap.get()[m_terrainWidth * m_terrainLength - 1], m_terrainWidth * m_terrainLength);
 }
 
 void GameObjectTerrain::DiamondSquare(UINT _size, int _c1, int _c2, int _c3, int _c4)
 {
 	//2^n + 1
 	_size += 1;
-	if (m_heightMap != nullptr)
-		m_heightMap = nullptr;
-	m_heightMap = new UINT[_size * _size];
+	m_heightMap = make_unique<UINT[]>(static_cast<size_t>(_size) * _size);
+
 	for (int i = 0; i < (_size) * (_size ); i++)
-		m_heightMap[i] = 0;
+		m_heightMap.get()[i] = 0;
 	m_terrainLength = _size;
 	m_terrainWidth = _size;
-	m_heightMap[0] = _c1;
+	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
+	NUM_INDICES *= (m_terrainWidth * m_terrainLength);
+	m_heightMap.get()[0] = _c1;
 	int t = ConvertTo1D(_size/ 2, _size / 2);
-	m_heightMap[ConvertTo1D(_size - 1, 0)] = _c2;
-	m_heightMap[ConvertTo1D(0, _size - 1)] = _c3;
-	m_heightMap[ConvertTo1D(_size - 1, _size - 1)] = _c4;
-	//m_heightMap[ConvertTo1D(_size / 2, _size / 2)] = 1;
-	return;
-
+	m_heightMap.get()[ConvertTo1D(_size - 1, 0)] = _c2;
+	m_heightMap.get()[ConvertTo1D(0, _size - 1)] = _c3;
+	m_heightMap.get()[ConvertTo1D(_size - 1, _size - 1)] = _c4;
+	//m_heightMap.get()[ConvertTo1D(_size / 2, _size / 2)] = 1;
 	int stepSize = _size - 1;
 	while (stepSize > 1) {
-		for (int i = 0; i < m_terrainLength; i += stepSize) {
-			for (int j = 0; j < m_terrainWidth; j += stepSize) {
-				SquareStep(ConvertTo1D(i, j), stepSize);
+		int half = stepSize / 2;
+		for (int i = 0; i < _size; i += stepSize) {
+			for (int j = 0; j < _size; j += stepSize) {
+				SquareStep(ConvertTo1D(i + half, j + half), stepSize);
 			}
 		}
-
-		for (int i = 0; i < m_terrainLength; i+= stepSize) {
-			for (int j = 0; j < m_terrainWidth; j+= stepSize) {
-				DiamondStep(ConvertTo1D(i + stepSize, j), stepSize);
-				DiamondStep(ConvertTo1D(i, j + stepSize), stepSize);
-			}
-		}
+		//for (int i = 0; i < m_terrainLength; i+= stepSize) {
+		//	for (int j = 0; j < m_terrainWidth; j+= stepSize) {
+		//DiamondStep(ConvertTo1D(stepSize, stepSize), stepSize);
+		//		DiamondStep(ConvertTo1D(i, j + stepSize), stepSize);
+		//	}
+		//}
 		stepSize /= 2;
-
 	}
 
 }
@@ -285,110 +271,91 @@ void GameObjectTerrain::LoadFromXML(char* _fileName)
 
 void GameObjectTerrain::SquareStep(int _center, int _radius)
 {
-	int maxElements = 4;
-	int* elements = new int[4];
-	int tl = _center + ConvertTo1D(-_radius, -_radius);
+	int x = _center + ConvertTo1D(-_radius, -_radius);
+	int y = _center + ConvertTo1D(_radius, -_radius);
+	int z = _center + ConvertTo1D(-_radius, _radius);
+	int w = _center + ConvertTo1D(_radius, _radius);
 
-	int tr = _center + ConvertTo1D(_radius, -_radius);
-
-	int bl = _center + ConvertTo1D(-_radius, _radius);
-	int br = _center + ConvertTo1D(_radius, _radius);
-
-	if (tl < 0 || tl >(m_terrainLength) * (m_terrainWidth))
+	int max = m_terrainLength * m_terrainWidth;
+	int elements = 0;
+	int average = 0;
+	if (IsInBounds(x, max))
 	{
-		maxElements--;
+		elements++;
+		average += m_heightMap.get()[x];
+	}
+
+	if (IsInBounds(y, max))
+	{
+		elements++;
+		average += m_heightMap.get()[y];
+	}
+
+	if (IsInBounds(z, max))
+	{
+		elements++;
+		average += m_heightMap.get()[z];
+	}
+
+	if (IsInBounds(w, max))
+	{
+		elements++;
+		average += m_heightMap.get()[w];
 	}
 	else {
-		elements[maxElements - 4] = m_heightMap[tl];
+		if (average <= 0 || elements <= 0)
+			return;
 	}
 
+	average /= elements;
 
-	if (tr < 0 || tr >(m_terrainLength) * (m_terrainWidth))
-	{
-		maxElements--;
-	}
-	else {
-		elements[maxElements - 3] = m_heightMap[tr];
-	}
-
-	if (bl < 0 || bl >(m_terrainLength) * (m_terrainWidth))
-	{
-		maxElements--;
-	}
-	else {
-		elements[maxElements - 2] = m_heightMap[bl];
-	}
-	if (br < 0 || br >(m_terrainLength) * (m_terrainWidth))
-	{
-		maxElements--;
-	}
-	else {
-		elements[maxElements - 1] = m_heightMap[br];
-	}
-	float average = 0;
-
-	for (int i = 0; i < maxElements; i++) {
-		average += elements[i];
-	}
-	delete[] elements;
-	elements = nullptr;
-	average /= maxElements;
-
-	m_heightMap[_center] = average;
+	m_heightMap.get()[_center] = average;
 }
 
 void GameObjectTerrain::DiamondStep(int _center, int _radius)
 {
-	int maxElements = 4;
-	int* elements = new int[4];
-	int t = _center + ConvertTo1D(0, -_radius);
+	int x = _center + ConvertTo1D(0, -_radius);
+	int y = _center + ConvertTo1D(_radius, 0);
+	int z = _center + ConvertTo1D(-_radius, 0);
+	int w = _center + ConvertTo1D(0, _radius);
 
-	int r = _center + ConvertTo1D(_radius, 0);
-
-	int l = _center + ConvertTo1D(-_radius, 0);
-	int b = _center + ConvertTo1D(0, _radius);
-
-	if (t < 0 || t >(m_terrainLength) * (m_terrainWidth))
+	int max = m_terrainLength * m_terrainWidth;
+	int elements = 0;
+	int average = 0;
+	if (IsInBounds(x, max))
 	{
-		maxElements--;
-	}
-	else {
-		elements[maxElements - 4] = m_heightMap[t];
+		elements++;
+		average += m_heightMap.get()[x];
 	}
 
-
-	if (r < 0 || r >(m_terrainLength) * (m_terrainWidth))
+	if (IsInBounds(y, max))
 	{
-		maxElements--;
-	}
-	else {
-		elements[maxElements - 3] = m_heightMap[r];
+		elements++;
+		average += m_heightMap.get()[y];
 	}
 
-	if (l < 0 || l >(m_terrainLength) * (m_terrainWidth))
+	if (IsInBounds(z, max))
 	{
-		maxElements--;
+		elements++;
+		average += m_heightMap.get()[z];
 	}
-	else {
-		elements[maxElements - 2] = m_heightMap[l];
-	}
-	if (b < 0 || b >(m_terrainLength) * (m_terrainWidth))
+
+	if (IsInBounds(w, max))
 	{
-		maxElements--;
+		elements++;
+		average += m_heightMap.get()[w];
 	}
-	else {
-		elements[maxElements - 1] = m_heightMap[b];
-	}
-	float average = 0;
 
-	for (int i = 0; i < maxElements; i++) {
-		average += elements[i];
-	}
-	delete[] elements;
-	elements = nullptr;
-	average /= maxElements;
+	average /= elements;
 
-	m_heightMap[_center] = average;
+	m_heightMap.get()[_center] = average;
+}
+
+bool GameObjectTerrain::IsInBounds(int _1DPos, int _1DMax, int _1DMin)
+{
+	if(_1DPos < _1DMin || _1DPos > _1DMax)
+		return false;
+	return true;
 }
 
 int GameObjectTerrain::ConvertTo1D(int x, int y)
