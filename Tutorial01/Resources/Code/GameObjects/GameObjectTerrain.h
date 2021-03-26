@@ -20,15 +20,14 @@ private:
     void LoadFromXML(char* _fileName);
     void SquareStep(int _center, int _radius);
     void DiamondStep(int _center, int _radius);
-
+    int ConvertTo1D(int x, int y);
     int m_terrainWidth = 1;
     int m_terrainLength = 1;
     int m_heightScale = 1;
 
-    double* m_heightMap;
-    
-    BasicVertex* m_vertices;
-    UINT* m_indices;
+    UINT* m_heightMap = nullptr;
+    BasicVertex* m_vertices = nullptr;
+    UINT* m_indices = nullptr;
 
 
 

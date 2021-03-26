@@ -24,7 +24,7 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
 
     //m_terrain = new GameObjectTerrain((char*)"Resources\\XML\\terrain.xml");
     m_terrain = new GameObjectTerrain();
-    m_terrain->DiamondSquare(256, 3, 7, 4, 2);
+    m_terrain->DiamondSquare(16, 1, 2, 3, 4);
     m_terrain->InitMesh(_device, _deviceContext);
     m_terrain->SetShaders(ShaderManager::shaderTerrain);
 

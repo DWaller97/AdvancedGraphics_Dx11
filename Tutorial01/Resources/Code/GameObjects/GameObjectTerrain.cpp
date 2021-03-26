@@ -12,9 +12,8 @@ GameObjectTerrain::GameObjectTerrain(char* _fileName)
 
 GameObjectTerrain::GameObjectTerrain()
 {
-	m_heightMap = nullptr;
-	m_indices = nullptr;
-	m_vertices = nullptr;
+	NUM_VERTICES = 1;
+	NUM_INDICES = 6;
 	SetWorldMatrix(new XMFLOAT4X4());
 	SetPosition(XMFLOAT3(-5, 0, -5));
 }
@@ -40,6 +39,7 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
     HRESULT hr;
 	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
 	NUM_INDICES *= (m_terrainWidth * m_terrainLength);
+	//int* test = new int[NUM_VERTICES];
 	m_vertices = new BasicVertex[NUM_VERTICES];
 	m_indices = new UINT[NUM_INDICES];
 
@@ -211,7 +211,7 @@ void GameObjectTerrain::LoadHeightMap(char* _fileName)
 		inFile.close();
 	}
 
-	m_heightMap = new double [m_terrainWidth * m_terrainLength];
+	m_heightMap = new UINT[m_terrainWidth * m_terrainLength];
 
 	// Copy the array data into a float array and scale it. mHeightmap.resize(heightmapHeight * heightmapWidth, 0);
 
@@ -227,20 +227,40 @@ void GameObjectTerrain::LoadHeightMap(char* _fileName)
 void GameObjectTerrain::DiamondSquare(UINT _size, int _c1, int _c2, int _c3, int _c4)
 {
 	//2^n + 1
-	int size = _size + 1;
-	m_terrainLength = size;
-	m_terrainWidth = size;
-	m_heightMap = new double[size * size];
+	_size += 1;
+	if (m_heightMap != nullptr)
+		m_heightMap = nullptr;
+	m_heightMap = new UINT[_size * _size];
+	for (int i = 0; i < (_size) * (_size ); i++)
+		m_heightMap[i] = 0;
+	m_terrainLength = _size;
+	m_terrainWidth = _size;
 	m_heightMap[0] = _c1;
-	m_heightMap[size] = _c2;
-	m_heightMap[(size * size) - size] = _c3;
-	m_heightMap[size * size] = _c4;
-	int radius = size / 2;
-	int half = (size - 1) * (size - 1);
-	while (half > 1) {
-		half /= 2;
-		SquareStep(half, radius);
+	int t = ConvertTo1D(_size/ 2, _size / 2);
+	m_heightMap[ConvertTo1D(_size - 1, 0)] = _c2;
+	m_heightMap[ConvertTo1D(0, _size - 1)] = _c3;
+	m_heightMap[ConvertTo1D(_size - 1, _size - 1)] = _c4;
+	//m_heightMap[ConvertTo1D(_size / 2, _size / 2)] = 1;
+	return;
+
+	int stepSize = _size - 1;
+	while (stepSize > 1) {
+		for (int i = 0; i < m_terrainLength; i += stepSize) {
+			for (int j = 0; j < m_terrainWidth; j += stepSize) {
+				SquareStep(ConvertTo1D(i, j), stepSize);
+			}
+		}
+
+		for (int i = 0; i < m_terrainLength; i+= stepSize) {
+			for (int j = 0; j < m_terrainWidth; j+= stepSize) {
+				DiamondStep(ConvertTo1D(i + stepSize, j), stepSize);
+				DiamondStep(ConvertTo1D(i, j + stepSize), stepSize);
+			}
+		}
+		stepSize /= 2;
+
 	}
+
 }
 
 void GameObjectTerrain::LoadFromXML(char* _fileName)
@@ -265,21 +285,113 @@ void GameObjectTerrain::LoadFromXML(char* _fileName)
 
 void GameObjectTerrain::SquareStep(int _center, int _radius)
 {
-	int test = _center - ((m_terrainLength * _radius)) + (_radius * 2);
-	int tr = m_heightMap[_center - ((m_terrainLength * _radius)) + (_radius * 2) - 1];
-	int tl = m_heightMap[_center - (m_terrainLength * _radius)];
-	int bl = m_heightMap[_center + (_radius * m_terrainWidth) - _radius];
-	int br = m_heightMap[_center + (_radius * m_terrainWidth)];
-	float average = (tr + tl + bl + br) / 4;
+	int maxElements = 4;
+	int* elements = new int[4];
+	int tl = _center + ConvertTo1D(-_radius, -_radius);
+
+	int tr = _center + ConvertTo1D(_radius, -_radius);
+
+	int bl = _center + ConvertTo1D(-_radius, _radius);
+	int br = _center + ConvertTo1D(_radius, _radius);
+
+	if (tl < 0 || tl >(m_terrainLength) * (m_terrainWidth))
+	{
+		maxElements--;
+	}
+	else {
+		elements[maxElements - 4] = m_heightMap[tl];
+	}
+
+
+	if (tr < 0 || tr >(m_terrainLength) * (m_terrainWidth))
+	{
+		maxElements--;
+	}
+	else {
+		elements[maxElements - 3] = m_heightMap[tr];
+	}
+
+	if (bl < 0 || bl >(m_terrainLength) * (m_terrainWidth))
+	{
+		maxElements--;
+	}
+	else {
+		elements[maxElements - 2] = m_heightMap[bl];
+	}
+	if (br < 0 || br >(m_terrainLength) * (m_terrainWidth))
+	{
+		maxElements--;
+	}
+	else {
+		elements[maxElements - 1] = m_heightMap[br];
+	}
+	float average = 0;
+
+	for (int i = 0; i < maxElements; i++) {
+		average += elements[i];
+	}
+	delete[] elements;
+	elements = nullptr;
+	average /= maxElements;
+
 	m_heightMap[_center] = average;
 }
 
 void GameObjectTerrain::DiamondStep(int _center, int _radius)
 {
-	int r = m_heightMap[_center + _radius];
-	int l = m_heightMap[_center - _radius];
-	int u = m_heightMap[_center - (_radius * m_terrainWidth)];
-	int d = m_heightMap[_center + (_radius * m_terrainWidth)];
-	float average = (r + l + u + d) * 0.5f;
+	int maxElements = 4;
+	int* elements = new int[4];
+	int t = _center + ConvertTo1D(0, -_radius);
+
+	int r = _center + ConvertTo1D(_radius, 0);
+
+	int l = _center + ConvertTo1D(-_radius, 0);
+	int b = _center + ConvertTo1D(0, _radius);
+
+	if (t < 0 || t >(m_terrainLength) * (m_terrainWidth))
+	{
+		maxElements--;
+	}
+	else {
+		elements[maxElements - 4] = m_heightMap[t];
+	}
+
+
+	if (r < 0 || r >(m_terrainLength) * (m_terrainWidth))
+	{
+		maxElements--;
+	}
+	else {
+		elements[maxElements - 3] = m_heightMap[r];
+	}
+
+	if (l < 0 || l >(m_terrainLength) * (m_terrainWidth))
+	{
+		maxElements--;
+	}
+	else {
+		elements[maxElements - 2] = m_heightMap[l];
+	}
+	if (b < 0 || b >(m_terrainLength) * (m_terrainWidth))
+	{
+		maxElements--;
+	}
+	else {
+		elements[maxElements - 1] = m_heightMap[b];
+	}
+	float average = 0;
+
+	for (int i = 0; i < maxElements; i++) {
+		average += elements[i];
+	}
+	delete[] elements;
+	elements = nullptr;
+	average /= maxElements;
+
 	m_heightMap[_center] = average;
+}
+
+int GameObjectTerrain::ConvertTo1D(int x, int y)
+{
+	return (y * m_terrainWidth) + x;
 }
