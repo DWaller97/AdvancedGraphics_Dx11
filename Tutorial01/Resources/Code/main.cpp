@@ -301,7 +301,7 @@ HRESULT InitDevice()
     if (FAILED(InitMesh()))
     {
         MessageBox(nullptr,
-            L"Failed to initialise mesh.", L"Error", MB_OK);
+            L"Failed to initialise m_mesh.", L"Error", MB_OK);
         return 0;
     }
 

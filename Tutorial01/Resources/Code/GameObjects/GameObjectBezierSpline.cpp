@@ -1,16 +1,12 @@
 #include "GameObjectBezierSpline.h"
 GameObjectBezierSpline::GameObjectBezierSpline()
 {
-	SetWorldMatrix(new XMFLOAT4X4());
 	NUM_VERTICES = 4;
 	NUM_INDICES = 0;
 }
 
 GameObjectBezierSpline::~GameObjectBezierSpline()
 {
-	delete m_World;
-	m_World = nullptr;
-	Release();
 }
 
 HRESULT GameObjectBezierSpline::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
@@ -45,7 +41,7 @@ HRESULT GameObjectBezierSpline::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceC
 
 	D3D11_SUBRESOURCE_DATA InitData = {};
 	InitData.pSysMem = linePoints2;
-	HRESULT hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.VertexBuffer);
+	HRESULT hr = pd3dDevice->CreateBuffer(&bd, &InitData, &m_mesh.VertexBuffer);
 	if (FAILED(hr))
 		return hr;
 
@@ -55,7 +51,7 @@ HRESULT GameObjectBezierSpline::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceC
 	bd.ByteWidth = sizeof(ConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_pConstantBuffer);
+	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_constantBuffer);
 	if (FAILED(hr))
 		return hr;
 
@@ -70,23 +66,23 @@ void GameObjectBezierSpline::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* l
 {
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
 	ConstantBuffer cb1;
-	cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(m_World));
+	cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(m_world));
 	cb1.mView = XMMatrixTranspose(XMLoadFloat4x4(viewMat));
 	cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(projMat));
 	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
-	pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
+	pContext->UpdateSubresource(m_constantBuffer, 0, nullptr, &cb1, 0, 0);
 
 	// Set vertex buffer
 	
 	UINT stride = sizeof(SimpleVertex);
 	UINT offset = 0;
-	pContext->IASetVertexBuffers(0, 1, &mesh.VertexBuffer, &stride, &offset);
+	pContext->IASetVertexBuffers(0, 1, &m_mesh.VertexBuffer, &stride, &offset);
 
 	pContext->IASetInputLayout(m_inputLayout);
 	// Render the cube
-	pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
-	pContext->VSSetShader(vertexShader, nullptr, 0);
-	pContext->PSSetShader(pixelShader, nullptr, 0);
+	pContext->VSSetConstantBuffers(0, 1, &m_constantBuffer);
+	pContext->VSSetShader(m_vertexShader, nullptr, 0);
+	pContext->PSSetShader(m_pixelShader, nullptr, 0);
 	pContext->DrawIndexed(NUM_VERTICES, 0, 0);
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

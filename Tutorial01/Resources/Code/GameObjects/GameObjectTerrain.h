@@ -29,9 +29,9 @@ private:
     int m_terrainLength = 1;
     int m_heightScale = 1;
 
-    unique_ptr <UINT[]> m_heightMap = nullptr;
-    unique_ptr<BasicVertex[]> m_vertices = nullptr;
-    unique_ptr <UINT[]> m_indices = nullptr;
+    vector<UINT> m_heightMap;
+    vector<BasicVertex> m_vertices;
+    vector<UINT> m_indices;
 
 
 

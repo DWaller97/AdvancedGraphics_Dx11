@@ -3,16 +3,12 @@
 
 GameObjectCube::GameObjectCube()
 {
-	SetWorldMatrix(new XMFLOAT4X4());
 	NUM_VERTICES = 36;
 	NUM_INDICES = 36;
 }
 
 GameObjectCube::~GameObjectCube()
 {
-	delete m_World;
-	m_World = nullptr;
-	Release();
 }
 
 HRESULT GameObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)  {
@@ -100,17 +96,17 @@ HRESULT GameObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 		33,34,35
 	};
 
-	CalculateModelVectors(vertices, 36);
+	CalculateModelVectors(vertices, NUM_VERTICES);
 
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(SimpleVertex) * 36;
+	bd.ByteWidth = sizeof(SimpleVertex) * NUM_VERTICES;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
 	D3D11_SUBRESOURCE_DATA InitData = {};
 	InitData.pSysMem = vertices;
-	HRESULT hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.VertexBuffer);
+	HRESULT hr = pd3dDevice->CreateBuffer(&bd, &InitData, &m_mesh.VertexBuffer);
 	if (FAILED(hr))
 		return hr;
 
@@ -122,7 +118,7 @@ HRESULT GameObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	ZeroMemory(&InitData, sizeof(InitData));
 	InitData.pSysMem = indices;
-	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &mesh.IndexBuffer);
+	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &m_mesh.IndexBuffer);
 	if (FAILED(hr)) 
 		return hr;
 
@@ -131,7 +127,7 @@ HRESULT GameObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	bd.ByteWidth = sizeof(ConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_pConstantBuffer);
+	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_constantBuffer);
 	if (FAILED(hr))
 		return hr;
 
@@ -141,7 +137,7 @@ HRESULT GameObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	bd.ByteWidth = sizeof(MaterialPropertiesConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_pMaterialConstantBuffer);
+	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_materialConstantBuffer);
 	if (FAILED(hr))
 		return hr;
 
@@ -150,7 +146,7 @@ HRESULT GameObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	redPlasticMaterial.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
 	redPlasticMaterial.Material.SpecularPower = 32.0f;
 	redPlasticMaterial.Material.UseTexture = true;
-	pContext->UpdateSubresource(m_pMaterialConstantBuffer, 0, nullptr, &redPlasticMaterial, 0, 0);
+	pContext->UpdateSubresource(m_materialConstantBuffer, 0, nullptr, &redPlasticMaterial, 0, 0);
 
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
@@ -161,7 +157,7 @@ HRESULT GameObjectCube::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
+	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_samplerLinear);
 
 
 	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\color.dds", nullptr, &m_albedoTexture);
@@ -194,7 +190,7 @@ void GameObjectCube::Update(float t)
 	// Cube:  Rotate around origin
 	XMMATRIX mTranslate = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	XMMATRIX world = mTranslate;
-	XMStoreFloat4x4(m_World, world);
+	XMStoreFloat4x4(m_world, world);
 
 }
 
@@ -206,32 +202,32 @@ void GameObjectCube::SetSpin(bool spin)
 void GameObjectCube::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
 {
 	ConstantBuffer cb1;
-	cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(m_World));
+	cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(m_world));
 	cb1.mView = XMMatrixTranspose(XMLoadFloat4x4(viewMat));
 	cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(projMat));
 	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
-	pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
+	pContext->UpdateSubresource(m_constantBuffer, 0, nullptr, &cb1, 0, 0);
 
 	// Set vertex buffer
 	UINT stride = sizeof(SimpleVertex);
 	UINT offset = 0;
-	pContext->IASetVertexBuffers(0, 1, &mesh.VertexBuffer, &stride, &offset);
+	pContext->IASetVertexBuffers(0, 1, &m_mesh.VertexBuffer, &stride, &offset);
 	// Set index buffer
-	pContext->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	pContext->IASetIndexBuffer(m_mesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 	pContext->IASetInputLayout(m_inputLayout);
 	// Render the cube
-	pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
-	pContext->VSSetShader(vertexShader, nullptr, 0);
-	pContext->PSSetShader(pixelShader, nullptr, 0);
+	pContext->VSSetConstantBuffers(0, 1, &m_constantBuffer);
+	pContext->VSSetShader(m_vertexShader, nullptr, 0);
+	pContext->PSSetShader(m_pixelShader, nullptr, 0);
 
-	pContext->PSSetConstantBuffers(1, 1, &m_pMaterialConstantBuffer);
+	pContext->PSSetConstantBuffers(1, 1, &m_materialConstantBuffer);
 	pContext->PSSetConstantBuffers(2, 1, &lightConstantBuffer);
 	//pContext->PSSetConstantBuffers(3, 1, &m_pCameraBuffer);
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
 	pContext->PSSetShaderResources(1, 1, &m_normalTexture);
 	pContext->PSSetShaderResources(2, 1, &m_parallaxTexture);
 
-	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
+	pContext->PSSetSamplers(0, 1, &m_samplerLinear);
 	pContext->DrawIndexed(NUM_INDICES, 0, 0);
 }
