@@ -2,6 +2,7 @@
 #include "GameObject.h"
 #include "../External/pugiXML/pugixml.hpp"
 #include <memory>
+#include <random>
 using namespace std;
 class GameObjectTerrain :
     public GameObject
@@ -23,13 +24,15 @@ private:
     void SquareStep(int _center, int _radius);
     void DiamondStep(int _center, int _radius);
     bool IsInBounds(int _1DPos, int _1DMax, int _1DMin = 0);
+    
+    float CheckHeight(int _center, int _max, int _random);
     int ConvertTo1D(int x, int y);
 
     int m_terrainWidth = 1;
     int m_terrainLength = 1;
     int m_heightScale = 1;
 
-    vector<UINT> m_heightMap;
+    vector<long> m_heightMap;
     vector<BasicVertex> m_vertices;
     vector<UINT> m_indices;
 

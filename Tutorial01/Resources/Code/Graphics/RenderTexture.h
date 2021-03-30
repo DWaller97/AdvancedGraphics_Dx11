@@ -17,6 +17,5 @@ private:
     ID3D11Texture2D* rtTexture;
     ID3D11Texture2D* rtDepthStencilTexture = nullptr;
     ID3D11ShaderResourceView* rtShaderResourceView;
-    ID3D11DepthStencilView* rtDepthStencilView;
 };
 

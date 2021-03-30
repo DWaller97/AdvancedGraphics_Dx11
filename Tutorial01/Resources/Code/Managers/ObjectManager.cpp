@@ -38,7 +38,7 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
 
     //m_terrain = new GameObjectTerrain((char*)"Resources\\XML\\terrain.xml");
     terrain = new GameObjectTerrain();
-    terrain->DiamondSquare(16, 1, 2, 3, 4);
+    terrain->DiamondSquare(256, 3, 2, 5, 3);
     terrain->InitMesh(_device, _deviceContext);
     terrain->SetShaders(ShaderManager::shaderTerrain);
 
@@ -53,8 +53,8 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
 
     m_objects.push_back(terrain);
 
-    m_objects.push_back(cube);
-    m_objects.push_back(cube2);
+    //m_objects.push_back(cube);
+    //m_objects.push_back(cube2);
 
 }
 

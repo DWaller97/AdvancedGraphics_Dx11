@@ -397,10 +397,6 @@ void Cleanup() {
     
     delete g_pOM;
     g_pOM = nullptr;
-
-    delete g_pRenderPlane;
-    g_pRenderPlane = nullptr;
-
 }
 
 //--------------------------------------------------------------------------------------

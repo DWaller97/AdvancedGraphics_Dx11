@@ -101,11 +101,6 @@ void RenderTexture::Release()
         rtShaderResourceView->Release();
         rtShaderResourceView = nullptr;
     }
-    if (rtDepthStencilView) {
-        rtDepthStencilView->Release();
-        delete rtDepthStencilView;
-        rtDepthStencilView = nullptr;
-    }
     if (rtView) {
         rtView->Release();
         rtView = nullptr;
