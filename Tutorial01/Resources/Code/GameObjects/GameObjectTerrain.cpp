@@ -24,24 +24,62 @@ GameObjectTerrain::~GameObjectTerrain()
 HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
     HRESULT hr;
+	//m_terrainLength = 1;
+	//m_terrainWidth = 1;
+	//NUM_INDICES = 6;
+	//NUM_VERTICES = 4;
+	//BasicVertex b1, b2, b3, b4;
+	//b1.pos = XMFLOAT3(0, /*m_heightMap[(i * (m_terrainLength)) + j] * m_heightScale*/ 0, 0);
+	//b1.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	//b1.texCoord = XMFLOAT2(0, 0);
+
+	//b2.pos = XMFLOAT3(1, /*m_heightMap[(i * (m_terrainLength)) + j] * m_heightScale*/ 0, 0);
+	//b2.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	//b2.texCoord = XMFLOAT2(0, 0);
+
+	//b3.pos = XMFLOAT3(0, /*m_heightMap[(i * (m_terrainLength)) + j] * m_heightScale*/ 0, 1);
+	//b3.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	//b3.texCoord = XMFLOAT2(0, 0);
+
+	//b4.pos = XMFLOAT3(1, /*m_heightMap[(i * (m_terrainLength)) + j] * m_heightScale*/ 0, 1);
+	//b4.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	//b4.texCoord = XMFLOAT2(0, 0);
+
+
+	//m_vertices.push_back(b1);
+	//m_vertices.push_back(b2);
+	//m_vertices.push_back(b3);
+	//m_vertices.push_back(b4);
+
+	//m_indices.push_back(2);
+	//m_indices.push_back(1);
+	//m_indices.push_back(0);
+
+	//m_indices.push_back(3);
+	//m_indices.push_back(1);
+	//m_indices.push_back(2);
 
 	for (int i = 0; i < m_terrainLength; i++) {
 		for (int j = 0; j < m_terrainWidth; j++) {
 			float u = (float)i / m_terrainLength;
 			float v = (float)j / m_terrainWidth;
-			m_vertices.push_back({ XMFLOAT3(i, m_heightMap[(i *( m_terrainLength - 1)) + j] * m_heightScale, (j)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(u, v) });
+			BasicVertex b;
+			b.pos = XMFLOAT3(i, m_heightMap[(i * (m_terrainLength)) + j] * m_heightScale, j);
+			b.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+			b.texCoord = XMFLOAT2(u, v);
+			m_vertices.push_back(b);
 		}
 	}
 	for (int i = 0; i < m_terrainLength - 1; i++) {
-		for (int j = 0; j < m_terrainWidth- 1; j++) {
+		for (int j = 0; j < m_terrainWidth - 1; j++) {
 
 			m_indices.push_back(i * m_terrainLength + j);
 			m_indices.push_back(i * m_terrainLength + j + 1);
-			m_indices.push_back(((i + 1) * m_terrainLength) + j);
+			m_indices.push_back((i + 1) * m_terrainLength + j);
 
-			m_indices.push_back(((i + 1) * m_terrainLength) + j);
-			m_indices.push_back((i * m_terrainLength) + j + 1);
-			m_indices.push_back(((i + 1) * m_terrainLength) + j + 1);
+			m_indices.push_back((i + 1)  * m_terrainLength + j);
+			m_indices.push_back(i * m_terrainLength + j + 1);
+			m_indices.push_back((i + 1) * m_terrainLength + j + 1);
 		}
 	}
 
@@ -199,17 +237,23 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _c1, int _c2, int _c3, int
 	//m_heightMap[_size * _size] = 0;
 	m_terrainLength = _size;
 	m_terrainWidth = _size;
-	for (int i = 0; i < (_size * _size-1); i++) {
+	for (int i = 0; i < (_size * _size); i++) {
 		m_heightMap.push_back(0);
 	}
+
+	int width = m_terrainWidth - 1;
+	int length = m_terrainLength - 1;
+
+	int totalSize = m_terrainWidth * m_terrainLength;
+	int size = width * length;
 
 	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
 	NUM_INDICES *= (m_terrainWidth * m_terrainLength);
 	m_heightMap[0] = _c1;
-	m_heightMap[ConvertTo1D(_size - 1, 0)] = _c2;
-	//m_heightMap[ConvertTo1D(0, _size - 1)] = _c3;
-	//m_heightMap[ConvertTo1D(_size - 1, _size - 1)] = _c4;
-	//m_heightMap.get()[ConvertTo1D(_size / 2, _size / 2)] = 1;
+	m_heightMap[width] = _c2;
+	m_heightMap[totalSize - length] = _c3;
+	m_heightMap[totalSize - 1] = _c4;
+	m_heightMap[totalSize / 2] = 1;
 	//int stepSize = _size - 1;
 	//while (stepSize > 1) {
 	//	int half = stepSize / 2;
