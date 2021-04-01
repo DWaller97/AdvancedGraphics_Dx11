@@ -20,46 +20,11 @@ GameObjectTerrain::GameObjectTerrain(int _seed)
 
 GameObjectTerrain::~GameObjectTerrain()
 {
-    Release();
 }
 
 HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
     HRESULT hr;
-	//m_terrainLength = 1;
-	//m_terrainWidth = 1;
-	//NUM_INDICES = 6;
-	//NUM_VERTICES = 4;
-	//BasicVertex b1, b2, b3, b4;
-	//b1.pos = XMFLOAT3(0, /*m_heightMap[(i * (m_terrainLength)) + j] * m_heightScale*/ 0, 0);
-	//b1.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-	//b1.texCoord = XMFLOAT2(0, 0);
-
-	//b2.pos = XMFLOAT3(1, /*m_heightMap[(i * (m_terrainLength)) + j] * m_heightScale*/ 0, 0);
-	//b2.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-	//b2.texCoord = XMFLOAT2(0, 0);
-
-	//b3.pos = XMFLOAT3(0, /*m_heightMap[(i * (m_terrainLength)) + j] * m_heightScale*/ 0, 1);
-	//b3.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-	//b3.texCoord = XMFLOAT2(0, 0);
-
-	//b4.pos = XMFLOAT3(1, /*m_heightMap[(i * (m_terrainLength)) + j] * m_heightScale*/ 0, 1);
-	//b4.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-	//b4.texCoord = XMFLOAT2(0, 0);
-
-
-	//m_vertices.push_back(b1);
-	//m_vertices.push_back(b2);
-	//m_vertices.push_back(b3);
-	//m_vertices.push_back(b4);
-
-	//m_indices.push_back(2);
-	//m_indices.push_back(1);
-	//m_indices.push_back(0);
-
-	//m_indices.push_back(3);
-	//m_indices.push_back(1);
-	//m_indices.push_back(2);
 	for (int i = 0; i < m_terrainLength; i++) {
 		for (int j = 0; j < m_terrainWidth; j++) {
 			float u = (float)i / m_terrainLength;
@@ -107,7 +72,7 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(UINT) * NUM_INDICES;
+	bd.ByteWidth = sizeof(float) * NUM_INDICES;
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
@@ -303,6 +268,9 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightSc
 				float w = CheckHeight(ConvertTo1D(i, (j - half + _size - 1) % (_size - 1)), totalSize, randomSize);
 				float average = 0;
 				average = x + y + z + w;
+				if (average == 0) {
+					continue;
+				}
 				average /= 4;
 				average += rand() % randomSize - randomSize;
 				m_heightMap[ConvertTo1D(i, j)] = average;
@@ -318,6 +286,7 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightSc
 			continue;
 		randomSize /= 2;
 	}
+
 }
 
 void GameObjectTerrain::LoadFromXML(char* _fileName)
@@ -368,12 +337,18 @@ void GameObjectTerrain::SmoothHeights(int _boxSize, int _iterations)
 				for (int k = 0; k < heights.size(); k++) {
 					average += heights.at(k);
 				}
-				average /= heights.size();
-				m_heightMap[ConvertTo1D(i, j)] = average;
+				if (average == 0) {
+					m_heightMap[ConvertTo1D(i, j)] = 0;
+				}
+				else {
+					average /= heights.size();
+					m_heightMap[ConvertTo1D(i, j)] = average;
+				}
 				heights.clear();
 			}
 		}
 	}
+	Normalise(300);
 }
 
 float GameObjectTerrain::CheckHeight(int _center, int _max, int _random)
@@ -396,4 +371,23 @@ float GameObjectTerrain::CheckHeight(int _x, int _y)
 int GameObjectTerrain::ConvertTo1D(int x, int y)
 {
 	return (y * ( m_terrainWidth) ) + x;
+}
+
+void GameObjectTerrain::Normalise(int _scale)
+{
+	float min = D3D11_FLOAT32_MAX;
+	float max = -D3D11_FLOAT32_MAX;
+	for (int i = 0; i < m_heightMap.size(); i++) {
+		double curr = m_heightMap.at(i);
+		if (curr < min) {
+			min = curr;
+		}
+		if (curr > max)
+			max = curr;
+	}
+	
+	for (int i = 0; i < m_heightMap.size(); i++) {
+		double curr = m_heightMap.at(i);
+		m_heightMap.at(i) = (curr - min) / (max - min) * _scale;
+	}
 }

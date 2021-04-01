@@ -10,7 +10,7 @@ class GameObjectTerrain :
 public:
     GameObjectTerrain(char* _fileName);
     GameObjectTerrain(int _seed = time(NULL));
-    ~GameObjectTerrain();
+    virtual ~GameObjectTerrain() override;
     HRESULT						virtual InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext) override;
     
     void								virtual Update(float t) override;
@@ -29,12 +29,12 @@ private:
     float CheckHeight(int _center, int _max, int _random);
     float CheckHeight(int _x, int _y);
     int ConvertTo1D(int x, int y);
-
+    void Normalise(int _scale = 100);
     int m_terrainWidth = 1;
     int m_terrainLength = 1;
     int m_heightScale = 10;
 
-    vector<double> m_heightMap;
+    vector<float> m_heightMap;
     vector<BasicVertex> m_vertices;
     vector<UINT> m_indices;
     int m_seed = 0;
