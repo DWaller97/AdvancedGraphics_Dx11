@@ -12,6 +12,7 @@ class ObjectManager
 {
 private:
     static GameObjectPlane* m_renderPlane;
+    static GameObjectTerrain* m_terrain;
     static std::vector<GameObject*> m_objects;
     static std::vector<GameObject*> m_deferredObjects;
 public:
@@ -23,5 +24,6 @@ public:
     static std::vector<GameObject*> GetObjects() { return m_objects; }
     static std::vector<GameObject*> GetDeferredObjects() { return m_deferredObjects; }
     static GameObjectPlane* GetRenderPlane() { return m_renderPlane; }
+    static GameObjectTerrain* GetTerrain() { return m_terrain; }
 };
 

@@ -3,6 +3,8 @@
 GameObjectPlane* ObjectManager::m_renderPlane;
 std::vector<GameObject*> ObjectManager::m_objects;
 std::vector<GameObject*> ObjectManager::m_deferredObjects;
+GameObjectTerrain* ObjectManager::m_terrain;
+
 
 ObjectManager::ObjectManager()
 {
@@ -13,13 +15,15 @@ ObjectManager::~ObjectManager()
     if (m_renderPlane)
         delete m_renderPlane;
     m_renderPlane = nullptr;
+    if (m_terrain)
+        delete m_terrain;
+    m_terrain = nullptr;
 }
 
 void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _deviceContext)
 {
     GameObjectCube* cube, *cube2;
     GameObjectBezierSpline* line;
-    GameObjectTerrain* terrain;
 
     cube = new GameObjectCube();
     cube->InitMesh(_device, _deviceContext);
@@ -36,13 +40,13 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     m_renderPlane->SetShaders(ShaderManager::shaderRTT);
     m_renderPlane->SetPosition(XMFLOAT3(0, 0, 0));
 
-    terrain = new GameObjectTerrain();
+    m_terrain = new GameObjectTerrain();
     //Loads terrain from XML file, grabbing the path for the terrain raw file and loads it that way.
     //terrain = new GameObjectTerrain((char*)"Resources\\XML\\terrain.xml");
-    terrain->DiamondSquare(2048);
-    terrain->SmoothHeights(1, 10);
-    terrain->InitMesh(_device, _deviceContext);
-    terrain->SetShaders(ShaderManager::shaderTerrain);
+    m_terrain->DiamondSquare(512);
+    m_terrain->SmoothHeights(1, 10);
+    m_terrain->InitMesh(_device, _deviceContext);
+    m_terrain->SetShaders(ShaderManager::shaderTerrain);
 
 
     for (int i = 0; i < 10; i++) {
@@ -53,7 +57,7 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
         m_deferredObjects.push_back(o);
     }
 
-    m_objects.push_back(terrain);
+    m_objects.push_back(m_terrain);
 
     //m_objects.push_back(cube);
     //m_objects.push_back(cube2);

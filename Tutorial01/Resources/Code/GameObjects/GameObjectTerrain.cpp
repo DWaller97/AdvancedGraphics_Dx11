@@ -9,10 +9,12 @@ GameObjectTerrain::GameObjectTerrain(char* _fileName)
 
 }
 
-GameObjectTerrain::GameObjectTerrain()
+GameObjectTerrain::GameObjectTerrain(int _seed)
 {
 	NUM_VERTICES = 1;
 	NUM_INDICES = 6;
+	m_seed = _seed;
+	srand(m_seed);
 	SetPosition(XMFLOAT3(-5, 0, -5));
 }
 
@@ -231,11 +233,13 @@ void GameObjectTerrain::LoadHeightMap(char* _fileName)
 	
 	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
 	NUM_INDICES *= ((m_terrainWidth - 1) * (m_terrainLength - 1));
-	//printf("Height map: %f\n Size:%f", m_heightMap.get()[m_terrainWidth * m_terrainLength - 1], m_terrainWidth * m_terrainLength);
 }
 
 void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightScale, int _c1, int _c2, int _c3, int _c4)
 {
+	m_heightMap.clear();
+	m_vertices.clear();
+	m_indices.clear();
 	//2^n + 1
 	_size += 1;
 	//m_heightMap[_size * _size] = 0;
@@ -262,21 +266,17 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightSc
 
 	if (_c1 == 0 && _c2 == 0 && _c3 == 0 && _c4 == 0)
 	{
-		_c1 = rand() % randomSize - randomSize;
-		_c2 = rand() % randomSize - randomSize;
-		_c3 = rand() % randomSize - randomSize;
-		_c4 = rand() % randomSize - randomSize;
+		_c1 = rand() % -randomSize + randomSize;
+		_c2 = rand() % -randomSize + randomSize;
+		_c3 = rand() % -randomSize + randomSize;
+		_c4 = rand() % -randomSize + randomSize;
 	}
 	m_heightMap[0] = _c1;
 	m_heightMap[width] = _c2;
 	m_heightMap[totalSize - 1 - length] = _c3;
 	m_heightMap[totalSize - 1] = _c4;
-	//m_heightMap[totalSize / 2] = 1;
 	int stepSize = _size - 1;
-	//DiamondStep(size / 2 - 1, size / 2 - 1);
-	//SquareStep(ConvertTo1D(i + half, j))
 	int half = stepSize;
-
 
 	while (stepSize > 1) {
 		half = stepSize / 2;
@@ -313,13 +313,6 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightSc
 
 			}
 		}
-
-		//for (int i = 0; i < m_terrainLength; i += stepSize) {
-		//	for (int j = 0; j < m_terrainWidth; j += stepSize) {
-		//		DiamondStep(ConvertTo1D(i + half, j), stepSize);
-		//		DiamondStep(ConvertTo1D(i, j + half), stepSize);
-		//	}
-		//}
 		stepSize /= 2;
 		if (randomSize <= 1)
 			continue;
@@ -386,7 +379,7 @@ void GameObjectTerrain::SmoothHeights(int _boxSize, int _iterations)
 float GameObjectTerrain::CheckHeight(int _center, int _max, int _random)
 {
 	if (!IsInBounds(_center, _max)) {
-		return (rand() % _random - _random);
+		return (rand() % _random -  _random);
 	} 
 	return m_heightMap[_center];
 }

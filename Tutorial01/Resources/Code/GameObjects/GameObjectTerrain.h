@@ -9,7 +9,7 @@ class GameObjectTerrain :
 {
 public:
     GameObjectTerrain(char* _fileName);
-    GameObjectTerrain();
+    GameObjectTerrain(int _seed = time(NULL));
     ~GameObjectTerrain();
     HRESULT						virtual InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext) override;
     
@@ -21,6 +21,8 @@ public:
     void DiamondSquare(UINT _size, int _randomness = 0, int _heightScale = 1, int _c1 = 0, int _c2 = 0, int _c3 = 0, int _c4 = 0);
     void SmoothHeights(int _boxSize, int _iterations);
 
+    int GetSeed() { return m_seed; }
+    int GetSize() { return m_terrainLength; }
 private:
     void LoadFromXML(char* _fileName);
     bool IsInBounds(int _1DPos, int _1DMax, int _1DMin = 0);
@@ -35,7 +37,7 @@ private:
     vector<double> m_heightMap;
     vector<BasicVertex> m_vertices;
     vector<UINT> m_indices;
-
+    int m_seed = 0;
 
 
 };

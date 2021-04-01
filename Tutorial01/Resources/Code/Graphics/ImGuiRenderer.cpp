@@ -2,7 +2,6 @@
 
 ImGuiRenderer* ImGuiRenderer::instance;
 bool ImGuiRenderer::initialised = false;
-
 HRESULT ImGuiRenderer::Init(HWND _hwnd, ID3D11Device* _device, ID3D11DeviceContext* _deviceContext)
 {
     // Application init: create a dear imgui context, setup some options, load fonts
@@ -17,6 +16,7 @@ HRESULT ImGuiRenderer::Init(HWND _hwnd, ID3D11Device* _device, ID3D11DeviceConte
     if(!initialised)
         instance = new ImGuiRenderer();
     initialised = true;
+
     return S_OK;
 }
 
@@ -27,6 +27,13 @@ ImGuiRenderer* ImGuiRenderer::GetInstance()
         return nullptr;
     }
     return instance;
+}
+
+void ImGuiRenderer::Start()
+{
+    m_terrain = ObjectManager::GetTerrain();
+    m_terrainSeed = m_terrain->GetSeed();
+    m_terrainSize = m_terrain->GetSize();
 }
 
 void ImGuiRenderer::Update(Light* _light)
@@ -104,6 +111,16 @@ void ImGuiRenderer::Render()
             ImGui::Text("Position Z");
             ImGui::SliderFloat(finalZ, &currObj->m_position.z, -15, 15);
             ImGui::Unindent();
+        }
+        ImGui::End();
+
+        ImGui::Begin("Terrain");
+        {
+            ImGui::Text("Seed: %d", m_terrainSeed);
+            ImGui::Text("Size: %d", m_terrainSize);
+            //if (ImGui::Button("Generate")) {
+            //    m_terrain->DiamondSquare(m_terrainSize);
+            //}
         }
         ImGui::End();
 

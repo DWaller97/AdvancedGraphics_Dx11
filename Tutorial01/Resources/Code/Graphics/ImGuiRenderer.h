@@ -7,6 +7,7 @@
 #include "../Light.h"
 
 #include "../GameObjects/GameObject.h"
+#include "../GameObjects/GameObjectTerrain.h"
 
 #include "../Graphics/DeferredRenderer.h"
 
@@ -26,13 +27,18 @@ private:
     XMFLOAT4 camUp = XMFLOAT4(0, 0, 0, 0);
     XMFLOAT4 camAt = XMFLOAT4(0, 0, 0, 0);
     float* camSpeed = nullptr;
+
+    GameObjectTerrain* m_terrain;
+    int m_terrainSeed;
+    int m_terrainSize;
+
     ImGuiIO io;
     static bool initialised;
     bool deferred;
 public:
     static HRESULT Init(HWND _hwnd, ID3D11Device* _device, ID3D11DeviceContext* _deviceContext);
     static ImGuiRenderer* GetInstance();
-
+    void Start();
     void Update(Light* _light);
     void Render();
     void Cleanup();

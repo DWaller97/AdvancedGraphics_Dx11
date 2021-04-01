@@ -37,6 +37,7 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_pTime = new Time();
     g_pOM = new ObjectManager();
     g_pOM->CreateObjects(g_pd3dDevice, g_pImmediateContext);
+    g_pImgui->Start();
     g_pRenderPlane = g_pOM->GetRenderPlane();
     g_pDR = new DeferredRenderer();
     g_pDR->Initialise(g_pd3dDevice);
@@ -355,6 +356,8 @@ HRESULT		InitWorld()
     g_pLight->constantAttenuation = 1.0f;
     g_pLight->linearAttenuation = 1;
     g_pLight->quadraticAttenuation = 1;
+
+
 
 	return S_OK;
 }
