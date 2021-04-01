@@ -58,13 +58,12 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 	//m_indices.push_back(3);
 	//m_indices.push_back(1);
 	//m_indices.push_back(2);
-	m_heightScale = 1;
 	for (int i = 0; i < m_terrainLength; i++) {
 		for (int j = 0; j < m_terrainWidth; j++) {
 			float u = (float)i / m_terrainLength;
 			float v = (float)j / m_terrainWidth;
 			BasicVertex b;
-			b.pos = XMFLOAT3(i * 10, m_heightMap[ConvertTo1D(i, j)] * m_heightScale, j * 10);
+			b.pos = XMFLOAT3(i, m_heightMap[ConvertTo1D(i, j)] * m_heightScale, j);
 			b.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
 			b.texCoord = XMFLOAT2(u, v);
 			m_vertices.push_back(b);
@@ -84,8 +83,6 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 	}
 
 
-
-
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(BasicVertex) * NUM_VERTICES;
@@ -93,10 +90,17 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 	bd.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData = {};
 
+	m_mesh.IndexCount = NUM_INDICES;
+	m_mesh.VertexCount = NUM_VERTICES;
+	m_mesh.IndexBuffer = nullptr;
+	m_mesh.VertexBuffer = nullptr;
+
 	InitData.pSysMem = &m_vertices[0];
+	InitData.SysMemPitch = m_terrainLength;
 	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &m_mesh.VertexBuffer);
 	if (FAILED(hr))
 		return hr;
+
 
 
 	ZeroMemory(&bd, sizeof(bd));
@@ -107,6 +111,7 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 
 	ZeroMemory(&InitData, sizeof(InitData));
 	InitData.pSysMem = &m_indices[0];
+	InitData.SysMemPitch = NUM_INDICES / m_terrainWidth;
 	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &m_mesh.IndexBuffer);
 	if (FAILED(hr))
 		return hr;
@@ -216,21 +221,20 @@ void GameObjectTerrain::LoadHeightMap(char* _fileName)
 		// Done with file.
 		inFile.close();
 	}
-
 	//m_heightMap = new long(m_terrainWidth * m_terrainLength);
 
 	// Copy the array data into a float array and scale it. mHeightmap.resize(heightmapHeight * heightmapWidth, 0);
-	int i = 0;
-	for (; i < m_terrainWidth * m_terrainLength; ++i)
+	for (int i = 0; i < m_terrainWidth * m_terrainLength; ++i)
 	{
-		m_heightMap[i] = (in[i] / 255.0f) * 10;
+		m_heightMap.push_back((in[i] / 255.0f) * m_heightScale);
 	}
 	
-
+	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
+	NUM_INDICES *= ((m_terrainWidth - 1) * (m_terrainLength - 1));
 	//printf("Height map: %f\n Size:%f", m_heightMap.get()[m_terrainWidth * m_terrainLength - 1], m_terrainWidth * m_terrainLength);
 }
 
-void GameObjectTerrain::DiamondSquare(UINT _size, int _c1, int _c2, int _c3, int _c4)
+void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightScale, int _c1, int _c2, int _c3, int _c4)
 {
 	//2^n + 1
 	_size += 1;
@@ -247,8 +251,22 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _c1, int _c2, int _c3, int
 	int totalSize = m_terrainWidth * m_terrainLength;
 	int size = totalSize - 1;
 
+	int randomSize = _randomness;
+	if (_randomness == 0)
+		randomSize = _size / 2;
+
+	m_heightScale = _heightScale;
+
 	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
-	NUM_INDICES *= (m_terrainWidth * m_terrainLength);
+	NUM_INDICES *= ((m_terrainWidth - 1)* (m_terrainLength - 1));
+
+	if (_c1 == 0 && _c2 == 0 && _c3 == 0 && _c4 == 0)
+	{
+		_c1 = rand() % randomSize - randomSize;
+		_c2 = rand() % randomSize - randomSize;
+		_c3 = rand() % randomSize - randomSize;
+		_c4 = rand() % randomSize - randomSize;
+	}
 	m_heightMap[0] = _c1;
 	m_heightMap[width] = _c2;
 	m_heightMap[totalSize - 1 - length] = _c3;
@@ -258,7 +276,8 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _c1, int _c2, int _c3, int
 	//DiamondStep(size / 2 - 1, size / 2 - 1);
 	//SquareStep(ConvertTo1D(i + half, j))
 	int half = stepSize;
-	int randomSize = 256;
+
+
 	while (stepSize > 1) {
 		half = stepSize / 2;
 		for (int i = 0; i < m_terrainLength - 1; i += stepSize) {
@@ -306,7 +325,6 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _c1, int _c2, int _c3, int
 			continue;
 		randomSize /= 2;
 	}
-
 }
 
 void GameObjectTerrain::LoadFromXML(char* _fileName)
@@ -329,54 +347,40 @@ void GameObjectTerrain::LoadFromXML(char* _fileName)
 
 }
 
-void GameObjectTerrain::SquareStep(int _center, int _radius)
-{
-	int x = _center + ConvertTo1D(-_radius, -_radius);
-	int y = _center + ConvertTo1D(_radius, -_radius);
-	int z = _center + ConvertTo1D(-_radius, _radius);
-	int w = _center + ConvertTo1D(_radius, _radius);
-
-
-	int max = m_terrainLength * m_terrainWidth;
-	int average = 0;
-	average += CheckHeight(x, max, _radius);
-	average += CheckHeight(y, max, _radius);
-	average += CheckHeight(z, max, _radius);
-	average += CheckHeight(w, max, _radius);
-
-	average /= 4;
-
-	m_heightMap[_center] = average;
-
-	//DiamondStep(_center + ConvertTo1D(0, -_radius), _radius);
-	//DiamondStep(_center + ConvertTo1D(-_radius, 0), _radius);
-	//DiamondStep(_center + ConvertTo1D(0, _radius), _radius);
-	//DiamondStep(_center + ConvertTo1D(_radius, 0), _radius);
-
-}
-
-void GameObjectTerrain::DiamondStep(int _center, int _radius)
-{
-	int x = _center + ConvertTo1D(0, -_radius);
-	int y = _center + ConvertTo1D(_radius, 0);
-	int z = _center + ConvertTo1D(-_radius, 0);
-	int w = _center + ConvertTo1D(0, _radius);
-
-	int max = m_terrainLength * m_terrainWidth;
-	float average = 0;
-	average += CheckHeight(x, max, _radius);
-	average += CheckHeight(y, max, _radius);
-	average += CheckHeight(z, max, _radius);
-	average += CheckHeight(w, max, _radius);
-
-	m_heightMap[_center] = average;
-}
-
 bool GameObjectTerrain::IsInBounds(int _1DPos, int _1DMax, int _1DMin)
 {
 	if(_1DPos < _1DMin || _1DPos > _1DMax )
 		return false;
 	return true;
+}
+
+void GameObjectTerrain::SmoothHeights(int _boxSize, int _iterations)
+{
+	vector<double> heights;
+
+	for (int it = 0; it < _iterations; it++) {
+		for (int i = 0; i < m_terrainLength; i++) {
+			for (int j = 0; j < m_terrainWidth; j++) {
+
+				for (int k = -_boxSize; k < _boxSize; k++) {
+					for (int l = -_boxSize; l < _boxSize; l++) {
+						float height = CheckHeight(i + k, j + l);
+						if (height == -D3D11_FLOAT32_MAX)
+							continue;
+						heights.push_back(height);
+
+					}
+				}
+				float average = 0;
+				for (int k = 0; k < heights.size(); k++) {
+					average += heights.at(k);
+				}
+				average /= heights.size();
+				m_heightMap[ConvertTo1D(i, j)] = average;
+				heights.clear();
+			}
+		}
+	}
 }
 
 float GameObjectTerrain::CheckHeight(int _center, int _max, int _random)
@@ -385,6 +389,15 @@ float GameObjectTerrain::CheckHeight(int _center, int _max, int _random)
 		return (rand() % _random - _random);
 	} 
 	return m_heightMap[_center];
+}
+
+float GameObjectTerrain::CheckHeight(int _x, int _y)
+{
+	int converted = ConvertTo1D(_x, _y);
+	if (!IsInBounds(converted, (m_terrainLength - 1) * (m_terrainWidth - 1))) {
+		return -D3D11_FLOAT32_MAX;
+	}
+	return m_heightMap[converted];
 }
 
 int GameObjectTerrain::ConvertTo1D(int x, int y)

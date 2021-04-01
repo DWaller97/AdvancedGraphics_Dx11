@@ -347,8 +347,7 @@ HRESULT		InitWorld()
     DirectX::XMFLOAT4 up = DirectX::XMFLOAT4(0, 1, 0, 1);
 
     g_pCamera = CameraManager::CreateCamera(eye, at, up, g_viewWidth, g_viewHeight);
-    g_pCamera->SetFrustum(DirectX::XM_PIDIV2, g_viewWidth / (float)g_viewHeight, 0.001f, 100);
-    
+    g_pCamera->SetFrustum(DirectX::XM_PIDIV2, g_viewWidth / (float)g_viewHeight, 0.001f, 5000);
     g_pLight = new Light();
     g_pLight->enabled = static_cast<int>(true);
     g_pLight->lightType = Light::LightType::PointLight;
@@ -424,9 +423,19 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     return 0;
 }
 
+static float dTime = 0.0f;
+
 void Update() {
 
-    float dTime = g_pTime->DeltaTime();
+    static float t = 0.0f;
+    static float prevTime = t;
+    static DWORD dwTimeStart = 0;
+    DWORD dwTimeCur = GetTickCount();
+
+    if (dwTimeStart == 0)
+        dwTimeStart = dwTimeCur;
+
+
 
 
     if (GetAsyncKeyState('W')) // W
@@ -458,6 +467,11 @@ void Update() {
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
     g_pOM->Update(dTime);
     g_pRenderPlane->Update(dTime);
+
+    t = (dwTimeCur - dwTimeStart) / 1000.0f;
+    dTime = (t - prevTime);
+    prevTime = t;
+
 }
 
 

@@ -4,8 +4,12 @@
 
 using namespace DirectX;
 
+float* Camera::moveSpeed = nullptr;
+
 Camera::Camera(DirectX::XMFLOAT4& _eye, DirectX::XMFLOAT4& _at, DirectX::XMFLOAT4& _up, const int _width, const int _height)
 {
+    moveSpeed = new float();
+    *moveSpeed = 250;
     eye = _eye;
     at = _at;
     up = _up;
@@ -19,8 +23,10 @@ Camera::Camera(DirectX::XMFLOAT4& _eye, DirectX::XMFLOAT4& _at, DirectX::XMFLOAT
 
     DirectX::XMStoreFloat4x4(&world, DirectX::XMMatrixIdentity());
     DirectX::XMStoreFloat4x4(&view,  DirectX::XMMatrixLookAtLH(Eye, At, Up));
-    DirectX::XMStoreFloat4x4(&proj,  DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, _width / (float)_height, 0.01f, 100.0f));
+    DirectX::XMStoreFloat4x4(&proj,  DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, _width / (float)_height, 0.01f, 10000.0f));
+    
     LookAt();
+
 }
 
 Camera::~Camera()
@@ -44,7 +50,7 @@ void Camera::Strafe(float dist)
 
 void Camera::Move(float dist)
 {
-    DirectX::XMVECTOR s = DirectX::XMVectorReplicate(dist * moveSpeed);
+    DirectX::XMVECTOR s = DirectX::XMVectorReplicate(dist * *moveSpeed);
     DirectX::XMVECTOR l = DirectX::XMLoadFloat4(&eye);
     DirectX::XMVECTOR p = DirectX::XMLoadFloat4(&at);
 
@@ -55,7 +61,7 @@ void Camera::Move(float dist)
 
 void Camera::MoveUp(float dist)
 {
-    at.y += (dist * moveSpeed);
+    at.y += (dist * *moveSpeed);
 }
 
 void Camera::Pitch(float angle)
@@ -170,9 +176,9 @@ void Camera::SetForward(float x, float y, float z)
 
 void Camera::MovePosition(float x, float y, float z)
 {
-    at.x += x;
-    at.y += y;
-    at.z += z;
+    at.x += (x * *moveSpeed);
+    at.y += y * *moveSpeed;
+    at.z += z * *moveSpeed;
     eye.x = at.x;
     eye.y = at.y + 1;
     eye.z = at.z - 3;

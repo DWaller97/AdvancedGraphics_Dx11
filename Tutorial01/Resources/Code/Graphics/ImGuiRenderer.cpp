@@ -36,7 +36,7 @@ void ImGuiRenderer::Update(Light* _light)
     camEye = cam->GetLook();
     camAt = cam->GetPosition();
     camUp = cam->GetUp();
-
+    camSpeed = cam->GetMoveSpeed();
     _light->colour = XMFLOAT4(lightColour[0], lightColour[1], lightColour[2], lightColour[3]);
     _light->position = lightPosition;
     _light->rotation = lightRotation;
@@ -79,6 +79,7 @@ void ImGuiRenderer::Render()
         ImGui::Text("Eye Position: %f %f %f", camEye.x, camEye.y, camEye.z);
         ImGui::Text("At Position: %f %f %f", camAt.x, camAt.y, camAt.z);
         ImGui::Text("Up Position: %f %f %f", camUp.x, camUp.y, camUp.z);
+        ImGui::SliderFloat("Movement Speed", camSpeed, 0, 500);
         ImGui::End();
     }
     {

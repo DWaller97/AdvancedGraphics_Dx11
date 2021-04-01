@@ -36,9 +36,11 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     m_renderPlane->SetShaders(ShaderManager::shaderRTT);
     m_renderPlane->SetPosition(XMFLOAT3(0, 0, 0));
 
-    //m_terrain = new GameObjectTerrain((char*)"Resources\\XML\\terrain.xml");
     terrain = new GameObjectTerrain();
-    terrain->DiamondSquare(256, 3, 2, 5, 3);
+    //Loads terrain from XML file, grabbing the path for the terrain raw file and loads it that way.
+    //terrain = new GameObjectTerrain((char*)"Resources\\XML\\terrain.xml");
+    terrain->DiamondSquare(2048);
+    terrain->SmoothHeights(1, 10);
     terrain->InitMesh(_device, _deviceContext);
     terrain->SetShaders(ShaderManager::shaderTerrain);
 

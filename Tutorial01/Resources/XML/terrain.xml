@@ -3,6 +3,6 @@
 		TerrainLength="513"
 		TerrainWidth="513"
 		HeightMapPath="Resources\\Textures\\coastMountain513.raw"
-        HeightMapScale="2">
+        HeightMapScale="10">
     </terrain>
     

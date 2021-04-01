@@ -18,21 +18,21 @@ public:
 
     void SetSize(int _width, int _length);
     void LoadHeightMap(char* _fileName);
-    void DiamondSquare(UINT _size, int _c1 = 0, int _c2 = 0, int _c3 = 0, int _c4 = 0);
+    void DiamondSquare(UINT _size, int _randomness = 0, int _heightScale = 1, int _c1 = 0, int _c2 = 0, int _c3 = 0, int _c4 = 0);
+    void SmoothHeights(int _boxSize, int _iterations);
+
 private:
     void LoadFromXML(char* _fileName);
-    void SquareStep(int _center, int _radius);
-    void DiamondStep(int _center, int _radius);
     bool IsInBounds(int _1DPos, int _1DMax, int _1DMin = 0);
-    
     float CheckHeight(int _center, int _max, int _random);
+    float CheckHeight(int _x, int _y);
     int ConvertTo1D(int x, int y);
 
     int m_terrainWidth = 1;
     int m_terrainLength = 1;
-    int m_heightScale = 1;
+    int m_heightScale = 10;
 
-    vector<long> m_heightMap;
+    vector<double> m_heightMap;
     vector<BasicVertex> m_vertices;
     vector<UINT> m_indices;
 

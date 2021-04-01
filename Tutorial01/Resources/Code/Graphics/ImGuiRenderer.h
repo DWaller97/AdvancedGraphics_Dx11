@@ -25,6 +25,7 @@ private:
     XMFLOAT4 camEye = XMFLOAT4(0, 0, 0, 0);
     XMFLOAT4 camUp = XMFLOAT4(0, 0, 0, 0);
     XMFLOAT4 camAt = XMFLOAT4(0, 0, 0, 0);
+    float* camSpeed = nullptr;
     ImGuiIO io;
     static bool initialised;
     bool deferred;
