@@ -41,11 +41,20 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     m_renderPlane->SetPosition(XMFLOAT3(0, 0, 0));
 
     m_terrain = new GameObjectTerrain();
+    
     //Loads terrain from XML file, grabbing the path for the terrain raw file and loads it that way.
-    //terrain = new GameObjectTerrain((char*)"Resources\\XML\\terrain.xml");
-    //m_terrain->DiamondSquare(512);
-    m_terrain->HillAlgorithm(512, 5, 20, 1);
+    //m_terrain = new GameObjectTerrain((char*)"Resources\\XML\\terrain.xml");
+    
+    //m_terrain->DiamondSquare(2048);
     //m_terrain->SmoothHeights(1, 10);
+    //m_terrain->SetHeightmapScale(10);
+
+    //I think this gives the best results, if lowering the size of the map, also lower the height modifier (at the end of the HillAlgorithm function), to about 1
+    //m_terrain->HillAlgorithm(2048, 50, 400, 500);
+
+    //I thought using a constant displacement value looked much better, however, it looks very blocky overrall.
+    m_terrain->FaultLine(2048, 600, 1);
+    
     m_terrain->InitMesh(_device, _deviceContext);
     m_terrain->SetShaders(ShaderManager::shaderTerrain);
 

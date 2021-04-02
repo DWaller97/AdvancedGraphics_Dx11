@@ -172,6 +172,11 @@ void GameObjectTerrain::SetSize(int _width, int _length)
 	m_terrainLength = _length;
 }
 
+void GameObjectTerrain::SetHeightmapScale(int _scale)
+{
+	m_heightScale = _scale;
+}
+
 void GameObjectTerrain::LoadHeightMap(char* _fileName)
 {
 	// A height for each vertex 
@@ -225,7 +230,7 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightSc
 	}
 	m_heightMap[0] = _c1;
 	m_heightMap[width] = _c2;
-	m_heightMap[totalSize - 1 - length] = _c3;
+	m_heightMap[totalSize - length] = _c3;
 	m_heightMap[totalSize - 1] = _c4;
 	int stepSize = _size - 1;
 	int half = stepSize;
@@ -247,17 +252,14 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightSc
 			}
 		}
 
-		for (int i = 0; i < m_terrainLength - 1; i += half) {
-			for (int j = (i + half) % stepSize; j < m_terrainWidth - 1; j += stepSize) {
+		for (int i = 0; i < m_terrainLength; i += half) {
+			for (int j = (i + half) % stepSize; j < m_terrainWidth; j += stepSize) {
 				float x = CheckHeight(ConvertTo1D((i - half + _size - 1) % (_size - 1), j), totalSize, randomSize);
 				float y = CheckHeight(ConvertTo1D((i + half) % (_size - 1), j), totalSize, randomSize);
 				float z = CheckHeight(ConvertTo1D(i, (j + half) % (_size - 1)), totalSize, randomSize);
 				float w = CheckHeight(ConvertTo1D(i, (j - half + _size - 1) % (_size - 1)), totalSize, randomSize);
 				float average = 0;
 				average = x + y + z + w;
-				if (average == 0) {
-					continue;
-				}
 				average /= 4;
 				average += rand() % randomSize - randomSize;
 				m_heightMap[ConvertTo1D(i, j)] = average;
@@ -276,22 +278,66 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightSc
 
 }
 
+void GameObjectTerrain::FaultLine(UINT _size, int _iterations, int _displacement)
+{
+	InitialiseRandomTerrain(_size, _size);
+	float a = 0;
+	float b = 0;
+	float c = 0;
+	float d = 0;
+	float v = 0;
+	float distance = 0;
+	float displacement = _displacement;
+	for (int it = 0; it < _iterations; it++) {
+		v = rand() % (_size * _size);
+		a = sin(v);
+		b = cos(v);
+		d = sqrt((_size * _size) + (_size * _size));
+		c = ((float)rand() / RAND_MAX) * d - d / 2;
+		for (int i = 0; i < _size; i++) {
+			for (int j = 0; j < _size; j++) {
+				if (a * i + b * j - c > 0) {
+					m_heightMap[ConvertTo1D(i, j)] += displacement;
+				}
+				else {
+					m_heightMap[ConvertTo1D(i, j)] -= displacement;
+				}
+			}
+		}
+
+	}
+}
+
 void GameObjectTerrain::HillAlgorithm(int _size, int _minRadius, int _maxRadius, int _iterations)
 {
 	InitialiseRandomTerrain(_size, _size);
-	int randomX = rand() % _size, randomY = rand() % _size;
-	int radius = 50;//rand() % _maxRadius+ _minRadius;
-	for (int i = randomX - radius; i < randomX + radius; i++) {
-		for (int j = randomY - radius; j < randomY + radius; j++) {
-			float curr = CheckHeight(i, j);
-			if (curr == -D3D11_FLOAT32_MAX)
-				continue;
-			float height = ((radius * radius) - (((i - randomX) * (i - randomX)) + ((j - randomY) * (j - randomY))));
-			if (height < 0)
-				continue;
-			m_heightMap.at(ConvertTo1D(i, j)) = height;
+	int randomX = 0;
+	int randomY = 0;
+	int radius = 0;
+	float distance = 0;
+	float theta = 0;
+	for (int it = 0; it < _iterations; it++) {
+		randomX = rand() % _size;
+		randomY = rand() % _size;
+		radius = rand() % _maxRadius + _minRadius;
+		distance = rand() % _size / 2 - radius;
+		theta = rand() % 2 * PI;
+		//randomX = (_size / 2) + (cos(theta) * distance);
+		//randomY = (_size / 2) + (sin(theta) * distance);
+		for (int i = randomX - radius; i < randomX + radius; i++) {
+			for (int j = randomY - radius; j < randomY + radius; j++) {
+				float curr = CheckHeight(i, j);
+				if (curr == -D3D11_FLOAT32_MAX)
+					continue;
+				float height = ((radius * radius) - (((i - randomX) * (i - randomX)) + ((j - randomY) * (j - randomY))));
+				if (height < 0)
+					continue;
+				m_heightMap.at(ConvertTo1D(i, j)) += (height /* * height  * height*/);
+			}
 		}
 	}
+	m_heightScale = 10;
+	Normalise();
 }
 
 void GameObjectTerrain::InitialiseRandomTerrain(int _sizeX, int _sizeY)
@@ -389,6 +435,14 @@ float GameObjectTerrain::CheckHeight(int _x, int _y)
 	return m_heightMap[converted];
 }
 
+bool GameObjectTerrain::IsOnSameLine(float _a, float _b, int _width)
+{
+	float a = static_cast<float>(_width) / _a;
+	float b = static_cast<float>(_width) / _b;
+	float c = abs(a - b);
+	return c < 1.0f;
+}
+
 int GameObjectTerrain::ConvertTo1D(int x, int y)
 {
 	return (y * ( m_terrainWidth) ) + x;
@@ -396,8 +450,8 @@ int GameObjectTerrain::ConvertTo1D(int x, int y)
 
 void GameObjectTerrain::Normalise(int _scale)
 {
-	float min = D3D11_FLOAT32_MAX;
-	float max = -D3D11_FLOAT32_MAX;
+	double min = D3D11_FLOAT32_MAX;
+	double max = -D3D11_FLOAT32_MAX;
 	for (int i = 0; i < m_heightMap.size(); i++) {
 		double curr = m_heightMap.at(i);
 		if (curr < min) {
