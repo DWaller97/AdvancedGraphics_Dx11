@@ -1,12 +1,24 @@
 #include "GameObjectTerrain.h"
 
+short* GameObjectTerrain::m_tessAmount = nullptr;
+
+float* GameObjectTerrain::m_textureHeight0;
+float* GameObjectTerrain::m_textureHeight1;
+float* GameObjectTerrain::m_textureHeight2;
+float* GameObjectTerrain::m_textureHeight3;
+
 GameObjectTerrain::GameObjectTerrain(char* _fileName)
 {
 	NUM_VERTICES = 1;
     NUM_INDICES = 6;
 	SetPosition(XMFLOAT3(-5, 0, -5));
+	m_tessAmount = new short();
+	*m_tessAmount = 1;
 	LoadFromXML(_fileName);
-
+	m_textureHeight0 = new float(20);
+	m_textureHeight1 = new float(100);
+	m_textureHeight2 = new float(250);
+	m_textureHeight3 = new float(750);
 }
 
 GameObjectTerrain::GameObjectTerrain(int _seed)
@@ -16,10 +28,28 @@ GameObjectTerrain::GameObjectTerrain(int _seed)
 	m_seed = _seed;
 	srand(m_seed);
 	SetPosition(XMFLOAT3(-5, 0, -5));
+	m_tessAmount = new short();
+	*m_tessAmount = 1;
+	m_textureHeight0 = new float(20);
+	m_textureHeight1 = new float(100);
+	m_textureHeight2 = new float(250);
+	m_textureHeight3 = new float(750);
 }
 
 GameObjectTerrain::~GameObjectTerrain()
 {
+	delete m_tessAmount;
+	m_tessAmount = nullptr;
+
+	if (m_textureHeight)
+		delete m_textureHeight;
+	m_textureHeight = nullptr;
+
+	delete m_textureHeight0;
+	delete m_textureHeight1;
+	delete m_textureHeight2;
+	delete m_textureHeight3;
+
 }
 
 HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
@@ -36,7 +66,7 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 			m_vertices.push_back(b);
 		}
 	}
-	for (int i = 0; i < m_terrainLength - 1; i++) {
+	for (int i = 0; i < m_terrainLength; i++) {
 		for (int j = 0; j < m_terrainWidth - 1; j++) {
 
 			m_indices.push_back(i * m_terrainLength + j);
@@ -125,10 +155,43 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_samplerLinear);
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\darkdirt.dds", nullptr, &m_albedoTexture);
+
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(PixelTextureHeights);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	bd.MiscFlags = 0;
+	bd.StructureByteStride = 0;
+	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_textureHeight);
 	if (FAILED(hr))
 		return hr;
 
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\darkdirt.dds", nullptr, &m_albedo0);
+	if (FAILED(hr))
+		return hr;
+
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\lightdirt.dds", nullptr, &m_albedo1);
+	if (FAILED(hr))
+		return hr;
+
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\grass.dds", nullptr, &m_albedo2);
+	if (FAILED(hr))
+		return hr;
+
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\stone.dds", nullptr, &m_albedo3);
+	if (FAILED(hr))
+		return hr;
+
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\snow.dds", nullptr, &m_albedo4);
+	if (FAILED(hr))
+		return hr;
+
+	m_albedoTextures[0] = m_albedo0;
+	m_albedoTextures[1] = m_albedo1;
+	m_albedoTextures[2] = m_albedo2;
+	m_albedoTextures[3] = m_albedo3;
+	m_albedoTextures[4] = m_albedo4;
 
 
     return hr;
@@ -154,10 +217,13 @@ void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightC
 	pContext->UpdateSubresource(m_constantBuffer, 0, nullptr, &cb1, 0, 0);
 
 	TesselationBuffer tb;
-	tb.tessAmount = 1;
+	tb.tessAmount = *m_tessAmount;
 	tb.padding = XMFLOAT3(0, 0, 0);
 	pContext->UpdateSubresource(m_tesselationBuffer, 0, nullptr, &tb, 0, 0);
 	
+	PixelTextureHeights pth;
+	pth.albedoZeroToThreeHeight = XMFLOAT4(*m_textureHeight0, *m_textureHeight1, *m_textureHeight2, *m_textureHeight3);
+	pContext->UpdateSubresource(m_textureHeight, 0, nullptr, &pth, 0, 0);
 
 
 	// Set vertex buffer
@@ -175,7 +241,8 @@ void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightC
 
 	pContext->HSSetConstantBuffers(0, 1, &m_tesselationBuffer);
 	pContext->DSSetConstantBuffers(0, 1, &m_constantBuffer);
-	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
+	pContext->PSSetShaderResources(0, 5, m_albedoTextures);
+	pContext->PSSetConstantBuffers(0, 1, &m_textureHeight);
 	pContext->PSSetSamplers(0, 1, &m_samplerLinear);
 
 	pContext->DrawIndexed(NUM_INDICES, 0, 0);
@@ -352,7 +419,7 @@ void GameObjectTerrain::HillAlgorithm(int _size, int _minRadius, int _maxRadius,
 				float height = ((radius * radius) - (((i - randomX) * (i - randomX)) + ((j - randomY) * (j - randomY))));
 				if (height < 0)
 					continue;
-				m_heightMap.at(ConvertTo1D(i, j)) += (height /* * height  * height*/);
+				m_heightMap.at(ConvertTo1D(i, j)) += (height /* * height  * height*/); //Squaring or cubing this creates steeper hills.
 			}
 		}
 	}
@@ -435,6 +502,24 @@ void GameObjectTerrain::SmoothHeights(int _boxSize, int _iterations)
 		}
 	}
 	Normalise(1);
+}
+
+void GameObjectTerrain::SetTessellationAmount(short _amount)
+{
+	*m_tessAmount = _amount;
+}
+
+float* GameObjectTerrain::GetTextureHeight(int _index)
+{
+	if (_index == 0)
+		return m_textureHeight0;
+	if (_index == 1)
+		return m_textureHeight1;
+	if (_index == 2)
+		return m_textureHeight2;
+	if (_index == 3)
+		return m_textureHeight3;
+	return nullptr;
 }
 
 float GameObjectTerrain::CheckHeight(int _center, int _max, int _random)

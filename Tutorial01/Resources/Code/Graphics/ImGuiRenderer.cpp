@@ -34,6 +34,10 @@ void ImGuiRenderer::Start()
     m_terrain = ObjectManager::GetTerrain();
     m_terrainSeed = m_terrain->GetSeed();
     m_terrainSize = m_terrain->GetSize();
+    m_terrainTextureHeights[0] = m_terrain->GetTextureHeight(0);
+    m_terrainTextureHeights[1] = m_terrain->GetTextureHeight(1);
+    m_terrainTextureHeights[2] = m_terrain->GetTextureHeight(2);
+    m_terrainTextureHeights[3] = m_terrain->GetTextureHeight(3);
 }
 
 void ImGuiRenderer::Update(Light* _light)
@@ -119,6 +123,10 @@ void ImGuiRenderer::Render()
             ImGui::Text("Seed: %d", m_terrainSeed);
             ImGui::Text("Size: %d", m_terrainSize);
             ImGui::Text("Position: %f, %f, %f", m_terrainPosition.x, m_terrainPosition.y, m_terrainPosition.z);
+            ImGui::SliderFloat("Texture Height 0", m_terrainTextureHeights[0], 0, 100, "%0.1");
+            ImGui::SliderFloat("Texture Height 1", m_terrainTextureHeights[1], 100, 400, "%0.1");
+            ImGui::SliderFloat("Texture Height 2", m_terrainTextureHeights[2], 400, 800, "%0.1");
+            ImGui::SliderFloat("Texture Height 3", m_terrainTextureHeights[3], 800, 1500, "%0.1");
         }
         ImGui::End();
 

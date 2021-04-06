@@ -8,6 +8,11 @@ class GameObjectTerrain :
     public GameObject
 {
 public:
+
+    struct PixelTextureHeights {
+        XMFLOAT4 albedoZeroToThreeHeight;
+    };
+
     GameObjectTerrain(char* _fileName);
     GameObjectTerrain(int _seed = time(NULL));
     virtual ~GameObjectTerrain() override;
@@ -28,9 +33,21 @@ public:
     int GetSeed() { return m_seed; }
     int GetSize() { return m_terrainLength; }
 
+    static void SetTessellationAmount(short _amount);
+    static short* GetTessellationAmount() { return m_tessAmount; };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="_index">Zero to Four otherwise nullptr</param>
+    /// <returns></returns>
+    static float* GetTextureHeight(int _index);
 
     const double PI = 3.14159265359;
 private:
+
+
+
     void InitialiseRandomTerrain(int _sizeX, int _sizeY);
     
     void LoadFromXML(char* _fileName);
@@ -48,6 +65,23 @@ private:
     vector<float> m_heightMap;
     vector<BasicVertex> m_vertices;
     vector<UINT> m_indices;
+
+    ID3D11ShaderResourceView* m_albedo0 = nullptr;
+    ID3D11ShaderResourceView* m_albedo1 = nullptr;
+    ID3D11ShaderResourceView* m_albedo2 = nullptr;
+    ID3D11ShaderResourceView* m_albedo3 = nullptr;
+    ID3D11ShaderResourceView* m_albedo4 = nullptr;
+    ID3D11ShaderResourceView* m_albedoTextures[5];
+
+    ID3D11Buffer* m_textureHeight = nullptr;
+
+    static float* m_textureHeight0;
+    static float* m_textureHeight1;
+    static float* m_textureHeight2;
+    static float* m_textureHeight3;
+
+    static short* m_tessAmount;
+
     int m_seed = 0;
 
 
