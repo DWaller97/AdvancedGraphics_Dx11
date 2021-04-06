@@ -61,6 +61,7 @@ ID3D11DeviceContext* g_pImmediateContext = nullptr;
 ID3D11DeviceContext* g_pImmediateContext1 = nullptr;
 IDXGISwapChain* g_pSwapChain = nullptr;
 IDXGISwapChain1* g_pSwapChain1 = nullptr;
+
 ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
 ID3D11Texture2D* g_pDepthStencil = nullptr;
 ID3D11Texture2D* g_pRenderTexture = nullptr;

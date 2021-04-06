@@ -34,9 +34,10 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     }
     InitImGui();
 
-    g_pTime = new Time();
+    g_pTime = new Time(); 
     g_pOM = new ObjectManager();
     g_pOM->CreateObjects(g_pd3dDevice, g_pImmediateContext);
+    g_pOM->CreateRasterisers(g_pd3dDevice);
     g_pImgui->Start();
     g_pRenderPlane = g_pOM->GetRenderPlane();
     g_pDR = new DeferredRenderer();
@@ -348,7 +349,7 @@ HRESULT		InitWorld()
     DirectX::XMFLOAT4 up = DirectX::XMFLOAT4(0, 1, 0, 1);
 
     g_pCamera = CameraManager::CreateCamera(eye, at, up, g_viewWidth, g_viewHeight);
-    g_pCamera->SetFrustum(DirectX::XM_PIDIV2, g_viewWidth / (float)g_viewHeight, 0.001f, 5000);
+    g_pCamera->SetFrustum(DirectX::XM_PIDIV2, g_viewWidth / (float)g_viewHeight, 0.001f, D3D11_FLOAT32_MAX);
     g_pLight = new Light();
     g_pLight->enabled = static_cast<int>(true);
     g_pLight->lightType = Light::LightType::PointLight;
@@ -516,6 +517,8 @@ void Render()
     plane to the previous render target's resource view
     before the shader displays it on the screen
 **********************************************************/
+       
+
         g_pRT->SetAsRenderTarget(g_pImmediateContext, g_pDepthStencilView);
         g_pRT->ClearView(g_pImmediateContext, g_pDepthStencilView, Colors::Crimson);
         g_pOM->Render(g_pImmediateContext, g_pLightConstantBuffer, g_pCamera->GetProjMat(), g_pCamera->GetViewMat());

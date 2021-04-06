@@ -15,9 +15,19 @@ ObjectManager::~ObjectManager()
     if (m_renderPlane)
         delete m_renderPlane;
     m_renderPlane = nullptr;
+    
     if (m_terrain)
         delete m_terrain;
     m_terrain = nullptr;
+    
+    if (m_rasteriserWF)
+        delete m_rasteriserWF;
+    m_rasteriserWF = nullptr;
+
+    if (m_rasteriserSolid)
+        delete m_rasteriserSolid;
+    m_rasteriserSolid = nullptr;
+
 }
 
 void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _deviceContext)
@@ -51,13 +61,14 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
 
     //I think this gives the best results, if lowering the size of the map, also lower the height modifier (at the end of the HillAlgorithm function), to about 1
     m_terrain->HillAlgorithm(2048, 50, 400, 500);
+    m_terrain->SetHeightmapScale(100);
 
     //I thought using a constant displacement value looked much better, however, it looks very blocky overrall.
     //m_terrain->FaultLine(2048, 600, 1);
     
     m_terrain->InitMesh(_device, _deviceContext);
     m_terrain->SetShaders(ShaderManager::shaderTerrain);
-    m_deferredObjects.push_back(m_terrain);
+    //m_deferredObjects.push_back(m_terrain);
 
     for (int i = 0; i < 10; i++) {
         GameObjectCube* o = new GameObjectCube();
@@ -67,15 +78,37 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
         m_deferredObjects.push_back(o);
     }
 
-    m_objects.push_back(m_terrain);
 
     //m_objects.push_back(cube);
     //m_objects.push_back(cube2);
 
 }
 
+HRESULT ObjectManager::CreateRasterisers(ID3D11Device* _device)
+{
+    HRESULT hr;
+    D3D11_RASTERIZER_DESC desc = {};
+    desc.FillMode = D3D11_FILL_WIREFRAME;
+    desc.CullMode = D3D11_CULL_NONE;
+    hr = _device->CreateRasterizerState(&desc, &m_rasteriserWF);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    desc = {};
+    desc.FillMode = D3D11_FILL_SOLID;
+    desc.CullMode = D3D11_CULL_BACK;
+    hr = _device->CreateRasterizerState(&desc, &m_rasteriserSolid);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    return hr;
+}
+
 void ObjectManager::Update(float _deltaTime)
 {
+    m_terrain->Update(_deltaTime);
     for (int i = 0; i < m_objects.size(); i++) {
         m_objects.at(i)->Update(_deltaTime);
     }
@@ -88,6 +121,10 @@ void ObjectManager::Update(float _deltaTime)
 
 void ObjectManager::Render(ID3D11DeviceContext* _deviceContext, ID3D11Buffer* _lightBuffer, XMFLOAT4X4* _projMat, XMFLOAT4X4* _viewMat)
 {
+    _deviceContext->RSSetState(m_rasteriserWF);
+    m_terrain->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
+    _deviceContext->RSSetState(m_rasteriserSolid);
+
     for (int i = 0; i < m_objects.size(); i++) {
         m_objects.at(i)->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
     }

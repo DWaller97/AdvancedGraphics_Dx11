@@ -30,7 +30,7 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 			float u = (float)i / m_terrainLength;
 			float v = (float)j / m_terrainWidth;
 			BasicVertex b;
-			b.pos = XMFLOAT3(i, m_heightMap[ConvertTo1D(i, j)] * m_heightScale, j);
+			b.pos = XMFLOAT3(i * 10, m_heightMap[ConvertTo1D(i, j)] * m_heightScale, j * 10);
 			b.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
 			b.texCoord = XMFLOAT2(u, v);
 			m_vertices.push_back(b);
@@ -434,7 +434,7 @@ void GameObjectTerrain::SmoothHeights(int _boxSize, int _iterations)
 			}
 		}
 	}
-	Normalise(300);
+	Normalise(1);
 }
 
 float GameObjectTerrain::CheckHeight(int _center, int _max, int _random)
