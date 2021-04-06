@@ -15,6 +15,7 @@
 #include "Utilities/Resource.h"
 #include "Utilities/structures.h"
 #include "Utilities/Time.h"
+#include "Utilities/Constants.h"
 
 #include "Managers/ObjectManager.h"
 #include "Managers/CameraManager.h"
@@ -73,8 +74,8 @@ ID3D11ShaderResourceView* g_pRTTTargetView = nullptr;
 ID3D11ShaderResourceView* g_shaderResourceView = nullptr;
 ID3D11SamplerState* g_pSamplerLinear = nullptr;
 
-const int				g_viewWidth = 1280 ;
-const int				g_viewHeight = 720;
+const int				g_viewWidth = Constants::WINDOW_WIDTH;
+const int				g_viewHeight = Constants::WINDOW_HEIGHT;
 
 RenderTexture* g_pRT;
 DeferredRenderer* g_pDR;

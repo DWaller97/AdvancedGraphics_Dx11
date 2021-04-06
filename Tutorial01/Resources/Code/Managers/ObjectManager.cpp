@@ -21,11 +21,11 @@ ObjectManager::~ObjectManager()
     m_terrain = nullptr;
     
     if (m_rasteriserWF)
-        delete m_rasteriserWF;
+        m_rasteriserWF->Release();
     m_rasteriserWF = nullptr;
 
     if (m_rasteriserSolid)
-        delete m_rasteriserSolid;
+        m_rasteriserSolid->Release();
     m_rasteriserSolid = nullptr;
 
 }
@@ -54,14 +54,14 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     
     //Loads terrain from XML file, grabbing the path for the terrain raw file and loads it that way.
     //m_terrain = new GameObjectTerrain((char*)"Resources\\XML\\terrain.xml");
-    
-    m_terrain->DiamondSquare(512, 256);
-    m_terrain->SetHeightmapScale(2500);
-    m_terrain->SmoothHeights(1, 2);
+    //
+    //m_terrain->DiamondSquare(512, 512);
+    //m_terrain->SetHeightmapScale(1000);
+    //m_terrain->SmoothHeights(1, 1);
 
     //I think this gives the best results, if lowering the size of the map, also lower the height modifier (at the end of the HillAlgorithm function), to about 1
-    //m_terrain->HillAlgorithm(2048, 50, 400, 500);
-    //m_terrain->SetHeightmapScale(100);
+    m_terrain->HillAlgorithm(1024, 50, 60, 300);
+    m_terrain->SetHeightmapScale(10);
     
     //m_terrain->HillAlgorithm(512, 50, 8, 64);
 
@@ -124,7 +124,7 @@ void ObjectManager::Update(float _deltaTime)
 
 void ObjectManager::Render(ID3D11DeviceContext* _deviceContext, ID3D11Buffer* _lightBuffer, XMFLOAT4X4* _projMat, XMFLOAT4X4* _viewMat)
 {
-    _deviceContext->RSSetState(m_rasteriserSolid);
+    _deviceContext->RSSetState(m_rasteriserWF);
     m_terrain->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
     _deviceContext->RSSetState(m_rasteriserSolid);
 

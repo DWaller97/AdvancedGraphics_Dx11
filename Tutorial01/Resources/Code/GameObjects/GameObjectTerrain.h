@@ -1,8 +1,10 @@
 #pragma once
 #include "GameObject.h"
 #include "../External/pugiXML/pugixml.hpp"
+#include "../Managers/CameraManager.h"
 #include <memory>
 #include <random>
+#include <cmath>
 using namespace std;
 class GameObjectTerrain :
     public GameObject
@@ -45,8 +47,9 @@ public:
 
     const double PI = 3.14159265359;
 private:
+    void Init();
 
-
+    float Lerp(float _a, float _b, float _t);
 
     void InitialiseRandomTerrain(int _sizeX, int _sizeY);
     
@@ -54,6 +57,7 @@ private:
     bool IsInBounds(int _1DPos, int _1DMax, int _1DMin = 0);
     float CheckHeight(int _center, int _max, int _random);
     float CheckHeight(int _x, int _y);
+    float CheckHeight(int _1DPos);
     bool IsOnSameLine(float _a, float _b, int _width);
     int ConvertTo1D(int x, int y);
     void Normalise(int _scale = 100);
@@ -81,6 +85,8 @@ private:
     static float* m_textureHeight3;
 
     static short* m_tessAmount;
+
+    Camera* m_currCamera = nullptr;
 
     int m_seed = 0;
 

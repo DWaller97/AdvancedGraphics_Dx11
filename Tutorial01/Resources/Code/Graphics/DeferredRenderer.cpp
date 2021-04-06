@@ -11,8 +11,8 @@ HRESULT DeferredRenderer::Initialise(ID3D11Device* _device)
 {
     HRESULT h;
     D3D11_TEXTURE2D_DESC textureDesc = {};
-    textureDesc.Width = 1280;
-    textureDesc.Height = 720;
+    textureDesc.Width = Constants::WINDOW_WIDTH;
+    textureDesc.Height = Constants::WINDOW_HEIGHT;
     textureDesc.MipLevels = 1;
     textureDesc.ArraySize = 1;
     textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -90,6 +90,7 @@ void DeferredRenderer::Render(ID3D11DeviceContext* _deviceContext, ID3D11Buffer*
             objects.at(j)->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
         }
     }
+
 }
 
 void DeferredRenderer::Release()

@@ -56,6 +56,7 @@
     <ClInclude Include="Resources\Code\GameObjects\GameObjectTerrain.h" />
     <ClInclude Include="Resources\Code\External\pugiXML\pugixml.hpp" />
     <ClInclude Include="Resources\Code\External\pugiXML\pugiconfig.hpp" />
+    <ClInclude Include="Resources\Code\Utilities\Constants.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Resources\Code\External\imgui\LICENSE.txt" />

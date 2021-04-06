@@ -12,13 +12,8 @@ GameObjectTerrain::GameObjectTerrain(char* _fileName)
 	NUM_VERTICES = 1;
     NUM_INDICES = 6;
 	SetPosition(XMFLOAT3(-5, 0, -5));
-	m_tessAmount = new short();
-	*m_tessAmount = 1;
+	Init();
 	LoadFromXML(_fileName);
-	m_textureHeight0 = new float(20);
-	m_textureHeight1 = new float(100);
-	m_textureHeight2 = new float(250);
-	m_textureHeight3 = new float(750);
 }
 
 GameObjectTerrain::GameObjectTerrain(int _seed)
@@ -28,12 +23,8 @@ GameObjectTerrain::GameObjectTerrain(int _seed)
 	m_seed = _seed;
 	srand(m_seed);
 	SetPosition(XMFLOAT3(-5, 0, -5));
-	m_tessAmount = new short();
-	*m_tessAmount = 1;
-	m_textureHeight0 = new float(20);
-	m_textureHeight1 = new float(100);
-	m_textureHeight2 = new float(250);
-	m_textureHeight3 = new float(750);
+	Init();
+
 }
 
 GameObjectTerrain::~GameObjectTerrain()
@@ -42,7 +33,7 @@ GameObjectTerrain::~GameObjectTerrain()
 	m_tessAmount = nullptr;
 
 	if (m_textureHeight)
-		delete m_textureHeight;
+		m_textureHeight->Release();
 	m_textureHeight = nullptr;
 
 	delete m_textureHeight0;
@@ -50,6 +41,22 @@ GameObjectTerrain::~GameObjectTerrain()
 	delete m_textureHeight2;
 	delete m_textureHeight3;
 
+}
+
+void GameObjectTerrain::Init()
+{
+	m_tessAmount = new short();
+	*m_tessAmount = 1;
+	m_textureHeight0 = new float(20);
+	m_textureHeight1 = new float(100);
+	m_textureHeight2 = new float(250);
+	m_textureHeight3 = new float(750);
+	m_currCamera = CameraManager::GetCurrCamera();
+}
+
+float GameObjectTerrain::Lerp(float _a, float _b, float _t)
+{
+	return (1 - _t) * _a + _t * _b;
 }
 
 HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
@@ -201,6 +208,40 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 void GameObjectTerrain::Update(float t)
 {
 	GameObject::Update(t);
+	XMFLOAT4 camPos = m_currCamera->GetPosition();
+	float heightAtPos = CheckHeight(camPos.x / 10, camPos.z / 10) * m_heightScale;
+	float heightDiff = camPos.y - heightAtPos; 
+	int min = 0;
+	int max = 1;
+	int maxHeight = m_terrainWidth;
+	heightDiff = (heightDiff / (m_heightScale));
+
+
+
+
+	//SetTessellationAmount(result);
+	if (heightDiff <= -5) {
+		SetTessellationAmount(1);
+		return;
+	}
+	if (heightDiff > -5 && heightDiff <= 0) {
+		SetTessellationAmount(2);
+		return;
+	}
+	if (heightDiff <= 10) {
+		SetTessellationAmount(4);
+		return;
+	}
+	if (heightDiff <= 20) {
+		SetTessellationAmount(2);
+		return;
+	}
+	if (heightDiff > 20)
+	{
+		SetTessellationAmount(1);
+		return;
+	}
+
 }
 
 void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
@@ -506,6 +547,8 @@ void GameObjectTerrain::SmoothHeights(int _boxSize, int _iterations)
 
 void GameObjectTerrain::SetTessellationAmount(short _amount)
 {
+	if (_amount > 64 || _amount < 1)
+		return;
 	*m_tessAmount = _amount;
 }
 
@@ -538,6 +581,14 @@ float GameObjectTerrain::CheckHeight(int _x, int _y)
 		return -D3D11_FLOAT32_MAX;
 	}
 	return m_heightMap[converted];
+}
+
+float GameObjectTerrain::CheckHeight(int _1DPos)
+{
+	if (!IsInBounds(_1DPos, m_terrainLength * m_terrainWidth)) {
+		return -D3D11_FLOAT32_MAX;
+	}
+	return m_heightMap.at(_1DPos);
 }
 
 bool GameObjectTerrain::IsOnSameLine(float _a, float _b, int _width)

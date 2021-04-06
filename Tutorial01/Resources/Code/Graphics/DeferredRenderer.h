@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include "../Managers/ObjectManager.h"
 #include <vector>
+#include "../Utilities/Constants.h"
 
 class DeferredRenderer
 {
