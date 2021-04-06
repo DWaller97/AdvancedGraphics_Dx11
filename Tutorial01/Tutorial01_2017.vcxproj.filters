@@ -60,4 +60,8 @@
   <ItemGroup>
     <Text Include="Resources\Code\External\imgui\LICENSE.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Resources\Code\Shaders\terrainHS.hlsl" />
+    <FxCompile Include="Resources\Code\Shaders\terrainDS.hlsl" />
+  </ItemGroup>
 </Project>

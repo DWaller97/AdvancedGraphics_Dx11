@@ -47,7 +47,7 @@ void ImGuiRenderer::Update(Light* _light)
     _light->colour = XMFLOAT4(lightColour[0], lightColour[1], lightColour[2], lightColour[3]);
     _light->position = lightPosition;
     _light->rotation = lightRotation;
-
+    m_terrainPosition = m_terrain->GetPosition();
     DeferredRenderer::SetActive(deferred);
 
 }
@@ -118,9 +118,7 @@ void ImGuiRenderer::Render()
         {
             ImGui::Text("Seed: %d", m_terrainSeed);
             ImGui::Text("Size: %d", m_terrainSize);
-            //if (ImGui::Button("Generate")) {
-            //    m_terrain->DiamondSquare(m_terrainSize);
-            //}
+            ImGui::Text("Position: %f, %f, %f", m_terrainPosition.x, m_terrainPosition.y, m_terrainPosition.z);
         }
         ImGui::End();
 

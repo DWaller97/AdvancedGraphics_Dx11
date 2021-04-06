@@ -31,6 +31,7 @@ private:
     GameObjectTerrain* m_terrain;
     int m_terrainSeed;
     int m_terrainSize;
+    XMFLOAT3 m_terrainPosition;
 
     ImGuiIO io;
     static bool initialised;

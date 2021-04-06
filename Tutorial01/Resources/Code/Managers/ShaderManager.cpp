@@ -39,6 +39,8 @@ ID3D11InputLayout* ShaderManager::lineInputLayout;
 
 ID3D11VertexShader* ShaderManager::terrainVertexShader;
 ID3D11PixelShader* ShaderManager::terrainPixelShader;
+ID3D11HullShader* ShaderManager::terrainHullShader;
+ID3D11DomainShader* ShaderManager::terrainDomainShader;
 ID3D11InputLayout* ShaderManager::terrainInputLayout;
 
 HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
@@ -410,12 +412,50 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 
     hr = _device->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &terrainPixelShader);
     pPSBlob->Release();
+
+    ID3DBlob* pHSBlob = nullptr;
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\terrainHS.hlsl", "main", "hs_5_0", &pHSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The hull shader cannot be compiled.", L"Error", MB_OK);
+        return hr;
+    }
+
+    hr = _device->CreateHullShader(pHSBlob->GetBufferPointer(), pHSBlob->GetBufferSize(), nullptr, &terrainHullShader);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The hull shader cannot be created.", L"Error", MB_OK);
+        return hr;
+    }
+    pHSBlob->Release();
+
+    ID3DBlob* pDSBlob = nullptr;
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\terrainDS.hlsl", "main", "ds_5_0", &pDSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The domain shader cannot be compiled.", L"Error", MB_OK);
+        return hr;
+    }
+
+    hr = _device->CreateDomainShader(pDSBlob->GetBufferPointer(), pDSBlob->GetBufferSize(), nullptr, &terrainDomainShader);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The domain shader cannot be created.", L"Error", MB_OK);
+        return hr;
+    }
+    pDSBlob->Release();
+
+
     shaderTerrain._inputLayout = terrainInputLayout;
     shaderTerrain._pixelShader = terrainPixelShader;
     shaderTerrain._vertexShader = terrainVertexShader;
-
-    if (FAILED(hr))
-        return hr;
+    shaderTerrain._hullShader = terrainHullShader;
+    shaderTerrain._domainShader = terrainDomainShader;
+    return hr;
 #pragma endregion Terrain
 }
 

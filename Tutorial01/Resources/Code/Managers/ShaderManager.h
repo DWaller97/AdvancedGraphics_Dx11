@@ -2,10 +2,14 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
+//TODO: shutdown any shaders/input layouts to release memory
+
 struct ShaderData {
-    ID3D11PixelShader* _pixelShader;
-    ID3D11VertexShader* _vertexShader;
-    ID3D11InputLayout* _inputLayout;
+    ID3D11PixelShader* _pixelShader = nullptr;
+    ID3D11VertexShader* _vertexShader = nullptr;
+    ID3D11HullShader* _hullShader = nullptr;
+    ID3D11DomainShader* _domainShader = nullptr;
+    ID3D11InputLayout* _inputLayout = nullptr;
 };
 
 class ShaderManager
@@ -42,6 +46,8 @@ private:
 
     static ID3D11VertexShader* terrainVertexShader;
     static ID3D11PixelShader* terrainPixelShader;
+    static ID3D11HullShader* terrainHullShader;
+    static ID3D11DomainShader* terrainDomainShader;
     static ID3D11InputLayout* terrainInputLayout;
 
 public:

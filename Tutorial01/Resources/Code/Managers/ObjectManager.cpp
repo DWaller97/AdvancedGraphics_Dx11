@@ -50,14 +50,14 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     //m_terrain->SetHeightmapScale(10);
 
     //I think this gives the best results, if lowering the size of the map, also lower the height modifier (at the end of the HillAlgorithm function), to about 1
-    //m_terrain->HillAlgorithm(2048, 50, 400, 500);
+    m_terrain->HillAlgorithm(2048, 50, 400, 500);
 
     //I thought using a constant displacement value looked much better, however, it looks very blocky overrall.
-    m_terrain->FaultLine(2048, 600, 1);
+    //m_terrain->FaultLine(2048, 600, 1);
     
     m_terrain->InitMesh(_device, _deviceContext);
     m_terrain->SetShaders(ShaderManager::shaderTerrain);
-
+    m_deferredObjects.push_back(m_terrain);
 
     for (int i = 0; i < 10; i++) {
         GameObjectCube* o = new GameObjectCube();

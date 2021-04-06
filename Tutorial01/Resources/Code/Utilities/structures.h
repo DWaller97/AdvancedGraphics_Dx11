@@ -50,9 +50,6 @@ struct ConstantBuffer
 	XMMATRIX mView;
 	XMMATRIX mProjection;
 	XMFLOAT4 vOutputColor;
-	float parallaxBias;
-	float parallaxScale;
-	XMFLOAT2 padding;
 };
 
 struct _Material
@@ -105,3 +102,8 @@ struct LightPropertiesConstantBuffer
 	//----------------------------------- (16 byte boundary)
 	Light               Lights[MAX_LIGHTS]; // 80 * 8 bytes
 };  // Total:                                  672 bytes (42 * 16)
+
+struct TesselationBuffer {
+	float tessAmount;
+	DirectX::XMFLOAT3 padding;
+};

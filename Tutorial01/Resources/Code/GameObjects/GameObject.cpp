@@ -108,6 +108,8 @@ void GameObject::SetShaders(ShaderData _shaderData)
 {
 	m_pixelShader = _shaderData._pixelShader;
 	m_vertexShader = _shaderData._vertexShader;
+	m_hullShader = _shaderData._hullShader;
+	m_domainShader = _shaderData._domainShader;
 	m_inputLayout = _shaderData._inputLayout;
 
 }
@@ -158,11 +160,19 @@ void GameObject::Release()
 	if (m_mesh.IndexBuffer)
 		m_mesh.IndexBuffer->Release();
 
+	if (m_constantBuffer)
+		m_constantBuffer->Release();
+
+	if (m_tesselationBuffer)
+		m_tesselationBuffer->Release();
+
 	if (m_textureResourceView)
 		m_textureResourceView->Release();
 
 	if (m_samplerLinear)
 		m_samplerLinear->Release();
+
+
 }
 
 void GameObject::SetWorldMatrix(XMFLOAT4X4* _world)

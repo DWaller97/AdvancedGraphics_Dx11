@@ -49,6 +49,9 @@ public:
 	void								SetNormalTexture(const wchar_t* _filePath, ID3D11Device* _device);
 	void								SetOcclusionTexture(ID3D11ShaderResourceView* _resourceView);
 	void								SetOcclusionTexture(const wchar_t* _filePath, ID3D11Device* _device);
+
+	XMFLOAT3 GetPosition() { return m_position; }
+
 	void								virtual Release();
 protected:
 	void								SetWorldMatrix(XMFLOAT4X4* _world);
@@ -58,6 +61,7 @@ protected:
 	ID3D11Buffer* m_constantBuffer = nullptr;
 	ID3D11Buffer* m_materialConstantBuffer = nullptr;
 	ID3D11Buffer* m_parallaxBuffer = nullptr;
+	ID3D11Buffer* m_tesselationBuffer = nullptr;
 
 	ID3D11ShaderResourceView*	 m_textureResourceView = nullptr;
 	ID3D11ShaderResourceView*  m_albedoTexture = nullptr;
@@ -70,6 +74,8 @@ protected:
 
 	ID3D11VertexShader* m_vertexShader = nullptr;
 	ID3D11PixelShader*	m_pixelShader = nullptr;
+	ID3D11HullShader* m_hullShader = nullptr;
+	ID3D11DomainShader* m_domainShader = nullptr;
 
 	unsigned int	NUM_VERTICES = 0;
 	unsigned int	NUM_INDICES = 0;

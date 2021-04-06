@@ -24,7 +24,7 @@ GameObjectTerrain::~GameObjectTerrain()
 
 HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
-    HRESULT hr;
+	HRESULT hr;
 	for (int i = 0; i < m_terrainLength; i++) {
 		for (int j = 0; j < m_terrainWidth; j++) {
 			float u = (float)i / m_terrainLength;
@@ -43,7 +43,7 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 			m_indices.push_back(i * m_terrainLength + j + 1);
 			m_indices.push_back((i + 1) * m_terrainLength + j);
 
-			m_indices.push_back((i + 1)  * m_terrainLength + j);
+			m_indices.push_back((i + 1) * m_terrainLength + j);
 			m_indices.push_back(i * m_terrainLength + j + 1);
 			m_indices.push_back((i + 1) * m_terrainLength + j + 1);
 		}
@@ -101,6 +101,19 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 	if (FAILED(hr))
 		return hr;
 
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;//D3D11_USAGE_DYNAMIC;
+	bd.ByteWidth = sizeof(TesselationBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	bd.MiscFlags = 0;
+	bd.StructureByteStride = 0;
+	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_tesselationBuffer);
+	if (FAILED(hr))
+		return hr;
+
+
+
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
 	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -116,6 +129,8 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 	if (FAILED(hr))
 		return hr;
 
+
+
     return hr;
 
 }
@@ -127,7 +142,8 @@ void GameObjectTerrain::Update(float t)
 
 void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
 {
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 	//pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
 
 	ConstantBuffer cb1;
@@ -136,13 +152,12 @@ void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightC
 	cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(projMat));
 	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
 	pContext->UpdateSubresource(m_constantBuffer, 0, nullptr, &cb1, 0, 0);
+
+	TesselationBuffer tb;
+	tb.tessAmount = 1;
+	tb.padding = XMFLOAT3(0, 0, 0);
+	pContext->UpdateSubresource(m_tesselationBuffer, 0, nullptr, &tb, 0, 0);
 	
-	MaterialPropertiesConstantBuffer redPlasticMaterial;
-	redPlasticMaterial.Material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	redPlasticMaterial.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
-	redPlasticMaterial.Material.SpecularPower = 32.0f;
-	redPlasticMaterial.Material.UseTexture = true;
-	pContext->UpdateSubresource(m_materialConstantBuffer, 0, nullptr, &redPlasticMaterial, 0, 0);
 
 
 	// Set vertex buffer
@@ -153,16 +168,21 @@ void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightC
 	pContext->IASetIndexBuffer(m_mesh.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 	pContext->IASetInputLayout(m_inputLayout);
-	pContext->VSSetConstantBuffers(0, 1, &m_constantBuffer);
-	pContext->PSSetConstantBuffers(1, 1, &m_materialConstantBuffer);
 	pContext->VSSetShader(m_vertexShader, nullptr, 0);
+	pContext->HSSetShader(m_hullShader, nullptr, 0);
+	pContext->DSSetShader(m_domainShader, nullptr, 0);
 	pContext->PSSetShader(m_pixelShader, nullptr, 0);
 
+	pContext->HSSetConstantBuffers(0, 1, &m_tesselationBuffer);
+	pContext->DSSetConstantBuffers(0, 1, &m_constantBuffer);
 	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
-
 	pContext->PSSetSamplers(0, 1, &m_samplerLinear);
+
 	pContext->DrawIndexed(NUM_INDICES, 0, 0);
+
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pContext->HSSetShader(NULL, nullptr, 0);
+	pContext->DSSetShader(NULL, nullptr, 0);
 
 }
 
