@@ -16,6 +16,11 @@ class ShaderManager
 {
 private:
     //Arrays
+
+    static ID3D11VertexShader* basicVertexShader;
+    static ID3D11PixelShader* basicPixelShader;
+    static ID3D11InputLayout* basicInputLayout;
+
     static ID3D11VertexShader* standardVertexShader;
     static ID3D11PixelShader* standardPixelShader;
     static ID3D11InputLayout* standardInputLayout;
@@ -50,7 +55,10 @@ private:
     static ID3D11DomainShader* terrainDomainShader;
     static ID3D11InputLayout* terrainInputLayout;
 
+
+
 public:
+    static ShaderData shaderBasic;
     static ShaderData shaderStandard;
     static ShaderData shaderRTT;
     static ShaderData shaderDAlbedo;

@@ -50,9 +50,10 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     m_renderPlane->SetShaders(ShaderManager::shaderRTT);
     m_renderPlane->SetPosition(XMFLOAT3(0, 0, 0));
 
-    m_terrain = new GameObjectTerrain();
+    //m_terrain = new GameObjectTerrain();
     m_terrain3D = new GameObjectTerrainVoxels((char*)"Resources\\XML\\terrain3d.xml");
-    m_terrain3D->SetShaders(ShaderManager::shaderTerrain);
+    m_terrain3D->SetShaders(ShaderManager::shaderBasic);
+    m_terrain3D->InitMesh(_device, _deviceContext);
     //Loads terrain from XML file, grabbing the path for the terrain raw file and loads it that way.
     //m_terrain = new GameObjectTerrain((char*)"Resources\\XML\\terrain.xml");
     //
@@ -68,10 +69,10 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
 
     //I thought using a constant displacement value looked much better, however, it looks very blocky overrall.
     //m_terrain->FaultLine(2048, 600, 1);
-    m_terrain->FaultLine(512, 100, 1);
-    
-    m_terrain->InitMesh(_device, _deviceContext);
-    m_terrain->SetShaders(ShaderManager::shaderTerrain);
+    //m_terrain->FaultLine(512, 100, 1);
+    //
+    //m_terrain->InitMesh(_device, _deviceContext);
+    //m_terrain->SetShaders(ShaderManager::shaderTerrain);
     //m_deferredObjects.push_back(m_terrain);
 
 
@@ -84,7 +85,7 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
         m_deferredObjects.push_back(o);
     }
 
-    m_objects.push_back(m_terrain3D);
+    //m_objects.push_back(m_terrain3D);
 
     //m_objects.push_back(cube);
     //m_objects.push_back(cube2);
@@ -115,7 +116,9 @@ HRESULT ObjectManager::CreateRasterisers(ID3D11Device* _device)
 
 void ObjectManager::Update(float _deltaTime)
 {
-    m_terrain->Update(_deltaTime);
+    //m_terrain->Update(_deltaTime);
+    m_terrain3D->Update(_deltaTime);
+
     for (int i = 0; i < m_objects.size(); i++) {
         m_objects.at(i)->Update(_deltaTime);
     }
@@ -128,9 +131,10 @@ void ObjectManager::Update(float _deltaTime)
 
 void ObjectManager::Render(ID3D11DeviceContext* _deviceContext, ID3D11Buffer* _lightBuffer, XMFLOAT4X4* _projMat, XMFLOAT4X4* _viewMat)
 {
-    _deviceContext->RSSetState(m_rasteriserWF);
-    m_terrain->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
+    //_deviceContext->RSSetState(m_rasteriserWF);
+    //m_terrain->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
     _deviceContext->RSSetState(m_rasteriserSolid);
+    m_terrain3D->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
 
     for (int i = 0; i < m_objects.size(); i++) {
         m_objects.at(i)->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);

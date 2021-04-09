@@ -28,7 +28,6 @@ public:
 
     void LoadHeightMap(char* _filePath);
 
-    virtual void GenerateFlat(int _sizeX, int _sizeY);
 
     void DiamondSquare(UINT _size, int _randomness = 0, int _heightScale = 1, int _c1 = 0, int _c2 = 0, int _c3 = 0, int _c4 = 0);
     void FaultLine(UINT _size, int _iterations = 10, int _displacement = 16);
@@ -41,21 +40,34 @@ public:
     static void SetTessellationAmount(short _amount);
     static short* GetTessellationAmount() { return m_tessAmount; };
 
-    /// <summary>
-    /// 
-    /// </summary>
+
     /// <param name="_index">Zero to Four otherwise nullptr</param>
     /// <returns></returns>
     static float* GetTextureHeight(int _index);
 
     const double PI = 3.14159265359;
 protected:
+    void GenerateFlat(int _sizeX, int _sizeY);
     virtual void LoadFromXML(char* _filePath);
     vector<float> m_heightMap;
     vector<BasicVertex> m_vertices;
     vector<UINT> m_indices;
     int m_terrainWidth = 1;
     int m_terrainLength = 1;
+    ID3D11ShaderResourceView* m_albedo0 = nullptr;
+    ID3D11ShaderResourceView* m_albedo1 = nullptr;
+    ID3D11ShaderResourceView* m_albedo2 = nullptr;
+    ID3D11ShaderResourceView* m_albedo3 = nullptr;
+    ID3D11ShaderResourceView* m_albedo4 = nullptr;
+    ID3D11ShaderResourceView* m_albedoTextures[5];
+
+    ID3D11Buffer* m_textureHeight = nullptr;
+
+    static float* m_textureHeight0;
+    static float* m_textureHeight1;
+    static float* m_textureHeight2;
+    static float* m_textureHeight3;
+
 private:
     void Init();
 
@@ -76,19 +88,9 @@ private:
 
 
 
-    ID3D11ShaderResourceView* m_albedo0 = nullptr;
-    ID3D11ShaderResourceView* m_albedo1 = nullptr;
-    ID3D11ShaderResourceView* m_albedo2 = nullptr;
-    ID3D11ShaderResourceView* m_albedo3 = nullptr;
-    ID3D11ShaderResourceView* m_albedo4 = nullptr;
-    ID3D11ShaderResourceView* m_albedoTextures[5];
 
-    ID3D11Buffer* m_textureHeight = nullptr;
 
-    static float* m_textureHeight0;
-    static float* m_textureHeight1;
-    static float* m_textureHeight2;
-    static float* m_textureHeight3;
+
 
     static short* m_tessAmount;
 

@@ -1,5 +1,6 @@
 #include "ShaderManager.h"
 
+ShaderData ShaderManager::shaderBasic;
 ShaderData ShaderManager::shaderStandard;
 ShaderData ShaderManager::shaderRTT;
 ShaderData ShaderManager::shaderDAlbedo;
@@ -8,6 +9,11 @@ ShaderData ShaderManager::shaderDPosition;
 ShaderData ShaderManager::shaderDPost;
 ShaderData ShaderManager::shaderLine;
 ShaderData ShaderManager::shaderTerrain;
+
+
+ID3D11VertexShader* ShaderManager::basicVertexShader;
+ID3D11PixelShader* ShaderManager::basicPixelShader;
+ID3D11InputLayout* ShaderManager::basicInputLayout;
 
 ID3D11VertexShader* ShaderManager::standardVertexShader;
 ID3D11PixelShader* ShaderManager::standardPixelShader;
@@ -45,9 +51,57 @@ ID3D11InputLayout* ShaderManager::terrainInputLayout;
 
 HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
 {
-#pragma region Default
+#pragma region Basic
     ID3DBlob* pVSBlob = nullptr;
-    HRESULT hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\shader.fx", "VS", "vs_4_0", &pVSBlob);
+    HRESULT hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\basicshader.fx", "VS", "vs_4_0", &pVSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+    hr = _device->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &basicVertexShader);
+    if (FAILED(hr))
+    {
+        pVSBlob->Release();
+        return hr;
+    }
+
+    D3D11_INPUT_ELEMENT_DESC basicLayout[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    };
+    UINT numElements = ARRAYSIZE(basicLayout);
+
+    hr = _device->CreateInputLayout(basicLayout, numElements, pVSBlob->GetBufferPointer(),
+        pVSBlob->GetBufferSize(), &basicInputLayout);
+    pVSBlob->Release();
+    if (FAILED(hr))
+        return hr;
+
+    ID3DBlob* pPSBlob = nullptr;
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\basicshader.fx", "PS", "ps_4_0", &pPSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+
+    hr = _device->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &basicPixelShader);
+    pPSBlob->Release();
+    shaderBasic._inputLayout = basicInputLayout;
+    shaderBasic._pixelShader = basicPixelShader;
+    shaderBasic._vertexShader = basicVertexShader;
+
+    if (FAILED(hr))
+        return hr;
+#pragma endregion Basic
+#pragma region Default
+    pVSBlob = nullptr;
+    hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\shader.fx", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -70,7 +124,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
         { "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
 
     };
-    UINT numElements = ARRAYSIZE(layout);
+    numElements = ARRAYSIZE(layout);
 
     hr = _device->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
         pVSBlob->GetBufferSize(), &standardInputLayout);
@@ -78,7 +132,7 @@ HRESULT ShaderManager::InitShaders(ID3D11Device* _device)
     if (FAILED(hr))
         return hr;
 
-    ID3DBlob* pPSBlob = nullptr;
+    pPSBlob = nullptr;
     hr = CompileShaderFromFile(L"Resources\\Code\\Shaders\\shader.fx", "PS", "ps_4_0", &pPSBlob);
     if (FAILED(hr))
     {
