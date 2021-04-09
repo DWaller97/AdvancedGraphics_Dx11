@@ -32,6 +32,8 @@ ImGuiRenderer* ImGuiRenderer::GetInstance()
 void ImGuiRenderer::Start()
 {
     m_terrain = ObjectManager::GetTerrain();
+    if (m_terrain == nullptr)
+        return;
     m_terrainSeed = m_terrain->GetSeed();
     m_terrainSize = m_terrain->GetSize();
     m_terrainTextureHeights[0] = m_terrain->GetTextureHeight(0);
@@ -51,7 +53,8 @@ void ImGuiRenderer::Update(Light* _light)
     _light->colour = XMFLOAT4(lightColour[0], lightColour[1], lightColour[2], lightColour[3]);
     _light->position = lightPosition;
     _light->rotation = lightRotation;
-    m_terrainPosition = m_terrain->GetPosition();
+    if(m_terrain != nullptr)
+        m_terrainPosition = m_terrain->GetPosition();
     DeferredRenderer::SetActive(deferred);
 
 }
@@ -117,19 +120,19 @@ void ImGuiRenderer::Render()
             ImGui::Unindent();
         }
         ImGui::End();
-
-        ImGui::Begin("Terrain");
-        {
-            ImGui::Text("Seed: %d", m_terrainSeed);
-            ImGui::Text("Size: %d", m_terrainSize);
-            ImGui::Text("Position: %f, %f, %f", m_terrainPosition.x, m_terrainPosition.y, m_terrainPosition.z);
-            ImGui::SliderFloat("Texture Height 0", m_terrainTextureHeights[0], 0, 100, "%0.1");
-            ImGui::SliderFloat("Texture Height 1", m_terrainTextureHeights[1], 100, 400, "%0.1");
-            ImGui::SliderFloat("Texture Height 2", m_terrainTextureHeights[2], 400, 800, "%0.1");
-            ImGui::SliderFloat("Texture Height 3", m_terrainTextureHeights[3], 800, 1500, "%0.1");
+        if (m_terrain != nullptr) {
+            ImGui::Begin("Terrain");
+            {
+                ImGui::Text("Seed: %d", m_terrainSeed);
+                ImGui::Text("Size: %d", m_terrainSize);
+                ImGui::Text("Position: %f, %f, %f", m_terrainPosition.x, m_terrainPosition.y, m_terrainPosition.z);
+                ImGui::SliderFloat("Texture Height 0", m_terrainTextureHeights[0], 0, 100, "%0.1");
+                ImGui::SliderFloat("Texture Height 1", m_terrainTextureHeights[1], 100, 400, "%0.1");
+                ImGui::SliderFloat("Texture Height 2", m_terrainTextureHeights[2], 400, 800, "%0.1");
+                ImGui::SliderFloat("Texture Height 3", m_terrainTextureHeights[3], 800, 1500, "%0.1");
+            }
+            ImGui::End();
         }
-        ImGui::End();
-
         ImGui::Begin("Rendering");
         {
             ImGui::Checkbox("Deferred", &deferred);

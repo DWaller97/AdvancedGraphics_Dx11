@@ -7,12 +7,14 @@
 #include "../GameObjects/GameObjectCube.h"
 #include "../GameObjects/GameObjectBezierSpline.h"
 #include "../GameObjects/GameObjectTerrain.h"
+#include "../GameObjects/GameObjectTerrainVoxels.h"
 
 class ObjectManager
 {
 private:
     static GameObjectPlane* m_renderPlane;
     static GameObjectTerrain* m_terrain;
+    static GameObjectTerrainVoxels* m_terrain3D;
     static std::vector<GameObject*> m_objects;
     static std::vector<GameObject*> m_deferredObjects;
     ID3D11RasterizerState *m_rasteriserWF = nullptr, *m_rasteriserSolid = nullptr;

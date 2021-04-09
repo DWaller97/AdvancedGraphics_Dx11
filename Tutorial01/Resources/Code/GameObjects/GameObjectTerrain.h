@@ -26,7 +26,10 @@ public:
     void SetSize(int _width, int _length);
     void SetHeightmapScale(int _scale);
 
-    void LoadHeightMap(char* _fileName);
+    void LoadHeightMap(char* _filePath);
+
+    virtual void GenerateFlat(int _sizeX, int _sizeY);
+
     void DiamondSquare(UINT _size, int _randomness = 0, int _heightScale = 1, int _c1 = 0, int _c2 = 0, int _c3 = 0, int _c4 = 0);
     void FaultLine(UINT _size, int _iterations = 10, int _displacement = 16);
     void HillAlgorithm(int _size, int _minRadius, int _maxRadius, int _iterations);
@@ -46,14 +49,20 @@ public:
     static float* GetTextureHeight(int _index);
 
     const double PI = 3.14159265359;
+protected:
+    virtual void LoadFromXML(char* _filePath);
+    vector<float> m_heightMap;
+    vector<BasicVertex> m_vertices;
+    vector<UINT> m_indices;
+    int m_terrainWidth = 1;
+    int m_terrainLength = 1;
 private:
     void Init();
 
     float Lerp(float _a, float _b, float _t);
-
-    void InitialiseRandomTerrain(int _sizeX, int _sizeY);
     
-    void LoadFromXML(char* _fileName);
+    void SetHeights();
+
     bool IsInBounds(int _1DPos, int _1DMax, int _1DMin = 0);
     float CheckHeight(int _center, int _max, int _random);
     float CheckHeight(int _x, int _y);
@@ -62,13 +71,10 @@ private:
     int ConvertTo1D(int x, int y);
     void Normalise(int _scale = 100);
 
-    int m_terrainWidth = 1;
-    int m_terrainLength = 1;
+
     int m_heightScale = 10;
 
-    vector<float> m_heightMap;
-    vector<BasicVertex> m_vertices;
-    vector<UINT> m_indices;
+
 
     ID3D11ShaderResourceView* m_albedo0 = nullptr;
     ID3D11ShaderResourceView* m_albedo1 = nullptr;

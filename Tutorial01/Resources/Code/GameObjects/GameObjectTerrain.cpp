@@ -7,13 +7,13 @@ float* GameObjectTerrain::m_textureHeight1;
 float* GameObjectTerrain::m_textureHeight2;
 float* GameObjectTerrain::m_textureHeight3;
 
-GameObjectTerrain::GameObjectTerrain(char* _fileName)
+GameObjectTerrain::GameObjectTerrain(char* _filePath)
 {
 	NUM_VERTICES = 1;
     NUM_INDICES = 6;
 	SetPosition(XMFLOAT3(-5, 0, -5));
 	Init();
-	LoadFromXML(_fileName);
+	LoadFromXML(_filePath);
 }
 
 GameObjectTerrain::GameObjectTerrain(int _seed)
@@ -62,30 +62,8 @@ float GameObjectTerrain::Lerp(float _a, float _b, float _t)
 HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
 	HRESULT hr;
-	for (int i = 0; i < m_terrainLength; i++) {
-		for (int j = 0; j < m_terrainWidth; j++) {
-			float u = (float)i / m_terrainLength;
-			float v = (float)j / m_terrainWidth;
-			BasicVertex b;
-			b.pos = XMFLOAT3(i * 10, m_heightMap[ConvertTo1D(i, j)] * m_heightScale, j * 10);
-			b.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-			b.texCoord = XMFLOAT2(u, v);
-			m_vertices.push_back(b);
-		}
-	}
-	for (int i = 0; i < m_terrainLength; i++) {
-		for (int j = 0; j < m_terrainWidth - 1; j++) {
 
-			m_indices.push_back(i * m_terrainLength + j);
-			m_indices.push_back(i * m_terrainLength + j + 1);
-			m_indices.push_back((i + 1) * m_terrainLength + j);
-
-			m_indices.push_back((i + 1) * m_terrainLength + j);
-			m_indices.push_back(i * m_terrainLength + j + 1);
-			m_indices.push_back((i + 1) * m_terrainLength + j + 1);
-		}
-	}
-
+	SetHeights();
 
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
@@ -305,14 +283,14 @@ void GameObjectTerrain::SetHeightmapScale(int _scale)
 	m_heightScale = _scale;
 }
 
-void GameObjectTerrain::LoadHeightMap(char* _fileName)
+void GameObjectTerrain::LoadHeightMap(char* _filePath)
 {
 	// A height for each vertex 
 	std::vector<unsigned char> in(m_terrainWidth * m_terrainLength);
 
 	// Open the file.
 	std::ifstream inFile;
-	inFile.open(_fileName, std::ios_base::binary);
+	inFile.open(_filePath, std::ios_base::binary);
 
 	if (inFile)
 	{
@@ -333,10 +311,49 @@ void GameObjectTerrain::LoadHeightMap(char* _fileName)
 	NUM_INDICES *= ((m_terrainWidth - 1) * (m_terrainLength - 1));
 }
 
+void GameObjectTerrain::GenerateFlat(int _sizeX, int _sizeY)
+{
+	m_heightMap.clear();
+	m_vertices.clear();
+	m_indices.clear();
+	m_terrainLength = _sizeX;
+	m_terrainWidth = _sizeY;
+	for (int i = 0; i < (_sizeX * _sizeY); i++) {
+		m_heightMap.push_back(0);
+	}
+	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
+	NUM_INDICES *= ((m_terrainWidth - 1) * (m_terrainLength - 1));
+
+	for (int i = 0; i < m_terrainLength; i++) {
+		for (int j = 0; j < m_terrainWidth; j++) {
+			float u = (float)i / m_terrainLength;
+			float v = (float)j / m_terrainWidth;
+			BasicVertex b;
+			b.pos = XMFLOAT3(i * 10, m_heightMap[ConvertTo1D(i, j)] * m_heightScale, j * 10);
+			b.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+			b.texCoord = XMFLOAT2(u, v);
+			m_vertices.push_back(b);
+		}
+	}
+	for (int i = 0; i < m_terrainLength; i++) {
+		for (int j = 0; j < m_terrainWidth - 1; j++) {
+
+			m_indices.push_back(i * m_terrainLength + j);
+			m_indices.push_back(i * m_terrainLength + j + 1);
+			m_indices.push_back((i + 1) * m_terrainLength + j);
+
+			m_indices.push_back((i + 1) * m_terrainLength + j);
+			m_indices.push_back(i * m_terrainLength + j + 1);
+			m_indices.push_back((i + 1) * m_terrainLength + j + 1);
+		}
+	}
+
+}
+
 void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightScale, int _c1, int _c2, int _c3, int _c4)
 {
 	_size += 1;
-	InitialiseRandomTerrain(_size, _size);
+	GenerateFlat(_size, _size);
 
 	int width = m_terrainWidth - 1;
 	int length = m_terrainLength - 1;
@@ -408,7 +425,8 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightSc
 
 void GameObjectTerrain::FaultLine(UINT _size, int _iterations, int _displacement)
 {
-	InitialiseRandomTerrain(_size, _size);
+	GenerateFlat(_size, _size);
+
 	float a = 0;
 	float b = 0;
 	float c = 0;
@@ -438,7 +456,8 @@ void GameObjectTerrain::FaultLine(UINT _size, int _iterations, int _displacement
 
 void GameObjectTerrain::HillAlgorithm(int _size, int _minRadius, int _maxRadius, int _iterations)
 {
-	InitialiseRandomTerrain(_size, _size);
+	GenerateFlat(_size, _size);
+
 	int randomX = 0;
 	int randomY = 0;
 	int radius = 0;
@@ -468,25 +487,17 @@ void GameObjectTerrain::HillAlgorithm(int _size, int _minRadius, int _maxRadius,
 	Normalise();
 }
 
-void GameObjectTerrain::InitialiseRandomTerrain(int _sizeX, int _sizeY)
+void GameObjectTerrain::SetHeights()
 {
-	m_heightMap.clear();
-	m_vertices.clear();
-	m_indices.clear();
-	m_terrainLength = _sizeX;
-	m_terrainWidth = _sizeY;
-	for (int i = 0; i < (_sizeX * _sizeY); i++) {
-		m_heightMap.push_back(0);
+	for (int i = 0; i < NUM_VERTICES; i++) {
+			m_vertices.at(i).pos.y = m_heightMap[i] * m_heightScale;
 	}
-	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
-	NUM_INDICES *= ((m_terrainWidth - 1) * (m_terrainLength - 1));
-
 }
 
-void GameObjectTerrain::LoadFromXML(char* _fileName)
+void GameObjectTerrain::LoadFromXML(char* _filePath)
 {
 	pugi::xml_document doc;
-	pugi::xml_parse_result result = doc.load_file(_fileName);
+	pugi::xml_parse_result result = doc.load_file(_filePath);
 	if (result.status != pugi::xml_parse_status::status_ok)
 	{
 		printf("Terrain file failed to open, error: %s", result.description());

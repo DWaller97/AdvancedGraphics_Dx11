@@ -4,7 +4,7 @@ GameObjectPlane* ObjectManager::m_renderPlane;
 std::vector<GameObject*> ObjectManager::m_objects;
 std::vector<GameObject*> ObjectManager::m_deferredObjects;
 GameObjectTerrain* ObjectManager::m_terrain;
-
+GameObjectTerrainVoxels* ObjectManager::m_terrain3D;
 
 ObjectManager::ObjectManager()
 {
@@ -51,7 +51,8 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     m_renderPlane->SetPosition(XMFLOAT3(0, 0, 0));
 
     m_terrain = new GameObjectTerrain();
-    
+    m_terrain3D = new GameObjectTerrainVoxels((char*)"Resources\\XML\\terrain3d.xml");
+    m_terrain3D->SetShaders(ShaderManager::shaderTerrain);
     //Loads terrain from XML file, grabbing the path for the terrain raw file and loads it that way.
     //m_terrain = new GameObjectTerrain((char*)"Resources\\XML\\terrain.xml");
     //
@@ -60,18 +61,20 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     //m_terrain->SmoothHeights(1, 1);
 
     //I think this gives the best results, if lowering the size of the map, also lower the height modifier (at the end of the HillAlgorithm function), to about 1
-    m_terrain->HillAlgorithm(1024, 50, 60, 300);
-    m_terrain->SetHeightmapScale(10);
+    //m_terrain->HillAlgorithm(1024, 50, 60, 300);
+    //m_terrain->SetHeightmapScale(10);
     
     //m_terrain->HillAlgorithm(512, 50, 8, 64);
 
     //I thought using a constant displacement value looked much better, however, it looks very blocky overrall.
     //m_terrain->FaultLine(2048, 600, 1);
-    //m_terrain->FaultLine(512, 100, 1);
+    m_terrain->FaultLine(512, 100, 1);
     
     m_terrain->InitMesh(_device, _deviceContext);
     m_terrain->SetShaders(ShaderManager::shaderTerrain);
     //m_deferredObjects.push_back(m_terrain);
+
+
 
     for (int i = 0; i < 10; i++) {
         GameObjectCube* o = new GameObjectCube();
@@ -81,6 +84,7 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
         m_deferredObjects.push_back(o);
     }
 
+    m_objects.push_back(m_terrain3D);
 
     //m_objects.push_back(cube);
     //m_objects.push_back(cube2);

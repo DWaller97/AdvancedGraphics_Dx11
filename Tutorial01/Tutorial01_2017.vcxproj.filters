@@ -25,6 +25,7 @@
     <ClCompile Include="Resources\Code\External\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Resources\Code\GameObjects\GameObjectTerrain.cpp" />
     <ClCompile Include="Resources\Code\External\pugiXML\pugixml.cpp" />
+    <ClCompile Include="Resources\Code\GameObjects\GameObjectTerrainVoxels.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resources\Code\GameObjects\GameObject.h" />
@@ -57,6 +58,7 @@
     <ClInclude Include="Resources\Code\External\pugiXML\pugixml.hpp" />
     <ClInclude Include="Resources\Code\External\pugiXML\pugiconfig.hpp" />
     <ClInclude Include="Resources\Code\Utilities\Constants.h" />
+    <ClInclude Include="Resources\Code\GameObjects\GameObjectTerrainVoxels.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Resources\Code\External\imgui\LICENSE.txt" />
