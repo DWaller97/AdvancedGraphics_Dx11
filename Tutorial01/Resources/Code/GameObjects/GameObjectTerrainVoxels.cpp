@@ -3,8 +3,8 @@
 GameObjectTerrainVoxels::GameObjectTerrainVoxels(char* _filePath)
 {
 	m_position = XMFLOAT3(0, 0, 0);
-	NUM_VERTICES = 1;
-	NUM_INDICES = 6;
+	NUM_VERTICES = 36;
+	NUM_INDICES = 36;
 	LoadFromXML(_filePath);
 	GenerateFlat3D(m_terrainLength, m_terrainWidth, m_terrainDepth);
 }
@@ -30,7 +30,7 @@ HRESULT GameObjectTerrainVoxels::InitMesh(ID3D11Device* pd3dDevice, ID3D11Device
 	m_mesh.VertexBuffer = nullptr;
 
 	InitData.pSysMem = &m_vertices[0];
-	InitData.SysMemPitch = m_terrainLength;
+	//InitData.SysMemPitch = m_terrainLength;
 	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &m_mesh.VertexBuffer);
 	if (FAILED(hr))
 		return hr;
@@ -87,7 +87,7 @@ void GameObjectTerrainVoxels::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* 
 	pContext->VSSetShader(m_vertexShader, nullptr, 0);
 	pContext->PSSetShader(m_pixelShader, nullptr, 0);
 
-	pContext->DSSetConstantBuffers(0, 1, &m_constantBuffer);
+	pContext->VSSetConstantBuffers(0, 1, &m_constantBuffer);
 
 	pContext->DrawIndexed(NUM_INDICES, 0, 0);
 
@@ -116,46 +116,157 @@ void GameObjectTerrainVoxels::GenerateFlat3D(int _sizeX, int _sizeY, int _sizeZ)
 	m_heightMap.clear();
 	m_vertices.clear();
 	m_indices.clear();
+	m_voxels.clear();
+
+
 	//m_terrainLength = _sizeX;
 	//m_terrainWidth = _sizeY;
 	//m_terrainDepth = _sizeZ;
 
-	m_terrainLength = 8;
-	m_terrainWidth = 8;
-	m_terrainDepth = 8;
-	int totalSize = _sizeX * _sizeY;// *_sizeZ;
-	//for (int i = 0; i < totalSize; i++) {
-	//	m_heightMap.push_back(0);
+	m_terrainLength = 256;
+	m_terrainDepth = 32;
+	m_terrainWidth = 256;
+	int totalSize = _sizeX * _sizeY *_sizeZ;
+	NUM_VERTICES *= (m_terrainWidth * m_terrainLength * m_terrainDepth);
+	NUM_INDICES *= ((m_terrainWidth) * (m_terrainLength ) * m_terrainDepth);
+
+	for (int i = 0; i < m_terrainLength; i++) {
+		for (int j = 0; j < m_terrainDepth; j++) {
+			for (int k = 0; k < m_terrainWidth; k++) {
+				VoxelType v;
+				UINT n = (rand() % 3);
+				if (n == 0)
+					v = VoxelType::AIR;
+				if (n == 1)
+					v = VoxelType::SOLID;
+				if (n == 2)
+					v = VoxelType::WATER;
+				m_voxels.push_back(v);
+			}
+		}
+	}
+
+
+	UINT indices = 0;
+	for (int i = 0; i < m_terrainLength; i++) {
+		for (int j = 0; j < m_terrainDepth; j++) {
+			for (int k = 0; k < m_terrainWidth; k++) {
+				if (m_voxels[(m_terrainDepth * m_terrainWidth * i) + (m_terrainWidth * j) + k] == VoxelType::AIR) {
+					NUM_INDICES -= 36;
+					NUM_VERTICES -= 36;
+					continue;
+
+				}
+				m_vertices.insert(m_vertices.end(),
+					{
+						// front
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) }, // 19 // 24
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(0.0f, 0.0f) }, // 17 // 25
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) }, // 16 // 26 
+
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 1.0f) }, // 18 // 27
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(0.0f, 0.0f) }, // 17 // 28
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) }, // 19 // 29
+
+						// top
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 3 // 0
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 1 // 1
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 0 // 2
+
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 2 // 3
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 1 // 4
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 3 // 5
+
+						// bottom
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 6 // 6
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 4 // 7
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 5 // 8
+
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 7 // 9
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 4 // 10 
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 6 // 11
+
+						// left
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 11 // 12
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 9 // 13
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 8 // 14
+
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 10 // 15
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 9 // 16
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 11 // 17
+
+						// rjght
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 14 // 18
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 12 // 19
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 13 // 20
+
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 15 // 21
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 12 // 22
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 14 // 23
+
+						// back
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) }, // 22
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) }, // 20s
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) }, // 21
+
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) }, // 23
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) }, // 20
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) }, // 22
+					}
+				);
+				m_indices.insert(m_indices.end(), {
+					0+ indices,1+ indices,2+ indices,
+					3+ indices,4+ indices,5+ indices,
+
+					6+ indices,7+ indices,8+ indices,
+					9+ indices,10+ indices,11+ indices,
+
+					12+ indices,13+ indices,14+ indices,
+					15+ indices,16+ indices,17+ indices,
+
+					18+ indices,19+ indices,20+ indices,
+					21+ indices,22+ indices,23+ indices,
+
+					24+ indices,25+ indices,26+ indices,
+					27+ indices,28+ indices,29+ indices,
+
+					30+ indices,31+ indices,32+ indices,
+					33+ indices,34+ indices,35 + indices
+				});
+				indices += 36;
+			}
+		}
+	}
+
+
+	//CalculateModelVectors(m_indices[0], NUM_VERTICES);
+
+	//for (int i = 0; i < m_terrainWidth; i++) {
+	//	for (int j = 0; j < m_terrainLength; j++) {
+	//		for (int k = 0; k < m_terrainDepth; k++) {
+	//			float u = (float) j / m_terrainLength;
+	//			float v = (float)k / m_terrainWidth;
+	//			BasicVertex b;
+	//			b.pos = XMFLOAT3(j, i, k);
+	//			b.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	//			b.texCoord = XMFLOAT2(u, v);
+	//			m_vertices.push_back(b);
+	//		}
+	//	}
 	//}
-	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
-	NUM_INDICES *= ((m_terrainWidth - 1) * (m_terrainLength - 1));
+	//for (int i = 0; i < m_terrainWidth; i++) {
+	//	for (int j = 0; j < m_terrainLength; j++) {
+	//		for (int k = 0; k < m_terrainDepth - 1; k++) {
+	//			int pos1D = (m_terrainLength * m_terrainDepth * i) + (m_terrainDepth * j) + k;
+	//			int pos1DNextLine = pos1D + (m_terrainDepth * j);
+	//			m_indices.push_back(pos1D );
+	//			m_indices.push_back(pos1D + 1 );
+	//			m_indices.push_back(pos1DNextLine );
 
-	for (int i = 0; i < m_terrainWidth; i++) {
-		for (int j = 0; j < m_terrainLength; j++) {
-			for (int k = 0; k < m_terrainDepth; k++) {
-				float u = (float) j / m_terrainLength;
-				float v = (float)k / m_terrainWidth;
-				BasicVertex b;
-				b.pos = XMFLOAT3(j, i, k);
-				b.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-				b.texCoord = XMFLOAT2(u, v);
-				m_vertices.push_back(b);
-			}
-		}
-	}
-	for (int i = 0; i < m_terrainWidth; i++) {
-		for (int j = 0; j < m_terrainLength; j++) {
-			for (int k = 0; k < m_terrainDepth - 1; k++) {
-				int pos1D = (m_terrainLength * m_terrainDepth * i) + (m_terrainDepth * j) + k;
-				int pos1DNextLine = pos1D + (m_terrainDepth * j);
-				m_indices.push_back(pos1D );
-				m_indices.push_back(pos1D + 1 );
-				m_indices.push_back(pos1DNextLine );
-
-				m_indices.push_back(pos1DNextLine );
-				m_indices.push_back(pos1D + 1);
-				m_indices.push_back(pos1DNextLine + 1 );
-			}
-		}
-	}
+	//			m_indices.push_back(pos1DNextLine );
+	//			m_indices.push_back(pos1D + 1);
+	//			m_indices.push_back(pos1DNextLine + 1 );
+	//		}
+	//	}
+	//}
 }

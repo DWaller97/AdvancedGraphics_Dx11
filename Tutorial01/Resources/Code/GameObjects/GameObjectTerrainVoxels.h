@@ -17,5 +17,11 @@ public:
 
 private:
     UINT m_terrainDepth;
+    enum VoxelType {
+        AIR = 0,
+        WATER,
+        SOLID
+    };
+    vector<VoxelType> m_voxels;
 };
 
