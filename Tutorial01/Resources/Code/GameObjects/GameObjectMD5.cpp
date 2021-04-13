@@ -22,6 +22,7 @@ GameObjectMD5::~GameObjectMD5()
 
 HRESULT GameObjectMD5::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
+    m_context = pContext;
     D3D11_BUFFER_DESC bd = {};
     ZeroMemory(&bd, sizeof(bd));
     bd.Usage = D3D11_USAGE_DEFAULT;
@@ -33,6 +34,7 @@ HRESULT GameObjectMD5::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* p
 
 void GameObjectMD5::Update(float t)
 {
+    MD5Loader::UpdateAnimation(m_modelData, m_context, t, 0);
     GameObject::Update(t);
 }
 

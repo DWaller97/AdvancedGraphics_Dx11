@@ -16,5 +16,6 @@ public:
     void	virtual Release() override;
 private:
     Animation::Model* m_modelData;
+    ID3D11DeviceContext* m_context;
 };
 

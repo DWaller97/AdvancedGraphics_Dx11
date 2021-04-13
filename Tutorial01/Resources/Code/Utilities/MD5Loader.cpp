@@ -257,11 +257,11 @@ HRESULT MD5Loader::LoadAnimation(char* _filePath, Animation::Model* _modelOutput
         }
         else if (currString == "bounds") {
             stream >> currString;
-            for (int i = 0; i < anim.jointCount; i++) {
+            for (int i = 0; i < anim.frameCount; i++) {
                 Animation::BoundingBox bb = {};
                 stream >> currString;
                 stream >> bb.min.x >> bb.min.y >> bb.min.z;
-                stream >> currString;
+                stream >> currString >> currString;
                 stream >> bb.max.x >> bb.max.y >> bb.max.z;
                 stream >> currString;
                 anim.bounds.push_back(bb);
@@ -273,7 +273,7 @@ HRESULT MD5Loader::LoadAnimation(char* _filePath, Animation::Model* _modelOutput
                 Animation::Joint joint = {};
                 stream >> currString;
                 stream >> joint.position.x >> joint.position.z >> joint.position.y;
-                stream >> currString;
+                stream >> currString >> currString;
                 stream >> joint.orientation.x >> joint.orientation.z >> joint.orientation.y;
                 stream >> currString;
                 anim.baseJoints.push_back(joint);
@@ -290,7 +290,7 @@ HRESULT MD5Loader::LoadAnimation(char* _filePath, Animation::Model* _modelOutput
             }
             anim.frameData.push_back(frameData);
             vector<Animation::Joint> skeleton;
-            for (int i = 0, j = 0; i < anim.animJoints.size(); i++) {
+            for (int i = 0, j = 0; i < anim.animJoints.size(); i++, j = 0) {
 
                 Animation::Joint frameJoint = anim.baseJoints[i];
                 frameJoint.parentID = anim.animJoints[i].parentID;
@@ -342,5 +342,90 @@ HRESULT MD5Loader::LoadAnimation(char* _filePath, Animation::Model* _modelOutput
             stream >> currString;
         }
     }
+    anim.frametime = 1.0f / anim.framerate;
+    anim.totalAnimTime = anim.frameCount * anim.frametime;
+    anim.currAnimTime = 0.0f;
+    _modelOutput->animations.push_back(anim);
         return hr;
+}
+
+void MD5Loader::UpdateAnimation(Animation::Model* _modelOutput, ID3D11DeviceContext* _context, float _deltaTime, int _currAnimation)
+{
+    if (_currAnimation >= _modelOutput->animations.size())
+        return;
+
+    Animation::Anim& currAnim = _modelOutput->animations[_currAnimation];
+
+
+    currAnim.currAnimTime += _deltaTime;
+    if (currAnim.currAnimTime >= currAnim.totalAnimTime)
+        currAnim.currAnimTime = 0.0f;
+
+    float currFrame = currAnim.currAnimTime * currAnim.framerate;
+    int frame0 = floorf(currFrame);
+    int frame1 = frame0 + 1;
+
+    if (frame0 == currAnim.frameCount - 1)
+        frame1 = 0;
+
+    float diff = currFrame - frame0;
+    vector<Animation::Joint> skeleton;
+
+    for (int i = 0; i < currAnim.jointCount; i++) {
+        Animation::Joint joint = {};
+        Animation::Joint joint0 = currAnim.frameSkeleton[frame0][i];
+        Animation::Joint joint1 = currAnim.frameSkeleton[frame1][i];
+
+        joint.parentID = joint0.parentID;
+
+        XMVECTOR joint0Orientation = XMVectorSet(joint0.orientation.x, joint0.orientation.y, joint0.orientation.z, joint0.orientation.w);
+        XMVECTOR joint1Orientation = XMVectorSet(joint1.orientation.x, joint1.orientation.y, joint1.orientation.z, joint1.orientation.w);
+
+        joint.position.x = joint0.position.x + (diff * (joint1.position.x - joint0.position.x));
+        joint.position.y = joint0.position.y + (diff * (joint1.position.y - joint0.position.y));
+        joint.position.z = joint0.position.z + (diff * (joint1.position.z - joint0.position.z));
+
+        XMStoreFloat4(&joint.orientation, XMQuaternionSlerp(joint0Orientation, joint1Orientation, diff));
+        skeleton.push_back(joint);
+
+    }
+
+    for (int i = 0; i < _modelOutput->subsetCount; i++) {
+        Animation::ModelSubset& currSubset = _modelOutput->subset[i];
+        for (int j = 0; j < currSubset.vertices.size(); j++) {
+            BasicVertex v = currSubset.vertices[j];
+            v.pos = XMFLOAT3(0, 0, 0);
+            v.normal = XMFLOAT3(0, 0, 0);
+            for (int k = 0; k < v.weightCount; k++) {
+                Animation::Weight weight = currSubset.weights[v.startWeight + k];
+                Animation::Joint joint = skeleton[weight.jointID];
+
+                XMVECTOR jointOrientation = XMVectorSet(joint.orientation.x, joint.orientation.y, joint.orientation.z, joint.orientation.w);
+                XMVECTOR weightPos = XMVectorSet(weight.position.x, weight.position.y, weight.position.z, 0.0f);
+
+                XMVECTOR jointOrientationConjugate = XMQuaternionInverse(jointOrientation);
+                XMFLOAT3 rotatedPoint;
+                XMStoreFloat3(&rotatedPoint, XMQuaternionMultiply(XMQuaternionMultiply(jointOrientation, weightPos), jointOrientationConjugate));
+
+                v.pos.x += (joint.position.x + rotatedPoint.x) * weight.bias;
+                v.pos.y += (joint.position.y + rotatedPoint.y) * weight.bias;
+                v.pos.z += (joint.position.z + rotatedPoint.z) * weight.bias;
+
+                //TODO: Normals calculations here
+
+            }
+            currSubset.positions[j] = v.pos;
+            //Store normals here
+
+        }
+        for (int j = 0; j < currSubset.vertices.size(); j++) {
+            currSubset.vertices[j].pos = currSubset.positions[j];
+        }
+        D3D11_MAPPED_SUBRESOURCE res;
+        _context->Map(currSubset.vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+        memcpy(res.pData, &currSubset.vertices[0], sizeof(BasicVertex) * currSubset.vertices.size());
+        _context->Unmap(currSubset.vertexBuffer, 0);
+    }
+
+
 }
