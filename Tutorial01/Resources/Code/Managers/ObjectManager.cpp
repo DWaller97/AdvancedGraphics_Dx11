@@ -27,10 +27,6 @@ ObjectManager::~ObjectManager()
     if (m_rasteriserSolid)
         m_rasteriserSolid->Release();
     m_rasteriserSolid = nullptr;
-
-    if (m_model)
-        delete m_model;
-    m_model = nullptr;
 }
 
 void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _deviceContext)
@@ -78,16 +74,10 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     //m_terrain->SetShaders(ShaderManager::shaderTerrain);
     //m_deferredObjects.push_back(m_terrain);
 
-    m_model = new Animation::Model();
-    m_model->world = new XMFLOAT4X4();
-    D3D11_BUFFER_DESC bd = {};
-    ZeroMemory(&bd, sizeof(bd));
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(ConstantBuffer);
-    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = 0;
-    _device->CreateBuffer(&bd, nullptr, &m_model->constantBuffer);
-    MD5Loader::LoadModel((char*)"Resources\\Animation\\bob_lamp_update.md5mesh", m_model, _device);
+    m_md5 = new GameObjectMD5((char*)"Resources\\Animation\\bob_lamp_update.md5mesh", _device);
+    m_md5->InitMesh(_device, _deviceContext);
+
+    m_objects.push_back(m_md5);
     for (int i = 0; i < 10; i++) {
         GameObjectCube* o = new GameObjectCube();
         o->InitMesh(_device, _deviceContext);
@@ -129,9 +119,6 @@ void ObjectManager::Update(float _deltaTime)
 {
     //m_terrain->Update(_deltaTime);
     //m_terrain3D->Update(_deltaTime);
-    XMMATRIX mTranslate = XMMatrixTranslation(0, 0, 0);
-    XMMATRIX world = mTranslate;
-    XMStoreFloat4x4(m_model->world, world);
 
     for (int i = 0; i < m_objects.size(); i++) {
         m_objects.at(i)->Update(_deltaTime);
@@ -150,28 +137,7 @@ void ObjectManager::Render(ID3D11DeviceContext* _deviceContext, ID3D11Buffer* _l
     _deviceContext->RSSetState(m_rasteriserSolid);
     //m_terrain3D->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
 
-    for (int i = 0; i < m_model->subsetCount; i++) {
-        _deviceContext->IASetInputLayout(ShaderManager::shaderBasic._inputLayout);
-        _deviceContext->VSSetShader(ShaderManager::shaderBasic._vertexShader, nullptr, 0);
-        _deviceContext->PSSetShader(ShaderManager::shaderBasic._pixelShader, nullptr, 0);
-        _deviceContext->IASetIndexBuffer(m_model->subset[i].indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-        UINT stride = sizeof(BasicVertex);
-        UINT offset = 0;
-        _deviceContext->IASetVertexBuffers(0, 1, &m_model->subset[i].vertexBuffer, &stride, &offset);
-        _deviceContext->VSSetConstantBuffers(0, 1, &m_model->constantBuffer);
 
-         ConstantBuffer cb1;
-        cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(m_model->world));
-        cb1.mView = XMMatrixTranspose(XMLoadFloat4x4(_viewMat));
-        cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(_projMat));
-        cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
-        _deviceContext->UpdateSubresource(m_model->constantBuffer, 0, nullptr, &cb1, 0, 0);
-
-
-
-
-        _deviceContext->DrawIndexed(m_model->subset[i].indices.size(), 0, 0);
-    }
     for (int i = 0; i < m_objects.size(); i++) {
         m_objects.at(i)->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
     }

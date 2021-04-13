@@ -41,11 +41,6 @@ public:
         int jointCount;
         std::vector<Joint> joints;
         std::vector<ModelSubset> subset;
-        XMFLOAT4X4* world;
-        ID3D11Buffer* constantBuffer;
-        ID3D11InputLayout* inputLayout;
-        ID3D11PixelShader* pixelShader;
-        ID3D11VertexShader* vertexShader;
     };
 
 };
