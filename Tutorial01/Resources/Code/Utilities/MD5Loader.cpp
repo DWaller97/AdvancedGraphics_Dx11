@@ -185,7 +185,3 @@ HRESULT MD5Loader::LoadModel(char* _filePath, Animation::Model* _modelOutput, ID
     }
     return hr;
 }
-
-void MD5Loader::Release()
-{
-}
