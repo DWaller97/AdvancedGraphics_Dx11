@@ -9,6 +9,9 @@
 #include "../GameObjects/GameObjectTerrain.h"
 #include "../GameObjects/GameObjectTerrainVoxels.h"
 
+#include "../Animation.h"
+#include "../Utilities/MD5Loader.h"
+
 class ObjectManager
 {
 private:
@@ -18,6 +21,7 @@ private:
     static std::vector<GameObject*> m_objects;
     static std::vector<GameObject*> m_deferredObjects;
     ID3D11RasterizerState *m_rasteriserWF = nullptr, *m_rasteriserSolid = nullptr;
+    Animation::Model* m_model = nullptr;
 public:
     ObjectManager();
     ~ObjectManager();

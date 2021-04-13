@@ -111,24 +111,63 @@ void GameObjectTerrainVoxels::LoadFromXML(char* _filePath)
 	m_terrainDepth = attr.as_uint();
 }
 
+void GameObjectTerrainVoxels::GeneratePerlinNoise(int _sizeX, int _sizeY, int _sizeZ)
+{
+	vector<float> noise;
+	for (int i = 0; i < _sizeX; i++) {
+		for (int j = 0; j < _sizeZ; j++) {
+			noise.push_back((float)rand() / RAND_MAX);
+		}
+	}
+
+	int octaves = 8;
+	for (int i = 0; i < _sizeX; i++) {
+		for (int j = 0; j < _sizeZ; j++) {
+			float result = 0.0f;
+
+			for (int k = 0; k < octaves; k++) {
+				int i1, i2, j1, j2;
+
+				int pitch = _sizeX >> k;
+
+				i1 = (i / pitch) * pitch;
+				i2 = (i1 + pitch) % _sizeX;
+
+				j1 = (j / pitch) * pitch;
+				j2 = (j1 + pitch) % _sizeZ;
+
+				float blendX = (float)(i - i1) / (float)pitch;
+				float blendY = (float)(j - j1) / (float)pitch;
+
+				float lerpX = (1.0f - blendX) * noise.at(j1 * _sizeX + i1) + blendX * noise.at(j1 * _sizeX + i2);
+				float lerpY = (1.0f - blendX) * noise.at(j2 * _sizeX + i1) + blendX * noise.at(j2 * _sizeX + i2);
+
+				result += (blendY * (lerpY - lerpX) + lerpX);
+			}
+
+			m_heightMap.push_back(result);
+		}
+	}
+
+}
+
 void GameObjectTerrainVoxels::GenerateFlat3D(int _sizeX, int _sizeY, int _sizeZ)
 {
-	m_heightMap.clear();
 	m_vertices.clear();
 	m_indices.clear();
 	m_voxels.clear();
-
-
 	//m_terrainLength = _sizeX;
 	//m_terrainWidth = _sizeY;
 	//m_terrainDepth = _sizeZ;
 
+
 	m_terrainLength = 256;
 	m_terrainDepth = 32;
 	m_terrainWidth = 256;
+	GeneratePerlinNoise(m_terrainLength, m_terrainDepth, m_terrainWidth);
 	int totalSize = _sizeX * _sizeY *_sizeZ;
-	NUM_VERTICES *= (m_terrainWidth * m_terrainLength * m_terrainDepth);
-	NUM_INDICES *= ((m_terrainWidth) * (m_terrainLength ) * m_terrainDepth);
+	NUM_VERTICES = 36 * (m_terrainWidth * m_terrainLength * m_terrainDepth);
+	NUM_INDICES = 36 * ((m_terrainWidth) * (m_terrainLength ) * m_terrainDepth);
 
 	for (int i = 0; i < m_terrainLength; i++) {
 		for (int j = 0; j < m_terrainDepth; j++) {
@@ -151,67 +190,67 @@ void GameObjectTerrainVoxels::GenerateFlat3D(int _sizeX, int _sizeY, int _sizeZ)
 	for (int i = 0; i < m_terrainLength; i++) {
 		for (int j = 0; j < m_terrainDepth; j++) {
 			for (int k = 0; k < m_terrainWidth; k++) {
-				if (m_voxels[(m_terrainDepth * m_terrainWidth * i) + (m_terrainWidth * j) + k] == VoxelType::AIR) {
-					NUM_INDICES -= 36;
-					NUM_VERTICES -= 36;
-					continue;
+				//if (m_heightMap[/*(m_terrainDepth * m_terrainWidth * i) +*/ (m_terrainWidth * j) + k] <= 4) {
+				//	NUM_INDICES -= 36;
+				//	NUM_VERTICES -= 36;
+				//	continue;
 
-				}
+				//}
 				m_vertices.insert(m_vertices.end(),
 					{
 						// front
-						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) }, // 19 // 24
-						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(0.0f, 0.0f) }, // 17 // 25
-						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) }, // 16 // 26 
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) }, // 19 // 24
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(0.0f, 0.0f) }, // 17 // 25
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) }, // 16 // 26 
 
-						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 1.0f) }, // 18 // 27
-						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(0.0f, 0.0f) }, // 17 // 28
-						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) }, // 19 // 29
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 1.0f) }, // 18 // 27
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(0.0f, 0.0f) }, // 17 // 28
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) }, // 19 // 29
 
 						// top
-						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 3 // 0
-						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 1 // 1
-						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 0 // 2
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 3 // 0
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 1 // 1
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 0 // 2
 
-						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 2 // 3
-						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 1 // 4
-						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 3 // 5
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 2 // 3
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 1 // 4
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 3 // 5
 
 						// bottom
-						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 6 // 6
-						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 4 // 7
-						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 5 // 8
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 6 // 6
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 4 // 7
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 5 // 8
 
-						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 7 // 9
-						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 4 // 10 
-						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 6 // 11
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 7 // 9
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 4 // 10 
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 6 // 11
 
 						// left
-						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 11 // 12
-						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 9 // 13
-						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 8 // 14
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 11 // 12
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 9 // 13
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 8 // 14
 
-						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 10 // 15
-						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 9 // 16
-						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 11 // 17
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 10 // 15
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 9 // 16
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 11 // 17
 
 						// rjght
-						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 14 // 18
-						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 12 // 19
-						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 13 // 20
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 14 // 18
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 12 // 19
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 13 // 20
 
-						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 15 // 21
-						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 12 // 22
-						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), -1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 14 // 23
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 15 // 21
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 12 // 22
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2)  , -1.0f + (k * 2)), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 14 // 23
 
 						// back
-						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) }, // 22
-						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) }, // 20s
-						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) }, // 21
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) }, // 22
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) }, // 20s
+						{ XMFLOAT3(1.0f + (i * 2), -1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) }, // 21
 
-						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) }, // 23
-						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) }, // 20
-						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2), 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) }, // 22
+						{ XMFLOAT3(-1.0f + (i * 2), 1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) }, // 23
+						{ XMFLOAT3(-1.0f + (i * 2), -1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) }, // 20
+						{ XMFLOAT3(1.0f + (i * 2), 1.0f + (j * 2)  , 1.0f + (k * 2)), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) }, // 22
 					}
 				);
 				m_indices.insert(m_indices.end(), {

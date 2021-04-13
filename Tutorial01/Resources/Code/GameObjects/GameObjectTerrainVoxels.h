@@ -13,6 +13,7 @@ public:
     void		virtual Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat) override;
 
     virtual void LoadFromXML (char* _filePath) override;
+    void GeneratePerlinNoise(int _sizeX, int _sizeY, int _sizeZ);
     void GenerateFlat3D(int _sizeX, int _sizeY, int _sizeZ);
 
 private:
@@ -23,5 +24,6 @@ private:
         SOLID
     };
     vector<VoxelType> m_voxels;
+    vector<UINT> m_voxelMap;
 };
 

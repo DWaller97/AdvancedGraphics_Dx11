@@ -12,7 +12,8 @@ struct BasicVertex {
 	XMFLOAT3 pos;
 	XMFLOAT3 normal;
 	XMFLOAT2 texCoord;
-
+	int startWeight;
+	int weightCount;
 	bool operator<(const BasicVertex other) const
 	{
 		return memcmp((void*)this, (void*)&other, sizeof(BasicVertex)) > 0;

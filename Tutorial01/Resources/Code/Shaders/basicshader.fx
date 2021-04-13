@@ -35,7 +35,7 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT IN) : SV_TARGET
 {
-	float4 finalColor = float4(IN.Tex.x, IN.Tex.y, 0, 1);
+	float4 finalColor = float4(IN.WorldPos.x / 256, IN.WorldPos.y / 256, IN.WorldPos.z / 256, 1);
 
 	return finalColor;
 }

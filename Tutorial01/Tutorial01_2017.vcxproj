@@ -27,6 +27,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Resources\Code\Animation.cpp" />
+    <ClCompile Include="Resources\Code\Utilities\MD5Loader.cpp" />
     <ClCompile Include="Resources\Code\GameObjects\GameObjectTerrainVoxels.cpp" />
     <ClCompile Include="Resources\Code\External\pugiXML\pugixml.cpp" />
     <ClCompile Include="Resources\Code\GameObjects\GameObjectTerrain.cpp" />
@@ -54,6 +56,8 @@
     <ClCompile Include="Resources\Code\Utilities\Time.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Resources\Code\Animation.h" />
+    <ClInclude Include="Resources\Code\Utilities\MD5Loader.h" />
     <ClInclude Include="Resources\Code\GameObjects\GameObjectTerrainVoxels.h" />
     <ClInclude Include="Resources\Code\External\pugiXML\pugiconfig.hpp" />
     <ClInclude Include="Resources\Code\External\pugiXML\pugixml.hpp" />

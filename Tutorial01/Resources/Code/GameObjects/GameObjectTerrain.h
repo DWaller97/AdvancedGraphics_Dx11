@@ -68,6 +68,7 @@ protected:
     static float* m_textureHeight2;
     static float* m_textureHeight3;
 
+    int ConvertTo1D(int x, int y);
 private:
     void Init();
 
@@ -80,7 +81,6 @@ private:
     float CheckHeight(int _x, int _y);
     float CheckHeight(int _1DPos);
     bool IsOnSameLine(float _a, float _b, int _width);
-    int ConvertTo1D(int x, int y);
     void Normalise(int _scale = 100);
 
 
