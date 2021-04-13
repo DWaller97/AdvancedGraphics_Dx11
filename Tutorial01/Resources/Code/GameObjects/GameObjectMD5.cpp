@@ -2,7 +2,12 @@
 
 GameObjectMD5::GameObjectMD5(char* _filePath, ID3D11Device* _device) {
     m_modelData = new Animation::Model();
-    MD5Loader::LoadModel(_filePath, m_modelData, _device);
+    string appended = "Resources\\Animation\\";
+    appended+=_filePath;
+    string meshPath = appended + ".md5mesh";
+    string animPath = appended + ".md5anim";
+    MD5Loader::LoadMesh((char*)meshPath.c_str(), m_modelData, _device);
+    MD5Loader::LoadAnimation((char*)animPath.c_str(), m_modelData, _device);
     SetShaders(ShaderManager::shaderBasic);
 }
 

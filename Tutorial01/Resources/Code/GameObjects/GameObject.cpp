@@ -13,90 +13,11 @@ GameObject::~GameObject()
 	Release();
 }
 
-HRESULT GameObject::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
-{
-	HRESULT hr;
-
-	D3D11_BUFFER_DESC bd = {};
-
-
-	ZeroMemory(&bd, sizeof(bd));
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(ConstantBuffer);
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_constantBuffer);
-	if (FAILED(hr))
-		return hr;
-
-	// Create the material constant buffer
-	ZeroMemory(&bd, sizeof(bd));
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(MaterialPropertiesConstantBuffer);
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_materialConstantBuffer);
-	if (FAILED(hr))
-		return hr;
-
-	MaterialPropertiesConstantBuffer redPlasticMaterial;
-	redPlasticMaterial.Material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	redPlasticMaterial.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
-	redPlasticMaterial.Material.SpecularPower = 32.0f;
-	redPlasticMaterial.Material.UseTexture = true;
-	pContext->UpdateSubresource(m_materialConstantBuffer, 0, nullptr, &redPlasticMaterial, 0, 0);
-
-
-
-	D3D11_SAMPLER_DESC sampDesc;
-	ZeroMemory(&sampDesc, sizeof(sampDesc));
-	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	sampDesc.MinLOD = 0;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_samplerLinear);
-
-
-
-}
-
 void GameObject::Update(float t)
 {
 	XMMATRIX mTranslate = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	XMMATRIX world = mTranslate;
 	XMStoreFloat4x4(m_world, world);
-}
-
-void GameObject::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)
-{
-	ConstantBuffer cb1;
-	cb1.mWorld = XMMatrixTranspose(XMLoadFloat4x4(m_world));
-	cb1.mView = XMMatrixTranspose(XMLoadFloat4x4(viewMat));
-	cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(projMat));
-	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
-	pContext->UpdateSubresource(m_constantBuffer, 0, nullptr, &cb1, 0, 0);
-
-	// Set vertex buffer
-	UINT stride = sizeof(SimpleVertex);
-	UINT offset = 0;
-	pContext->IASetVertexBuffers(0, 1, &m_mesh.VertexBuffer, &stride, &offset);
-	// Set index buffer
-	pContext->IASetIndexBuffer(m_mesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
-	pContext->IASetInputLayout(m_inputLayout);
-	// Render the cube
-	pContext->VSSetConstantBuffers(0, 1, &m_constantBuffer);
-	pContext->VSSetShader(m_vertexShader, nullptr, 0);
-	pContext->PSSetShader(m_pixelShader, nullptr, 0);
-	//pContext->PSSetConstantBuffers(3, 1, &m_pCameraBuffer);
-	pContext->PSSetShaderResources(0, 1, &m_albedoTexture);
-	pContext->PSSetShaderResources(1, 1, &m_normalTexture);
-	pContext->PSSetShaderResources(2, 1, &m_parallaxTexture);
-	pContext->PSSetSamplers(0, 1, &m_samplerLinear);
-	pContext->DrawIndexed(NUM_INDICES, 0, 0);
 }
 
 void GameObject::SetPosition(XMFLOAT3 _position)

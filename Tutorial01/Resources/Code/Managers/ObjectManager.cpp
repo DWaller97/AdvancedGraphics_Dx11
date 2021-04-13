@@ -74,7 +74,7 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     //m_terrain->SetShaders(ShaderManager::shaderTerrain);
     //m_deferredObjects.push_back(m_terrain);
 
-    m_md5 = new GameObjectMD5((char*)"Resources\\Animation\\bob_lamp_update.md5mesh", _device);
+    m_md5 = new GameObjectMD5((char*)"bob_lamp_update", _device);
     m_md5->InitMesh(_device, _deviceContext);
 
     m_objects.push_back(m_md5);
