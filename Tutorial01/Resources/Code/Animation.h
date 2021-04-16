@@ -75,8 +75,8 @@ public:
         std::vector<Joint> joints;
         std::vector<ModelSubset> subset;
         vector<Anim> animations;
+        int currAnimation;
 
     };
-
 };
 

@@ -19,6 +19,7 @@
 
 #include "Managers/ObjectManager.h"
 #include "Managers/CameraManager.h"
+#include "Managers/AnimationManager.h"
 
 #include "External/imgui/imgui.h"
 #include "External/imgui/imgui_impl_win32.h"
@@ -39,7 +40,6 @@ HRESULT		InitDevice();
 HRESULT     InitImGui();
 HRESULT		InitMesh();
 HRESULT		InitWorld();
-HRESULT     InitObjects();
 void		CleanupDevice();
 void        Cleanup();
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -80,6 +80,7 @@ const int				g_viewHeight = Constants::WINDOW_HEIGHT;
 RenderTexture* g_pRT;
 DeferredRenderer* g_pDR;
 ObjectManager* g_pOM;
+AnimationManager* g_pAM;
 GameObjectPlane* g_pRenderPlane = nullptr;
 Camera* g_pCamera = nullptr;
 Time* g_pTime = nullptr;

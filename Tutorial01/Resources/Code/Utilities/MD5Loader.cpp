@@ -62,7 +62,7 @@ HRESULT MD5Loader::LoadMesh(char* _filePath, Animation::Model* _modelOutput, ID3
                 _modelOutput->joints.push_back(joint);
             }
         }
-        else if(currString == "mesh") {
+        else if (currString == "mesh") {
             Animation::ModelSubset subset = {};
             stream >> currString >> currString;
             while (currString != "}") {
@@ -125,62 +125,7 @@ HRESULT MD5Loader::LoadMesh(char* _filePath, Animation::Model* _modelOutput, ID3
                 }
 
             }
-            for (int i = 0; i < subset.vertices.size(); i++) {
-                BasicVertex v = subset.vertices.at(i);
-                v.pos = XMFLOAT3(0, 0, 0);
-                for (int j = 0; j < v.weightCount; j++) {
-                    Animation::Weight weight = subset.weights[v.startWeight + j];
-                    Animation::Joint joint = _modelOutput->joints[weight.jointID];
-                    XMVECTOR jointOrientation = XMVectorSet(joint.orientation.x, joint.orientation.y, joint.orientation.z, joint.orientation.w);
-                    XMVECTOR weightPos = XMVectorSet(weight.position.x, weight.position.y, weight.position.z, 0.0f);
-                    XMVECTOR jointOrientationConjugate = XMVectorSet(-joint.orientation.x, -joint.orientation.y, -joint.orientation.z, joint.orientation.w);
-                    XMFLOAT3 rotatedPoint;
-                    XMStoreFloat3(&rotatedPoint, XMQuaternionMultiply(XMQuaternionMultiply(jointOrientation, weightPos), jointOrientationConjugate));
-
-                    v.pos.x += (joint.position.x + rotatedPoint.x) * weight.bias;
-                    v.pos.y += (joint.position.y + rotatedPoint.y) * weight.bias;
-                    v.pos.z += (joint.position.z + rotatedPoint.z) * weight.bias;
-
-                }
-                subset.positions.push_back(v.pos);
-            }
-            for (int i = 0; i < subset.vertices.size(); i++) {
-                subset.vertices.at(i).pos = subset.positions.at(i);
-            }
-            //Calculate normals here
-
-            HRESULT hr;
-
-            D3D11_BUFFER_DESC desc = {};
-            ZeroMemory(&desc, sizeof(desc));
-            desc.Usage = D3D11_USAGE_DEFAULT;
-            desc.ByteWidth = sizeof(UINT) * subset.indexCount * 3;
-            desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-            desc.CPUAccessFlags = 0;
-            desc.MiscFlags = 0;
-
-            D3D11_SUBRESOURCE_DATA initData;
-            ZeroMemory(&initData, sizeof(initData));
-
-            initData.pSysMem = &subset.indices[0];
-            hr = _device->CreateBuffer(&desc, &initData, &subset.indexBuffer);
-            if (hr == E_FAIL)
-                return E_FAIL;
-            ZeroMemory(&desc, sizeof(desc));
-            desc.Usage = D3D11_USAGE_DYNAMIC;
-            desc.ByteWidth = sizeof(BasicVertex) * subset.vertices.size();
-            desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-            desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-            desc.MiscFlags = 0;
-
-            ZeroMemory(&initData, sizeof(initData));
-            initData.pSysMem = &subset.vertices[0];
-            
-            hr = _device->CreateBuffer(&desc, &initData, &subset.vertexBuffer);
-            if (hr == E_FAIL)
-                return E_FAIL;
             _modelOutput->subset.push_back(subset);
-
         }
     }
     return hr;
@@ -347,85 +292,4 @@ HRESULT MD5Loader::LoadAnimation(char* _filePath, Animation::Model* _modelOutput
     anim.currAnimTime = 0.0f;
     _modelOutput->animations.push_back(anim);
         return hr;
-}
-
-void MD5Loader::UpdateAnimation(Animation::Model* _modelOutput, ID3D11DeviceContext* _context, float _deltaTime, int _currAnimation)
-{
-    if (_currAnimation >= _modelOutput->animations.size())
-        return;
-
-    Animation::Anim& currAnim = _modelOutput->animations[_currAnimation];
-
-
-    currAnim.currAnimTime += _deltaTime;
-    if (currAnim.currAnimTime >= currAnim.totalAnimTime)
-        currAnim.currAnimTime = 0.0f;
-
-    float currFrame = currAnim.currAnimTime * currAnim.framerate;
-    int frame0 = floorf(currFrame);
-    int frame1 = frame0 + 1;
-
-    if (frame0 == currAnim.frameCount - 1)
-        frame1 = 0;
-
-    float diff = currFrame - frame0;
-    vector<Animation::Joint> skeleton;
-
-    for (int i = 0; i < currAnim.jointCount; i++) {
-        Animation::Joint joint = {};
-        Animation::Joint joint0 = currAnim.frameSkeleton[frame0][i];
-        Animation::Joint joint1 = currAnim.frameSkeleton[frame1][i];
-
-        joint.parentID = joint0.parentID;
-
-        XMVECTOR joint0Orientation = XMVectorSet(joint0.orientation.x, joint0.orientation.y, joint0.orientation.z, joint0.orientation.w);
-        XMVECTOR joint1Orientation = XMVectorSet(joint1.orientation.x, joint1.orientation.y, joint1.orientation.z, joint1.orientation.w);
-
-        joint.position.x = joint0.position.x + (diff * (joint1.position.x - joint0.position.x));
-        joint.position.y = joint0.position.y + (diff * (joint1.position.y - joint0.position.y));
-        joint.position.z = joint0.position.z + (diff * (joint1.position.z - joint0.position.z));
-
-        XMStoreFloat4(&joint.orientation, XMQuaternionSlerp(joint0Orientation, joint1Orientation, diff));
-        skeleton.push_back(joint);
-
-    }
-
-    for (int i = 0; i < _modelOutput->subsetCount; i++) {
-        Animation::ModelSubset& currSubset = _modelOutput->subset[i];
-        for (int j = 0; j < currSubset.vertices.size(); j++) {
-            BasicVertex v = currSubset.vertices[j];
-            v.pos = XMFLOAT3(0, 0, 0);
-            v.normal = XMFLOAT3(0, 0, 0);
-            for (int k = 0; k < v.weightCount; k++) {
-                Animation::Weight weight = currSubset.weights[v.startWeight + k];
-                Animation::Joint joint = skeleton[weight.jointID];
-
-                XMVECTOR jointOrientation = XMVectorSet(joint.orientation.x, joint.orientation.y, joint.orientation.z, joint.orientation.w);
-                XMVECTOR weightPos = XMVectorSet(weight.position.x, weight.position.y, weight.position.z, 0.0f);
-
-                XMVECTOR jointOrientationConjugate = XMQuaternionInverse(jointOrientation);
-                XMFLOAT3 rotatedPoint;
-                XMStoreFloat3(&rotatedPoint, XMQuaternionMultiply(XMQuaternionMultiply(jointOrientation, weightPos), jointOrientationConjugate));
-
-                v.pos.x += (joint.position.x + rotatedPoint.x) * weight.bias;
-                v.pos.y += (joint.position.y + rotatedPoint.y) * weight.bias;
-                v.pos.z += (joint.position.z + rotatedPoint.z) * weight.bias;
-
-                //TODO: Normals calculations here
-
-            }
-            currSubset.positions[j] = v.pos;
-            //Store normals here
-
-        }
-        for (int j = 0; j < currSubset.vertices.size(); j++) {
-            currSubset.vertices[j].pos = currSubset.positions[j];
-        }
-        D3D11_MAPPED_SUBRESOURCE res;
-        _context->Map(currSubset.vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
-        memcpy(res.pData, &currSubset.vertices[0], sizeof(BasicVertex) * currSubset.vertices.size());
-        _context->Unmap(currSubset.vertexBuffer, 0);
-    }
-
-
 }

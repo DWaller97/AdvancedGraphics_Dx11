@@ -38,6 +38,8 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_pOM = new ObjectManager();
     g_pOM->CreateObjects(g_pd3dDevice, g_pImmediateContext);
     g_pOM->CreateRasterisers(g_pd3dDevice);
+    g_pAM = AnimationManager::GetReference();
+    g_pAM->Initialise(g_pImmediateContext);
     g_pImgui->Start();
     g_pRenderPlane = g_pOM->GetRenderPlane();
     g_pDR = new DeferredRenderer();
@@ -470,6 +472,7 @@ void Update() {
     lightProperties.GlobalAmbient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
     g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
     g_pOM->Update(dTime);
+    g_pAM->Update(dTime);
     g_pRenderPlane->Update(dTime);
 
     t = (dwTimeCur - dwTimeStart) / 1000.0f;
