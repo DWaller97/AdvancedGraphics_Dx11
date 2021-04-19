@@ -117,7 +117,7 @@ HRESULT GameObjectTerrain::InitMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContex
 		return hr;
 
 	ZeroMemory(&bd, sizeof(bd));
-	bd.Usage = D3D11_USAGE_DEFAULT;//D3D11_USAGE_DYNAMIC;
+	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(TesselationBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
@@ -304,11 +304,9 @@ void GameObjectTerrain::LoadHeightMap(char* _filePath)
 	// Copy the array data into a float array and scale it. mHeightmap.resize(heightmapHeight * heightmapWidth, 0);
 	for (int i = 0; i < m_terrainWidth * m_terrainLength; ++i)
 	{
-		m_heightMap.push_back((in[i] / 255.0f) * m_heightScale);
+		m_heightMap[i] = ((in[i] / 255.0f));
 	}
-	
-	NUM_VERTICES *= (m_terrainWidth * m_terrainLength);
-	NUM_INDICES *= ((m_terrainWidth - 1) * (m_terrainLength - 1));
+
 }
 
 void GameObjectTerrain::GenerateFlat(int _sizeX, int _sizeY)
@@ -328,8 +326,12 @@ void GameObjectTerrain::GenerateFlat(int _sizeX, int _sizeY)
 		for (int j = 0; j < m_terrainWidth; j++) {
 			float u = (float)i / m_terrainLength;
 			float v = (float)j / m_terrainWidth;
+			int x = m_position.x + (i * 10);
+			int y = m_position.y + (m_heightMap[ConvertTo1D(i, j)] * m_heightScale);
+			int z = m_position.z + (j * 10);
+
 			BasicVertex b;
-			b.pos = XMFLOAT3(i * 10, m_heightMap[ConvertTo1D(i, j)] * m_heightScale, j * 10);
+			b.pos = XMFLOAT3(x, y, z);
 			b.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
 			b.texCoord = XMFLOAT2(u, v);
 			m_vertices.push_back(b);
@@ -350,7 +352,7 @@ void GameObjectTerrain::GenerateFlat(int _sizeX, int _sizeY)
 
 }
 
-void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightScale, int _c1, int _c2, int _c3, int _c4)
+void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _c1, int _c2, int _c3, int _c4)
 {
 	_size += 1;
 	GenerateFlat(_size, _size);
@@ -365,7 +367,6 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _heightSc
 	if (_randomness == 0)
 		randomSize = _size / 2;
 
-	m_heightScale = _heightScale;
 	if (_c1 == 0 && _c2 == 0 && _c3 == 0 && _c4 == 0)
 	{
 		_c1 = rand() % -randomSize + randomSize;
@@ -454,7 +455,7 @@ void GameObjectTerrain::FaultLine(UINT _size, int _iterations, int _displacement
 	}
 }
 
-void GameObjectTerrain::HillAlgorithm(int _size, int _minRadius, int _maxRadius, int _iterations)
+void GameObjectTerrain::HillAlgorithm(int _size, int _minRadius, int _maxRadius, int _iterations, UINT _heightDimensions)
 {
 	GenerateFlat(_size, _size);
 
@@ -479,18 +480,17 @@ void GameObjectTerrain::HillAlgorithm(int _size, int _minRadius, int _maxRadius,
 				float height = ((radius * radius) - (((i - randomX) * (i - randomX)) + ((j - randomY) * (j - randomY))));
 				if (height < 0)
 					continue;
-				m_heightMap.at(ConvertTo1D(i, j)) += (height /* * height  * height*/); //Squaring or cubing this creates steeper hills.
+				m_heightMap.at(ConvertTo1D(i, j)) += ( _heightDimensions == 1 ? height : _heightDimensions == 2 ? height * height : height * height * height); //Squaring or cubing this creates steeper hills.
 			}
 		}
 	}
-	m_heightScale = 10;
 	Normalise();
 }
 
 void GameObjectTerrain::SetHeights()
 {
 	for (int i = 0; i < NUM_VERTICES; i++) {
-			m_vertices.at(i).pos.y = m_heightMap[i] * m_heightScale;
+			m_vertices[i].pos.y = m_position.y + (m_heightMap[i] * m_heightScale);
 	}
 }
 
@@ -501,17 +501,81 @@ void GameObjectTerrain::LoadFromXML(char* _filePath)
 	if (result.status != pugi::xml_parse_status::status_ok)
 	{
 		printf("Terrain file failed to open, error: %s", result.description());
+		return;
 	}
 	pugi::xml_node node = doc.first_child();
 	pugi::xml_attribute attr = node.first_attribute();
-	m_terrainLength = attr.as_uint();
+	m_position.x = attr.as_int();
 	attr = attr.next_attribute();
-	m_terrainWidth = attr.as_uint();
+	m_position.y = attr.as_int();
 	attr = attr.next_attribute();
-	LoadHeightMap((char*)attr.as_string());
+	m_position.z = attr.as_int();
 	attr = attr.next_attribute();
-	m_heightScale = attr.as_uint();
-
+	std::string terrainType = attr.as_string();
+	attr = attr.next_attribute();
+	if (terrainType == "Load") {
+		m_terrainLength = attr.as_uint();
+		attr = attr.next_attribute();
+		m_terrainWidth = attr.as_uint();
+		attr = attr.next_attribute();
+		m_heightScale = attr.as_uint();
+		attr = attr.next_attribute();
+		GenerateFlat(m_terrainWidth, m_terrainLength);
+		LoadHeightMap((char*)attr.as_string());
+		SetHeights();
+	}
+	else {
+		int seed = attr.as_int();
+		if (seed == 0)
+			seed = time(NULL);
+		srand(seed);
+		attr = attr.next_attribute();
+		m_terrainLength = attr.as_uint();
+		m_terrainWidth = m_terrainLength;
+		attr = attr.next_attribute();
+		m_heightScale = attr.as_uint();
+		attr = attr.next_attribute();
+		if (terrainType == "FaultLine") {
+			UINT iterations = attr.as_uint();
+			attr = attr.next_attribute();
+			int displacement = attr.as_int();
+			FaultLine(m_terrainLength, iterations, displacement);
+			attr = attr.next_attribute();
+		}
+		else if (terrainType == "Hill") {
+			UINT iterations = attr.as_uint();
+			attr = attr.next_attribute();
+			int minRadius = attr.as_int();
+			attr = attr.next_attribute();
+			int maxRadius = attr.as_int();
+			attr = attr.next_attribute();
+			int heightDimensions = attr.as_int();
+			if (heightDimensions < 0 || heightDimensions > 2)
+				heightDimensions = 0;
+			HillAlgorithm(m_terrainLength, minRadius, maxRadius, iterations, heightDimensions);
+			attr = attr.next_attribute();
+		}
+		else if (terrainType == "DiamondSquare") {
+			UINT randomness = attr.as_uint();
+			attr = attr.next_attribute();
+			int c1 = attr.as_int();
+			attr = attr.next_attribute();
+			int c2 = attr.as_int();
+			attr = attr.next_attribute();
+			int c3 = attr.as_int();
+			attr = attr.next_attribute();
+			int c4 = attr.as_int();
+			attr = attr.next_attribute();
+			DiamondSquare(m_terrainLength, randomness, c1, c2, c3, c4);
+			attr = attr.next_attribute();
+		}
+		bool smooth = attr.as_bool();
+		if (!smooth)
+			return;
+		attr.next_attribute();
+		UINT smoothIterations = attr.as_uint();
+		SmoothHeights(1, smoothIterations);
+	}
 }
 
 bool GameObjectTerrain::IsInBounds(int _1DPos, int _1DMax, int _1DMin)

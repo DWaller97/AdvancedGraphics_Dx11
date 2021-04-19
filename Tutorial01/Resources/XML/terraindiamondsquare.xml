@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+    <terrain
+		PositionX="10240"
+		PositionY="0"
+		PositionZ="0"
+		Algorithm="DiamondSquare"
+		Seed=""
+		Size="512"
+		HeightMapScale="1000"
+		Randomness=""
+		CornerHeight1="4"
+		CornerHeight2="5"
+		CornerHeight3="3"
+		CornerHeight4="4"
+		Smooth="1"
+		SmoothIterations="1"
+		>
+    </terrain>
+    

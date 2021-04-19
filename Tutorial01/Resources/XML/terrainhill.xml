@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+    <terrain
+		PositionX="0"
+		PositionY="0"
+		PositionZ="0"
+		Algorithm="Hill"
+		Seed=""
+		Size="512"
+		HeightMapScale="10"
+		Iterations="128"
+		MinRadius="50"
+		MaxRadius="8"
+		HeightDimensions="2"
+		Smooth="0"
+		>
+    </terrain>
+    

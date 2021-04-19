@@ -29,9 +29,9 @@ public:
     void LoadHeightMap(char* _filePath);
 
 
-    void DiamondSquare(UINT _size, int _randomness = 0, int _heightScale = 1, int _c1 = 0, int _c2 = 0, int _c3 = 0, int _c4 = 0);
+    void DiamondSquare(UINT _size, int _randomness = 0, int _c1 = 0, int _c2 = 0, int _c3 = 0, int _c4 = 0);
     void FaultLine(UINT _size, int _iterations = 10, int _displacement = 16);
-    void HillAlgorithm(int _size, int _minRadius, int _maxRadius, int _iterations);
+    void HillAlgorithm(int _size, int _minRadius, int _maxRadius, int _iterations, UINT _heightDimensions);
     void SmoothHeights(int _boxSize, int _iterations);
 
     int GetSeed() { return m_seed; }

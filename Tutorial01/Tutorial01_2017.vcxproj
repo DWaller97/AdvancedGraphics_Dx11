@@ -55,6 +55,7 @@
     <ClCompile Include="Resources\Code\Utilities\DDSTextureLoader.cpp" />
     <ClCompile Include="Resources\Code\Utilities\OBJLoader.cpp" />
     <ClCompile Include="Resources\Code\Utilities\Time.cpp" />
+    <ClCompile Include="TerrainLoad.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resources\Code\Managers\AnimationManager.h" />
@@ -92,6 +93,7 @@
     <ClInclude Include="Resources\Code\Utilities\Resource.h" />
     <ClInclude Include="Resources\Code\Utilities\structures.h" />
     <ClInclude Include="Resources\Code\Utilities\Time.h" />
+    <ClInclude Include="TerrainLoad.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Resources\Code\External\imgui\LICENSE.txt" />
@@ -272,7 +274,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>

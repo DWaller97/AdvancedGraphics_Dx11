@@ -31,62 +31,60 @@ ObjectManager::~ObjectManager()
 
 void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _deviceContext)
 {
-    GameObjectCube* cube, *cube2;
-    GameObjectBezierSpline* line;
+    //GameObjectCube* cube, *cube2;
 
-    cube = new GameObjectCube();
-    cube->InitMesh(_device, _deviceContext);
-    cube->SetShaders(ShaderManager::shaderStandard);
-    cube->SetPosition(XMFLOAT3(0, 0, 0));
+    //cube = new GameObjectCube();
+    //cube->InitMesh(_device, _deviceContext);
+    //cube->SetShaders(ShaderManager::shaderStandard);
+    //cube->SetPosition(XMFLOAT3(0, 0, 0));
 
-    cube2 = new GameObjectCube();
-    cube2->SetShaders(ShaderManager::shaderStandard);
-    cube2->SetPosition(XMFLOAT3(5, 0, 0));
-    cube2->InitMesh(_device, _deviceContext);
+    //cube2 = new GameObjectCube();
+    //cube2->SetShaders(ShaderManager::shaderStandard);
+    //cube2->SetPosition(XMFLOAT3(5, 0, 0));
+    //cube2->InitMesh(_device, _deviceContext);
 
     m_renderPlane = new GameObjectPlane();
     m_renderPlane->InitMesh(_device, _deviceContext);
     m_renderPlane->SetShaders(ShaderManager::shaderRTT);
     m_renderPlane->SetPosition(XMFLOAT3(0, 0, 0));
 
-    //m_terrain = new GameObjectTerrain();
-    //m_terrain3D = new GameObjectTerrainVoxels((char*)"Resources\\XML\\terrain3d.xml");
-    //m_terrain3D->SetShaders(ShaderManager::shaderBasic);
-    //m_terrain3D->InitMesh(_device, _deviceContext);
-    //Loads terrain from XML file, grabbing the path for the terrain raw file and loads it that way.
-    //m_terrain = new GameObjectTerrain((char*)"Resources\\XML\\terrain.xml");
-    //
-    //m_terrain->DiamondSquare(512, 512);
-    //m_terrain->SetHeightmapScale(1000);
-    //m_terrain->SmoothHeights(1, 1);
+    GameObjectTerrain* terrainLoad = new GameObjectTerrain((char*)"Resources\\XML\\terrainload.xml");
+    terrainLoad->InitMesh(_device, _deviceContext);
+    terrainLoad->SetShaders(ShaderManager::shaderTerrain);
+    m_objects.push_back(terrainLoad);
 
-    //I think this gives the best results, if lowering the size of the map, also lower the height modifier (at the end of the HillAlgorithm function), to about 1
-    //m_terrain->HillAlgorithm(1024, 50, 60, 300);
-    //m_terrain->SetHeightmapScale(10);
-    
-    //m_terrain->HillAlgorithm(512, 50, 8, 64);
+    GameObjectTerrain* terrainHill = new GameObjectTerrain((char*)"Resources\\XML\\terrainhill.xml");
+    terrainHill->InitMesh(_device, _deviceContext);
+    terrainHill->SetShaders(ShaderManager::shaderTerrain);
+    m_objects.push_back(terrainHill);
 
-    //I thought using a constant displacement value looked much better, however, it looks very blocky overrall.
-    //m_terrain->FaultLine(2048, 600, 1);
-    //m_terrain->FaultLine(512, 100, 1);
-    ////
-    //m_terrain->InitMesh(_device, _deviceContext);
-    //m_terrain->SetShaders(ShaderManager::shaderTerrain);
-    //m_deferredObjects.push_back(m_terrain);
+    GameObjectTerrain* terrainFaultLine = new GameObjectTerrain((char*)"Resources\\XML\\terrainfaultline.xml");
+    terrainFaultLine->InitMesh(_device, _deviceContext);
+    terrainFaultLine->SetShaders(ShaderManager::shaderTerrain);
+    m_objects.push_back(terrainFaultLine);
+
+    GameObjectTerrain* terrainDiamondSquare = new GameObjectTerrain((char*)"Resources\\XML\\terraindiamondsquare.xml");
+    terrainDiamondSquare->InitMesh(_device, _deviceContext);
+    terrainDiamondSquare->SetShaders(ShaderManager::shaderTerrain);
+    m_objects.push_back(terrainDiamondSquare);
 
     m_md5 = new GameObjectMD5((char*)"skeleton", _device);
     m_md5->InitMesh(_device, _deviceContext);
-
     AnimationManager::GetReference()->AddModels(m_md5->GetModel(), 1);
-
     m_objects.push_back(m_md5);
-    for (int i = 0; i < 10; i++) {
-        GameObjectCube* o = new GameObjectCube();
-        o->InitMesh(_device, _deviceContext);
-        o->SetShaders(ShaderManager::shaderDAlbedo);
-        o->SetPosition(XMFLOAT3(-10 + i + (i * 2), 0, 0));
-        m_deferredObjects.push_back(o);
-    }
+
+    //GameObjectTerrainVoxels* terrain3D = new GameObjectTerrainVoxels((char*)"Resources\\XML\\terrain3d.xml");
+    //terrain3D->InitMesh(_device, _deviceContext);
+    //m_objects.push_back(terrain3D);
+
+    //Old deferred stuff
+    //for (int i = 0; i < 10; i++) {
+    //    GameObjectCube* o = new GameObjectCube();
+    //    o->InitMesh(_device, _deviceContext);
+    //    o->SetShaders(ShaderManager::shaderDAlbedo);
+    //    o->SetPosition(XMFLOAT3(-10 + i + (i * 2), 0, 0));
+    //    m_deferredObjects.push_back(o);
+    //}
 
     //m_objects.push_back(m_terrain3D);
 
@@ -136,11 +134,13 @@ void ObjectManager::Render(ID3D11DeviceContext* _deviceContext, ID3D11Buffer* _l
 {
     //_deviceContext->RSSetState(m_rasteriserWF);
     //m_terrain->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
-    _deviceContext->RSSetState(m_rasteriserSolid);
     //m_terrain3D->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
 
 
     for (int i = 0; i < m_objects.size(); i++) {
+            _deviceContext->RSSetState(m_rasteriserWF);
         m_objects.at(i)->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
     }
+    _deviceContext->RSSetState(m_rasteriserSolid);
+
 }

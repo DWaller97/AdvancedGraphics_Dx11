@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+    <terrain
+		PositionX="-5130"
+		PositionY="0"
+		PositionZ="0"
+		Algorithm="Load"
+		TerrainLength="513"
+		TerrainWidth="513"
+		HeightMapScale="1000"
+		HeightMapPath="Resources\\Textures\\coastMountain513.raw">
+    </terrain>
+    

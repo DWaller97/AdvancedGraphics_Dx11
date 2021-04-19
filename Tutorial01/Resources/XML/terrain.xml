@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-    <terrain
-		TerrainLength="513"
-		TerrainWidth="513"
-		HeightMapPath="Resources\\Textures\\coastMountain513.raw"
-        HeightMapScale="10">
-    </terrain>
-    

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+    <terrain
+		PositionX="5120"
+		PositionY=""
+		PositionZ=""
+		Algorithm="FaultLine"
+		Seed=""
+		Size="512"
+		HeightMapScale="1000"
+		Iterations="100"
+		Displacement="1"
+		Smooth="1"
+		SmoothIterations="4"
+		>
+    </terrain>
+    
