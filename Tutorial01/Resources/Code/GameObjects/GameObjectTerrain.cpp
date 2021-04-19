@@ -196,7 +196,13 @@ void GameObjectTerrain::Update(float t)
 
 
 
-
+	/*********************************************************************************************************
+	* MARKING SCHEME 2021
+	* CATEGORY: TESSELLATION SHADERS WITH LEVEL OF DETAIL
+	* DESCRIPTION: The tessellation values are set here in the update, based on the heigh difference 
+	* between the current camera's position and the terrain's height map
+	* [Part 1]
+	* *******************************************************************************************************/
 	//SetTessellationAmount(result);
 	if (heightDiff <= -1) {
 		SetTessellationAmount(1);
@@ -229,6 +235,13 @@ void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightC
 	cb1.mProjection = XMMatrixTranspose(XMLoadFloat4x4(projMat));
 	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
 	pContext->UpdateSubresource(m_constantBuffer, 0, nullptr, &cb1, 0, 0);
+
+	/*********************************************************************************************************
+	* MARKING SCHEME 2021
+	* CATEGORY: TESSELLATION SHADERS WITH LEVEL OF DETAIL
+	* DESCRIPTION: Tessellation data is stored in a struct and sent to the hull shader
+	* [Part 2]
+	* *******************************************************************************************************/
 
 	TesselationBuffer tb;
 	tb.tessAmount = *m_tessAmount;
@@ -278,6 +291,14 @@ void GameObjectTerrain::SetHeightmapScale(int _scale)
 	m_heightScale = _scale;
 }
 
+/*********************************************************************************************************
+* MARKING SCHEME 2021
+* CATEGORY: TERRAIN CONSTRUCTION
+* DESCRIPTION: Heightmap is loaded here by looping through the file, grabbing each byte, then 
+* converting each byte to a float, then storing this in a vector for me to change the vertex at each
+* positions' height
+* [Part 3]
+* *******************************************************************************************************/
 void GameObjectTerrain::LoadHeightMap(char* _filePath)
 {
 	// A height for each vertex 
@@ -346,6 +367,20 @@ void GameObjectTerrain::GenerateFlat(int _sizeX, int _sizeY)
 	}
 
 }
+
+/*********************************************************************************************************
+* MARKING SCHEME 2021
+* CATEGORY: PROCEDURAL TERRAIN GENERATION
+* DESCRIPTION: Diamond Square. 4 points are either randomly generated or inputted which are the
+* initial points of the terrain's height, the algorithm then averages these 4 points and then stores the
+* result, including a random number, in the point in the middle of the terrain. 
+* From then, it does the same but in a "diamond" shape, as opposed to the corners. It continues
+* iterating through each point switching between diamond and square mode, reducing the random
+* range  and the step size until it finishes.
+* I then smooth the terrain by iterating through each point and the surrounding 8 points and 
+* averaging their heights. It makes the terrain much less "spikey"
+* [Part 1]
+* *******************************************************************************************************/
 
 void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _c1, int _c2, int _c3, int _c4)
 {
@@ -419,6 +454,17 @@ void GameObjectTerrain::DiamondSquare(UINT _size, int _randomness, int _c1, int 
 
 }
 
+/*********************************************************************************************************
+* MARKING SCHEME 2021
+* CATEGORY: PROCEDURAL TERRAIN GENERATION
+* DESCRIPTION: Fault Line. This algorithm works by creating a "line" in the terrain from one side to
+* the other, increasing one side of the line by a displacement value and reducing the other side by
+* the same displacement value. It will then run multiple times (_iteration parameter) each time 
+* creating a new line. I tried decreasing the displacement over time but I preferred the look of a 
+* constant displacement so left it as is. Smoothing is used to make the slopes seem more natural.
+* [Part 2]
+* *******************************************************************************************************/
+
 void GameObjectTerrain::FaultLine(UINT _size, int _iterations, int _displacement)
 {
 	GenerateFlat(_size, _size);
@@ -449,6 +495,19 @@ void GameObjectTerrain::FaultLine(UINT _size, int _iterations, int _displacement
 
 	}
 }
+
+/*********************************************************************************************************
+* MARKING SCHEME 2021
+* CATEGORY: PROCEDURAL TERRAIN GENERATION
+* DESCRIPTION: Hill Algorithm. This works by creating a circular shape of points in the terrain based
+* on a minimum and maximum radius. It loops through the provided iteration count and generates
+* this circle before calculating the height based on the current radius and the distance from the
+* point and this radius, which creates a semi-sphere shape. Each iteration, the radius is randomly
+* generated based on the parameters. When adding the point to the list of heights, it can be passed
+* as just the height, the height squared, or the height cubed. Using squared or cubed values 
+* makes the slope size larger and can make near-sheer cliffs and valleys.
+* [Part 3]
+* *******************************************************************************************************/
 
 void GameObjectTerrain::HillAlgorithm(int _size, int _minRadius, int _maxRadius, int _iterations, UINT _heightDimensions)
 {
@@ -508,6 +567,13 @@ void GameObjectTerrain::LoadFromXML(char* _filePath)
 	attr = attr.next_attribute();
 	std::string terrainType = attr.as_string();
 	attr = attr.next_attribute();
+	/*********************************************************************************************************
+	* MARKING SCHEME 2021
+	* CATEGORY: TERRAIN CONSTRUCTION
+	* DESCRIPTION: Using Pugi, I load in details such as terrain width, length, and scale, as well as a file
+	* path leading to a .raw file of the terrain heightmap.
+	* [Part 2]
+	* *******************************************************************************************************/
 	if (terrainType == "Load") {
 		m_terrainLength = attr.as_uint();
 		attr = attr.next_attribute();

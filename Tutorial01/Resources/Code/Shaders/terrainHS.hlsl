@@ -27,6 +27,16 @@ PatchOUT CalcHSPatchConstants(
 	uint PatchID : SV_PrimitiveID)
 {
 	PatchOUT output = (PatchOUT)0;
+	/*********************************************************************************************************
+	* MARKING SCHEME 2021
+	* CATEGORY: TESSELLATION SHADERS WITH LEVEL OF DETAIL
+	* DESCRIPTION: The tessellation factor is set here, all as the same value for the shader to input into 
+	* the main function to generate tessellated geometry. This can be demonstrated by flying the
+	* camera over the terrain as you spawn (since it's based on camera position, it doesn't account for
+	* moved terrain objects.) You'll see the terrain geometry get more detailed as the camera moves 
+	* down closer.
+	* [Part 3]
+	* *******************************************************************************************************/
 	output.EdgeTessFactor[0] = TessAmount;
 	output.EdgeTessFactor[1] = TessAmount;
 	output.EdgeTessFactor[2] = TessAmount;

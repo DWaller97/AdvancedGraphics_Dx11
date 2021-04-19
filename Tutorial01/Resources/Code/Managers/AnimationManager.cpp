@@ -22,6 +22,21 @@ void AnimationManager::Initialise(ID3D11DeviceContext* _context)
     m_deviceContext = _context;
 }
 
+/*********************************************************************************************************
+* MARKING SCHEME 2021
+* CATEGORY: WALKING ANIMATION
+* DESCRIPTION: The animation is "animated" here. Every update, each animation stored within the
+* list of models provided is iterated over, with the specific frame of animation calculated based on
+* the delta time and the current frame. It then iterates through each joint/bone within this model's
+* animation and changes the orientation and position of the joint/bone based on the position in the
+* hierarchy, the previous joint/bone's position and orientation, as well as the current frame's position
+* and orientation. It then moves the vertices of the mesh based on the bone/joint orientation and
+* the weighting. Afterwards it stores this information in the subset's vertex buffer to be drawn later.
+* Normals were not implemented due to time constraints, especially considering my model and 
+* animation's limited visual appeal.
+* [Part 2]
+* *******************************************************************************************************/
+
 void AnimationManager::Update(float _deltaTime)
 {
     for (int i = 0; i < m_models.size(); i++) {

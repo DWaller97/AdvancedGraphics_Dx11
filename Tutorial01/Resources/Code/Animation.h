@@ -5,6 +5,27 @@
 #include <string>
 #include "Utilities\structures.h"
 using namespace DirectX;
+/*********************************************************************************************************
+* MARKING SCHEME 2021
+* CATEGORY: HUMAN SKELETAL STRUCTURE
+* DESCRIPTION: The skeleton is made up of many parts which are represented here as structs.
+* At the top of the hierarchy is the model which contains a list of joints/bones, model subset, 
+* animations, as well as the current animation index and total numbers of the other variables.
+* Below that are the model subsets which contain the vertices, indices, weights, positions, and their
+* buffers. These are iterated through and drawn to the screen as their own objects. The joints/bones
+* themselves contain the name given by the modelling program as well as its position, orientation,
+* and parentID, which determines the hierarchy order.
+* The animations themselves are separated into their own structure to allow for multiple animations
+* per single model and contains higher level information for the specific animation such as the
+* framerate it runs at, the amount of frames total, as well as the current animation time. Other
+* information for  the animation such as the base joints/bones (which are the bones that all of the
+* other joints/bones are based on) and the skeleton which is a 2d array of bones to represent each
+* part of the animation is contained here.
+* The structs between the mesh data and the animation data are different which is why there are 
+* so many here (An .md5 file comes in two parts, one being .md5mesh and the other 
+* .md5anim)
+* [Part 1]
+* *******************************************************************************************************/
 class Animation
 {
 public:

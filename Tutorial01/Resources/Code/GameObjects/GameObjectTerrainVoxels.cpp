@@ -110,7 +110,7 @@ void GameObjectTerrainVoxels::LoadFromXML(char* _filePath)
 	attr = attr.next_attribute();
 	m_terrainDepth = attr.as_uint();
 }
-
+//Unfinished and unused.
 void GameObjectTerrainVoxels::GeneratePerlinNoise(int _sizeX, int _sizeY, int _sizeZ)
 {
 	vector<float> noise;
@@ -150,6 +150,19 @@ void GameObjectTerrainVoxels::GeneratePerlinNoise(int _sizeX, int _sizeY, int _s
 	}
 
 }
+
+/*********************************************************************************************************
+* MARKING SCHEME 2021
+* CATEGORY: ADVANCED TERRAIN GENERATION
+* DESCRIPTION: After grabbing info about sizes from XML file, I loop through the size of the terrain
+* in 3-dimensions, picking a random number and assigning it to a vector based on my VoxelType
+* struct, this determines whether it's a solid block or not. If a block is not solid, I will reduce the
+* amount of vertices and indices when going through the main loop to generate the cubes and 
+* continue on to the next iteration of the loop. These gaps will become "caves" and "overhangs"
+* (This isn't fully implemented and is just a random number picking the gaps rather than actual
+* terrain generation.)
+* [Part 2]
+* *******************************************************************************************************/
 
 void GameObjectTerrainVoxels::GenerateFlat3D(int _sizeX, int _sizeY, int _sizeZ)
 {

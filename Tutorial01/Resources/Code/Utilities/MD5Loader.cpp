@@ -1,5 +1,17 @@
 #include "MD5Loader.h"
 
+/*********************************************************************************************************
+* MARKING SCHEME 2021
+* CATEGORY: LOADING A HUMANOID CHARACTER
+* DESCRIPTION: Character is loaded here which goes through the .md5mesh file, retrieving details
+* such as vertices, indices, joints/bones, and weights. It does this by checking for the specific words
+* which indicate that the following values are going to be of a certain type, it then loops until the 
+* it reaches the end of this section, then does the same for the next section and so on, filling in
+* the data as it reaches it. It outputs the data in a model which is passed in as an argument as a
+* pointer.
+* [Part 1]
+* *******************************************************************************************************/
+
 HRESULT MD5Loader::LoadMesh(char* _filePath, Animation::Model* _modelOutput, ID3D11Device* _device)
 {
     HRESULT hr = S_OK;
@@ -130,6 +142,19 @@ HRESULT MD5Loader::LoadMesh(char* _filePath, Animation::Model* _modelOutput, ID3
     }
     return hr;
 }
+
+/*********************************************************************************************************
+* MARKING SCHEME 2021
+* CATEGORY: WALKING ANIMATION
+* DESCRIPTION: The animation is loaded here, this code just goes through each line of the .md5anim
+* file and loops through each section to retrieve data on the bones, hierarchy, bones, all the data for
+* every single frame of the animation (which is essentially just the difference between the base
+* joints/bones and the the current frame, which is interpolated between based on the framerate,
+* the weights, orientations, etc.) 
+* To see the animation rendered in-game, you'll need to comment out the advanced terrain 
+* generation code.
+* [Part 1]
+* *******************************************************************************************************/
 
 HRESULT MD5Loader::LoadAnimation(char* _filePath, Animation::Model* _modelOutput, ID3D11Device* _device)
 {

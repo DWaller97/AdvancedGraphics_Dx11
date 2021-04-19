@@ -29,7 +29,6 @@
     <ClCompile Include="Resources\Code\Utilities\MD5Loader.cpp" />
     <ClCompile Include="Resources\Code\GameObjects\GameObjectMD5.cpp" />
     <ClCompile Include="Resources\Code\Managers\AnimationManager.cpp" />
-    <ClCompile Include="TerrainLoad.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resources\Code\GameObjects\GameObject.h" />
@@ -67,7 +66,6 @@
     <ClInclude Include="Resources\Code\Animation.h" />
     <ClInclude Include="Resources\Code\GameObjects\GameObjectMD5.h" />
     <ClInclude Include="Resources\Code\Managers\AnimationManager.h" />
-    <ClInclude Include="TerrainLoad.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Resources\Code\External\imgui\LICENSE.txt" />

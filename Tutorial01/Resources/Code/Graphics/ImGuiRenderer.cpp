@@ -112,11 +112,11 @@ void ImGuiRenderer::Render()
             ImGui::Text("Object %d", i);
             ImGui::Indent();
             ImGui::Text("Position X");
-            ImGui::SliderFloat(finalX, &currObj->m_position.x, -15, 15);
+            ImGui::SliderFloat(finalX, &currObj->m_position.x, -1500, 1500);
             ImGui::Text("Position Y");
-            ImGui::SliderFloat(finalY, &currObj->m_position.y, -15, 15);
+            ImGui::SliderFloat(finalY, &currObj->m_position.y, -1500, 1500);
             ImGui::Text("Position Z");
-            ImGui::SliderFloat(finalZ, &currObj->m_position.z, -15, 15);
+            ImGui::SliderFloat(finalZ, &currObj->m_position.z, -1500, 1500);
             ImGui::Unindent();
         }
         ImGui::End();

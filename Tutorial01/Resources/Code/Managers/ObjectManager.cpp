@@ -48,6 +48,12 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     m_renderPlane->SetShaders(ShaderManager::shaderRTT);
     m_renderPlane->SetPosition(XMFLOAT3(0, 0, 0));
 
+    /*********************************************************************************************************
+    * MARKING SCHEME 2021
+    * CATEGORY: TERRAIN CONSTRUCTION
+    * DESCRIPTION: This object is created with the parameter containing a file path to an XML file.
+    * [Part 1]
+    * *******************************************************************************************************/
     GameObjectTerrain* terrainLoad = new GameObjectTerrain((char*)"Resources\\XML\\terrainload.xml");
     terrainLoad->InitMesh(_device, _deviceContext);
     terrainLoad->SetShaders(ShaderManager::shaderTerrain);
@@ -76,6 +82,14 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     AnimationManager::GetReference()->AddModels(m_md5->GetModel(), 1);
     m_objects.push_back(m_md5);
 
+
+    /*********************************************************************************************************
+    * MARKING SCHEME 2021
+    * CATEGORY: ADVANCED TERRAIN GENERATION
+    * DESCRIPTION: This object, like the others loads from an XML file which is passed in its constructor
+    * move object 5 to see the animation underneath.
+    * [Part 1]
+    * *******************************************************************************************************/
     GameObjectTerrainVoxels* terrain3D = new GameObjectTerrainVoxels((char*)"Resources\\XML\\terrain3d.xml");
     terrain3D->SetPosition(XMFLOAT3(-10, 0, 0));
     terrain3D->InitMesh(_device, _deviceContext);
