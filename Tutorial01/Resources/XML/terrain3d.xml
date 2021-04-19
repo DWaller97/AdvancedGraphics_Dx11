@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
     <terrain
-		TerrainLength="16"
-		TerrainWidth="16"
-		TerrainDepth="256"
+		TerrainLength="256"
+		TerrainWidth="256"
+		TerrainDepth="32">
     </terrain>
     

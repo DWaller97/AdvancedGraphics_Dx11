@@ -51,12 +51,14 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     GameObjectTerrain* terrainLoad = new GameObjectTerrain((char*)"Resources\\XML\\terrainload.xml");
     terrainLoad->InitMesh(_device, _deviceContext);
     terrainLoad->SetShaders(ShaderManager::shaderTerrain);
-    m_objects.push_back(terrainLoad);
 
     GameObjectTerrain* terrainHill = new GameObjectTerrain((char*)"Resources\\XML\\terrainhill.xml");
     terrainHill->InitMesh(_device, _deviceContext);
     terrainHill->SetShaders(ShaderManager::shaderTerrain);
     m_objects.push_back(terrainHill);
+
+    m_objects.push_back(terrainLoad);
+
 
     GameObjectTerrain* terrainFaultLine = new GameObjectTerrain((char*)"Resources\\XML\\terrainfaultline.xml");
     terrainFaultLine->InitMesh(_device, _deviceContext);
@@ -69,13 +71,16 @@ void ObjectManager::CreateObjects(ID3D11Device* _device, ID3D11DeviceContext* _d
     m_objects.push_back(terrainDiamondSquare);
 
     m_md5 = new GameObjectMD5((char*)"skeleton", _device);
+    m_md5->SetPosition(XMFLOAT3(50, 0, 0));
     m_md5->InitMesh(_device, _deviceContext);
     AnimationManager::GetReference()->AddModels(m_md5->GetModel(), 1);
     m_objects.push_back(m_md5);
 
-    //GameObjectTerrainVoxels* terrain3D = new GameObjectTerrainVoxels((char*)"Resources\\XML\\terrain3d.xml");
-    //terrain3D->InitMesh(_device, _deviceContext);
-    //m_objects.push_back(terrain3D);
+    GameObjectTerrainVoxels* terrain3D = new GameObjectTerrainVoxels((char*)"Resources\\XML\\terrain3d.xml");
+    terrain3D->SetPosition(XMFLOAT3(-10, 0, 0));
+    terrain3D->InitMesh(_device, _deviceContext);
+    terrain3D->SetShaders(ShaderManager::shaderBasic);
+    m_objects.push_back(terrain3D);
 
     //Old deferred stuff
     //for (int i = 0; i < 10; i++) {
@@ -136,11 +141,11 @@ void ObjectManager::Render(ID3D11DeviceContext* _deviceContext, ID3D11Buffer* _l
     //m_terrain->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
     //m_terrain3D->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
 
+    _deviceContext->RSSetState(m_rasteriserWF);
 
     for (int i = 0; i < m_objects.size(); i++) {
-            _deviceContext->RSSetState(m_rasteriserWF);
         m_objects.at(i)->Draw(_deviceContext, _lightBuffer, _projMat, _viewMat);
+        _deviceContext->RSSetState(m_rasteriserSolid);
     }
-    _deviceContext->RSSetState(m_rasteriserSolid);
 
 }

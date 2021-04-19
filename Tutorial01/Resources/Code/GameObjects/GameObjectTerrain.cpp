@@ -198,28 +198,23 @@ void GameObjectTerrain::Update(float t)
 
 
 	//SetTessellationAmount(result);
-	if (heightDiff <= -5) {
+	if (heightDiff <= -1) {
 		SetTessellationAmount(1);
 		return;
 	}
-	if (heightDiff > -5 && heightDiff <= 0) {
-		SetTessellationAmount(2);
-		return;
-	}
-	if (heightDiff <= 10) {
+	if (heightDiff <= 0.2f) {
 		SetTessellationAmount(4);
 		return;
 	}
-	if (heightDiff <= 20) {
+	if (heightDiff <= 0.5f) {
+		SetTessellationAmount(3);
+		return;
+	}
+	if (heightDiff <= 0.75f) {
 		SetTessellationAmount(2);
 		return;
 	}
-	if (heightDiff > 20)
-	{
-		SetTessellationAmount(1);
-		return;
-	}
-
+	SetTessellationAmount(1);
 }
 
 void GameObjectTerrain::Draw(ID3D11DeviceContext* pContext, ID3D11Buffer* lightConstantBuffer, XMFLOAT4X4* projMat, XMFLOAT4X4* viewMat)

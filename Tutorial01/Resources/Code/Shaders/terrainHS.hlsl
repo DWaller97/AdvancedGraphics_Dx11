@@ -48,7 +48,6 @@ HSIN main(
 {
 	HSIN output = (HSIN)0;
 
-	// Insert code to compute Output here
 	output.Pos = ip[i].Pos;
 	output.Norm = ip[i].Norm;
 	output.Tex = ip[i].Tex;

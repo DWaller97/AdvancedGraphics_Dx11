@@ -161,25 +161,23 @@ void GameObjectTerrainVoxels::GenerateFlat3D(int _sizeX, int _sizeY, int _sizeZ)
 	//m_terrainDepth = _sizeZ;
 
 
-	m_terrainLength = 256;
-	m_terrainDepth = 32;
-	m_terrainWidth = 256;
-	GeneratePerlinNoise(m_terrainLength, m_terrainDepth, m_terrainWidth);
+	//m_terrainLength = 256;
+	//m_terrainDepth = 32;
+	//m_terrainWidth = 256;
+	//GeneratePerlinNoise(m_terrainLength, m_terrainDepth, m_terrainWidth);
 	int totalSize = _sizeX * _sizeY *_sizeZ;
-	NUM_VERTICES = 36 * (m_terrainWidth * m_terrainLength * m_terrainDepth);
-	NUM_INDICES = 36 * ((m_terrainWidth) * (m_terrainLength ) * m_terrainDepth);
+	NUM_VERTICES = 36 * totalSize;
+	NUM_INDICES = 36 * totalSize;
 
 	for (int i = 0; i < m_terrainLength; i++) {
 		for (int j = 0; j < m_terrainDepth; j++) {
 			for (int k = 0; k < m_terrainWidth; k++) {
 				VoxelType v;
-				UINT n = (rand() % 3);
-				if (n == 0)
+				UINT n = (rand() % 100 + 1);
+				if (n <= 90)
 					v = VoxelType::AIR;
-				if (n == 1)
+				if (n > 90)
 					v = VoxelType::SOLID;
-				if (n == 2)
-					v = VoxelType::WATER;
 				m_voxels.push_back(v);
 			}
 		}
@@ -190,12 +188,12 @@ void GameObjectTerrainVoxels::GenerateFlat3D(int _sizeX, int _sizeY, int _sizeZ)
 	for (int i = 0; i < m_terrainLength; i++) {
 		for (int j = 0; j < m_terrainDepth; j++) {
 			for (int k = 0; k < m_terrainWidth; k++) {
-				//if (m_heightMap[/*(m_terrainDepth * m_terrainWidth * i) +*/ (m_terrainWidth * j) + k] <= 4) {
-				//	NUM_INDICES -= 36;
-				//	NUM_VERTICES -= 36;
-				//	continue;
+				if (m_voxels[(m_terrainDepth * m_terrainWidth * i) + (m_terrainWidth * j) + k] != VoxelType::SOLID) {
+					NUM_INDICES -= 36;
+					NUM_VERTICES -= 36;
+					continue;
 
-				//}
+				}
 				m_vertices.insert(m_vertices.end(),
 					{
 						// front
